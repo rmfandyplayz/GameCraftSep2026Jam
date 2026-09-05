@@ -3,7 +3,7 @@
 //
 // AI-GENERATED. Authored by Claude (Anthropic) via Claude Code, September 2026,
 // to a written design brief by the project author. Not hand-written by the
-// Twindrill Goose team. See Assets/Scripts/UI/Utility/README.md for usage.
+// Twindrill Goose team. See the README.md beside this file for usage.
 // -----------------------------------------------------------------------------
 
 using System;
@@ -204,10 +204,33 @@ public class UIAnimationStep
     [NonSerialized] private int shaderPropertyId;
     [NonSerialized] private bool shaderPropertyValid;
 
-    /// <summary>Time this step occupies, used to lay out Append/Join positions.</summary>
+    /// <summary>How long the tween itself runs. Zero for instant steps.</summary>
+    public float TweenDuration
+    {
+        get { return IsInstant(Type) ? 0f : Mathf.Max(0f, Duration); }
+    }
+
+    /// <summary>Time this step occupies from its group's start, delay included.</summary>
     public float TotalDuration
     {
-        get { return IsInstant(Type) ? Delay : Delay + Mathf.Max(0f, Duration); }
+        get { return Delay + TweenDuration; }
+    }
+
+    /// <summary>
+    /// True when the step is a DOTween relative tween - no FROM, and a TO that is an offset
+    /// from wherever the value happens to be.
+    /// </summary>
+    private bool IsRelative
+    {
+        get { return !UseFrom && ToMode == UIAnimationEndpointMode.Current; }
+    }
+
+    /// <summary>
+    /// True when the step declares where it starts, i.e. when it has a usable FROM.
+    /// </summary>
+    private bool HasAuthoredStart
+    {
+        get { return UseFrom && !IsImpulse(Type) && FromMode != UIAnimationEndpointMode.Current; }
     }
 
     /// <summary>
@@ -364,10 +387,10 @@ public class UIAnimationStep
         }
     }
 
-    /// <summary>Writes this step FROM value straight to the target, without playing anything.</summary>
+    /// <summary>Writes this step's FROM value straight to the target, without playing anything.</summary>
     public void ApplyFromValue()
     {
-        if (!UseFrom || IsImpulse(Type) || FromMode == UIAnimationEndpointMode.Current) return;
+        if (!HasAuthoredStart) return;
 
         switch (Type)
         {
@@ -415,9 +438,11 @@ public class UIAnimationStep
     }
 
     /// <summary>
-    /// Builds a fully configured tween. Everything (From/Ease/Delay/Relative) is applied
-    /// HERE, before the caller hands it to Append/Join - DOTween silently ignores those
-    /// calls once a tween has been inserted into a Sequence.
+    /// Builds a fully configured tween. Everything (From/Ease/Relative) is applied HERE,
+    /// before the caller hands it to the Sequence - DOTween silently ignores those calls
+    /// once a tween has been inserted into one. Delay is deliberately NOT applied: the
+    /// player positions every tween explicitly, and DOTween adds a tween's delay on top of
+    /// its insert position rather than instead of it.
     /// Returns null for instant steps (the player turns those into a callback) and for
     /// steps whose target is missing.
     /// </summary>
@@ -426,8 +451,8 @@ public class UIAnimationStep
         if (IsInstant(Type)) return null;
         if (!HasTarget(context)) return null;
 
-        bool relative = !UseFrom && ToMode == UIAnimationEndpointMode.Current;
-        bool useFrom = UseFrom && !IsImpulse(Type) && FromMode != UIAnimationEndpointMode.Current;
+        bool useFrom = HasAuthoredStart;
+        bool relative = IsRelative;
         Tween tween;
 
         switch (Type)
@@ -536,7 +561,6 @@ public class UIAnimationStep
             else tween.SetEase(EaseType);
         }
 
-        if (Delay > 0f) tween.SetDelay(Delay);
         return tween;
     }
 
