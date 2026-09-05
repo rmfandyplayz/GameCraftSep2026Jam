@@ -285,6 +285,7 @@ MonoBehaviour:
       GraphicTarget: {fileID: 0}
       MaterialTarget: {fileID: 487012464}
       ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
       Duration: 1
       Delay: 0
       EaseType: 27
@@ -324,6 +325,65 @@ MonoBehaviour:
       ToColor: {r: 1, g: 0, b: 0, a: 1}
       ShaderProperty: _Color
       ActiveValue: 0
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+    - Type: 4
+      Start: 0
+      RectTarget: {fileID: 0}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      Duration: 0.25
+      Delay: 0
+      EaseType: 6
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 1
+      FromMode: 0
+      ToMode: 0
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 0, y: 0, z: 0}
+      FromFloat: 1
+      ToFloat: 0
+      FromColor: {r: 0, g: 0, b: 0, a: 0}
+      ToColor: {r: 0, g: 0, b: 0, a: 0}
+      ShaderProperty: _Progress
+      ActiveValue: 0
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
       Vibrato: 10
       Elasticity: 1
       Randomness: 90
@@ -352,10 +412,11 @@ MonoBehaviour:
     - Type: 4
       Start: 0
       RectTarget: {fileID: 0}
-      CanvasGroupTarget: {fileID: 487012461}
+      CanvasGroupTarget: {fileID: 0}
       GraphicTarget: {fileID: 0}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
       Duration: 0.25
       Delay: 0
       EaseType: 6
@@ -390,24 +451,29 @@ MonoBehaviour:
       FromVector: {x: 0, y: 0, z: 0}
       ToVector: {x: 0, y: 0, z: 0}
       FromFloat: 1
-      ToFloat: 0
+      ToFloat: 0.5
       FromColor: {r: 0, g: 0, b: 0, a: 0}
       ToColor: {r: 0, g: 0, b: 0, a: 0}
       ShaderProperty: _Progress
       ActiveValue: 0
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
       Vibrato: 10
       Elasticity: 1
       Randomness: 90
       Snapping: 0
-    - Type: 4
+    - Type: 1
       Start: 0
       RectTarget: {fileID: 0}
-      CanvasGroupTarget: {fileID: 487012461}
+      CanvasGroupTarget: {fileID: 0}
       GraphicTarget: {fileID: 0}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
-      Duration: 0.25
-      Delay: 0
+      AudioSourceTarget: {fileID: 0}
+      Duration: 1
+      Delay: 1
       EaseType: 6
       UseCustomCurve: 0
       Curve:
@@ -435,16 +501,20 @@ MonoBehaviour:
         m_PostInfinity: 2
         m_RotationOrder: 4
       UseFrom: 1
-      FromMode: 0
+      FromMode: 2
       ToMode: 0
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 1, y: 2, z: 0}
       FromFloat: 1
       ToFloat: 0
       FromColor: {r: 0, g: 0, b: 0, a: 0}
       ToColor: {r: 0, g: 0, b: 0, a: 0}
       ShaderProperty: _Progress
       ActiveValue: 0
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
       Vibrato: 10
       Elasticity: 1
       Randomness: 90
