@@ -21,11 +21,13 @@ public enum EAntState
 
 public class Ant : MonoBehaviour
 {
-    [FormerlySerializedAs("Hunger")] [SerializeField] private float MaxHunger;
     [SerializeField] private float hunger;
     private Vector3 currentDirectedPos;
     [SerializeField] private float Acceleration;
     [FormerlySerializedAs("moveSpeed")] [SerializeField] private float MoveSpeed;
+
+    [SerializeField] private float AntAvoidRange;
+    [SerializeField] private float AntAvoidForce;
 
     private Rigidbody rb;
     public AntNest myNest { get; private set; }
@@ -33,6 +35,7 @@ public class Ant : MonoBehaviour
     private NavMeshPath path;
     private int pathNode;
     private float stuckTimer;
+    private int stuckCount;
 
     [NonSerialized] public bool returningToNest;
 
@@ -58,6 +61,12 @@ public class Ant : MonoBehaviour
 
         return 0;
     }
+
+    private IEnumerable<Ant> GetAntsInRange(float distance)
+    {
+        distance *= distance;
+        return myNest.GetAnts().Where(a => a != this && (a.transform.position - transform.position).sqrMagnitude <= distance);
+    }
     
     public void Direct(Vector3 pos)
     {
@@ -67,11 +76,14 @@ public class Ant : MonoBehaviour
         currentDirectedPos = pos;
         State = EAntState.DirectMove;
         stuckTimer = 0;
+        stuckCount = 0;
     }
 
     public void GoIdle()
     {
         State = EAntState.Idle;
+        stuckCount = 0;
+        stuckTimer = 0;
     }
 
     public void DirectPathfind(Vector3 pos)
@@ -86,7 +98,7 @@ public class Ant : MonoBehaviour
         {
             pathNode = 0;
         }
-        else
+        else if(State != EAntState.Acting)
         {
             GoIdle();
         }
@@ -100,39 +112,42 @@ public class Ant : MonoBehaviour
 
     private void UnstuckMe()
     {
-        if (returningToNest)
+        if (State == EAntState.PathMove)
         {
-            // PANIC
-            transform.position = myNest.transform.position;
-            ReturnToNest();
+            if (stuckCount > 5)
+            {
+                transform.position = path.corners.Last();
+            }
+            DirectPathfind(path.corners.Last());
+            stuckCount++;
         }
-        else
+        else if(State != EAntState.Acting)
         {
             // probably running into a wall or something - just return to idle.
             GoIdle();
+            stuckCount = 0;
         }
 
         stuckTimer = 0;
     }
 
-    private bool CloseToTarget(Vector3 target)
+    private bool CloseToTarget(Vector3 target, float distance = 0.2f)
     {
         Vector3 dist = (transform.position - target);
         dist.y = 0;
         
-        return dist.magnitude < 0.2f;
+        return dist.sqrMagnitude < distance * distance;
     }
 
     private void MoveTowards(Vector3 target)
     {
-        if (CloseToTarget(target))
+        if (CloseToTarget(target, AntAvoidRange * 2))
         {
-            if (rb.linearVelocity.magnitude < 0.01 && State != EAntState.PathMove)
+            if (State == EAntState.DirectMove)
             {
-                rb.linearVelocity = Vector3.zero;
                 GoIdle();
+                return;
             }
-            return;
         }
         StuckCheck();
 
@@ -182,7 +197,7 @@ public class Ant : MonoBehaviour
         if (CloseToTarget(curGoal))
         {
             pathNode++;
-            if (pathNode == path.corners.Length)
+            if (pathNode == path.corners.Length && State == EAntState.PathMove)
             {
                 // end of path
                 returningToNest = false;
@@ -239,6 +254,13 @@ public class Ant : MonoBehaviour
     private void IdleTick()
     {
         HungerCheck();
+
+        Vector3 decel = -rb.linearVelocity;
+        decel.y = 0;
+        decel.Normalize();
+        decel *= Time.deltaTime * Acceleration;
+        
+        rb.AddForce(decel);
         
         AntInteractable first = nearbyInteractables.FirstOrDefault(interactable => interactable.CanAntInteract(this));
         if (first)
@@ -273,6 +295,19 @@ public class Ant : MonoBehaviour
         {
             carriedObject.transform.position = transform.position + Vector3.up;
         }
+
+        float avoidRangeSqrd = AntAvoidRange * AntAvoidRange * 4;
+
+        foreach (Ant ant in GetAntsInRange(AntAvoidRange * 2))
+        {
+            Vector3 offset = transform.position - ant.transform.position;
+            float force = offset.sqrMagnitude;
+            force /= avoidRangeSqrd;
+            force = 1 - force;
+            force *= AntAvoidForce;
+            
+            rb.AddForce(offset.normalized * (force * Time.deltaTime));
+        }
     }
 
     private void NearNest()
@@ -306,6 +341,9 @@ public class Ant : MonoBehaviour
     {
         Handles.color = Color.white;
         Handles.Label(transform.position + Vector3.up * 2, hunger.ToString(CultureInfo.InvariantCulture));
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, AntAvoidRange);
         
         if (path != null && pathNode < path.corners.Length)
         {
