@@ -3,7 +3,7 @@
 //
 // AI-GENERATED. Authored by Claude (Anthropic) via Claude Code, September 2026,
 // to a written design brief by the project author. Not hand-written by the
-// Twindrill Goose team. See Assets/Scripts/UI/Utility/README.md for usage.
+// Twindrill Goose team. See README.md in the folder above for usage.
 // -----------------------------------------------------------------------------
 
 using UnityEditor;
@@ -45,9 +45,9 @@ public class UIAnimationPlayerEditor : Editor
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(animationName, GUILayout.MinWidth(60f));
 
-            if (GUILayout.Button("Play", GUILayout.Width(50f))) player.Play(animationName);
-            if (GUILayout.Button("From", GUILayout.Width(50f))) player.ApplyFromState(animationName);
-            if (GUILayout.Button("Stop", GUILayout.Width(50f))) player.Stop(animationName);
+            if (GUILayout.Button("Play", GUILayout.Width(44f))) player.Play(animationName);
+            if (GUILayout.Button("Start", GUILayout.Width(44f))) player.ApplyFromState(animationName);
+            if (GUILayout.Button("Stop", GUILayout.Width(44f))) player.Stop(animationName);
 
             EditorGUILayout.EndHorizontal();
         }

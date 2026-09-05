@@ -3,7 +3,7 @@
 //
 // AI-GENERATED. Authored by Claude (Anthropic) via Claude Code, September 2026,
 // to a written design brief by the project author. Not hand-written by the
-// Twindrill Goose team. See Assets/Scripts/UI/Utility/README.md for usage.
+// Twindrill Goose team. See README.md in the folder above for usage.
 // -----------------------------------------------------------------------------
 
 using UnityEditor;
