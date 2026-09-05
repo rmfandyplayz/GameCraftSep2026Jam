@@ -33,6 +33,18 @@ public class UIAnimation
              "Only has an effect when Loops is not 1.")]
     public LoopType LoopType = LoopType.Restart;
 
+    [Tooltip("Play in discrete frames instead of smoothly, for a stop-motion or flipbook look. " +
+             "Every step still starts and lands on exactly the same values - only the movement " +
+             "in between is stepped.")]
+    public bool PlayAtCustomFPS;
+
+    [UIAnimationShowIf("PlayAtCustomFPS")]
+    [Tooltip("Frames per second to step at. 12 is the classic hand-drawn look, 24 is film, " +
+             "6 to 8 is very chunky. Setting it above the display refresh rate does nothing.\n" +
+             "Every step shares one frame grid, so staggered steps tick together.\n" +
+             "Punch and shake steps are never stepped - they drive their own oscillation.")]
+    public float FPS = 12f;
+
     [Tooltip("Snap every FROM value to its target as soon as the animation starts, rather than " +
              "when each individual step begins. Prevents a visible flash on delayed steps.")]
     public bool ApplyFromValuesImmediately = true;
@@ -49,6 +61,16 @@ public class UIAnimation
     public int EffectiveLoops
     {
         get { return Loops == 0 ? 1 : Loops; }
+    }
+
+    /// <summary>
+    /// Frames per second to quantise playback to, or 0 for smooth playback.
+    /// The frame rate is resolved here and nowhere else - steps already take one as a build
+    /// parameter, so a per-step override would only have to change this single lookup.
+    /// </summary>
+    public float EffectiveFrameRate
+    {
+        get { return PlayAtCustomFPS && FPS > 0f ? FPS : 0f; }
     }
 
     // Runtime state. One live Sequence per animation, owned here.
@@ -73,6 +95,7 @@ public class UIAnimation
     public void FillUnsetDefaults()
     {
         if (Loops == 0) Loops = 1;
+        if (FPS == 0f) FPS = 12f;
         if (string.IsNullOrEmpty(Name)) Name = "New Animation";
 
         for (int i = 0; i < Steps.Count; i++)

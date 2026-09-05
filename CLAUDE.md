@@ -2,6 +2,8 @@
 
 Guidance for Claude Code when working in this repository.
 
+**Keep this file current.** When a session changes something this file describes — a convention, a tool, a framework, a gotcha — update the relevant section in the same session, and add a new entry for anything non-obvious that was learned the hard way. The point of every entry below is to stop the next session rediscovering it. Prune entries that stop being true rather than letting them rot.
+
 ## Project
 
 **AntFlood** — a 48-hour game jam project (GameCraft, Sept 2026). Company `TwindrillGoose`.
@@ -57,6 +59,7 @@ These bite silently — no error, no warning:
 8. `MaterialPropertyBlock` does **not** work with UGUI — `CanvasRenderer` ignores it.
 9. `DOTween.Init` is not needed (auto-inits). `SetUpdate(true)` works on `Sequence` and is required for UI that animates while `Time.timeScale == 0`.
 10. **A tween's `SetDelay` is added *on top of* its position in a Sequence, not instead of it.** Measured against the loaded DLL: `Append(t)` and `Join(t)` place `t` at `groupStart + t.delay`; `Insert(pos, t)` places it at `pos + t.delay`. So code that positions tweens explicitly must not also call `SetDelay`. `Join` offsets from the *group* start, not from the previous step's own start.
+11. **A tween can supply its own easing function**, and that is the seam for anything that wants to reshape time rather than value. `DG.Tweening.EaseFunction` (`float (time, duration, overshootOrAmplitude, period)`), `SetEase(EaseFunction)` and `DG.Tweening.Core.Easing.EaseManager.ToEaseFunction(Ease)` are all public in the installed DLL — so you can wrap a preset ease and hand DOTween a modified version of it. Verified working. There is **no** native frame rate, playback-rate or step/quantise setting; `Ease.Flash` is a flash, not a quantiser.
 
 Project DOTween settings: safe mode **on**, tween recycling **off**, default ease `OutQuad`, default autoKill **on**.
 
@@ -68,6 +71,8 @@ Project DOTween settings: safe mode **on**, tween recycling **off**, default eas
 
 **Reversing is an authoring operation, not a playback mode.** The `Mirror Animation` / `Duplicate as Mirrored` right-click commands rewrite the authored data once so you get a real second animation to tune — values, easings, `SetActive` and staggered delays all invert; punch/shake and `PlaySound` pass through. Nothing at runtime knows about mirroring, which is why the whole thing lives in `Editor/UIAnimationMirror.cs` and the runtime has no `PlayReverse`. **Do not add one back** without asking: a live reverse mode and an authored mirror are two answers to the same question, and having both was tried and cut.
 
+**Stepped playback ("Play At Custom FPS") is implemented on the ease, not on the clock.** `UIAnimationSteppedEase` wraps a step's normal ease and quantises the *time* handed to it, so the tween still updates every frame but holds its value between frame boundaries. Consequences that are easy to get wrong: the end of a step is always sampled at its true end so it still lands exactly; quantisation uses the step's absolute position in the sequence as an offset so every step shares **one** grid (per-tween grids read as jitter); punch and shake are excluded because they drive their own oscillation rather than going through the ease; and instant steps keep their exact authored time. The frame rate is already a **per-step** parameter of `UIAnimationStep.BuildTween` — a per-step override would only change where `UIAnimationPlayer.BuildSequence` reads the number from, so do not re-plumb it.
+
 UI sounds also live here: a `PlaySound` step plays an `AudioClip` at a point in an animation's timeline. With no AudioSource assigned it falls back to a shared 2D one (`UIAnimationAudio.Shared`, a `DontDestroyOnLoad` object created on first use). That is the **only** global in the folder — if you need UI audio routed through a mixer, call `UIAnimationAudio.SetShared` once rather than adding another.
 
 Implementation notes that generalise beyond this folder:
@@ -76,6 +81,8 @@ Implementation notes that generalise beyond this folder:
 - Validate shader property names against `Material.HasProperty` once at startup and warn, rather than letting `GetColor`/`SetFloat` error every frame.
 - **Enums that appear on serialized fields are stored as integers — only ever append to them.** Inserting or reordering a value silently repoints every asset already authored against it. `UIAnimationStepType` carries a comment saying so.
 - **`EditorApplication.contextualPropertyMenu` + `SerializedProperty.boxedValue`** is the cheap way to add copy/paste/transform commands to inspector-authored data (`Editor/UIAnimationContextMenu.cs`). Serialize with `EditorJsonUtility`, not `JsonUtility` — only the editor one preserves `UnityEngine.Object` references, which is the whole point when the data holds scene targets. The property handed to the callback must be `.Copy()`d, since menu items run after it goes out of scope. **Register the event once per folder**: two handlers append to the same menu in whatever order their static constructors happened to run.
+- **Unity derives an Inspector label from the field name**, so name the field the way the label should read — `PlayAtCustomFPS` renders as "Play At Custom FPS", and `FPS` stays "FPS". Renaming a serialized field to fix a label loses any data already authored against the old name, so get it right before anything is authored.
+- **To hide a field behind a checkbox, write an attribute drawer, not a drawer for the containing class.** `UIAnimationShowIf` + its drawer is ~50 lines and leaves everything else alone; taking over `UIAnimation` itself would mean re-implementing its list UI and would sit in front of the reorder handles and the right-click copy/paste/mirror menu. A hidden field must return `-EditorGUIUtility.standardVerticalSpacing` from `GetPropertyHeight`, not `0`, or Unity's inter-property spacing leaves a visible gap.
 - **`WithPrevious` steps are groups, not rows.** Anything that reorders a step list must reverse the *groups* and keep each group's members together, or it silently re-parents which steps are joined to which. `Editor/UIAnimationMirror.cs` is the reference implementation.
 - **A step's `Delay` is applied in exactly one place: the insert position `UIAnimationPlayer.BuildSequence` computes.** `BuildTween` must never call `SetDelay` — DOTween adds a tween's own delay *on top of* its sequence position, so doing both silently doubles every delay. This regressed once already.
 
@@ -90,7 +97,9 @@ unity cmd recompile_status
 unity cmd console -- --level error --tail 50
 ```
 
-`unity list` shows all ~150 available commands; `unity list --query <term>` filters them.
+`unity list` shows all ~150 available commands. It takes no `--query`; the filter lives on the other subcommand — `unity cmd --query <term> --detail full` also prints each command's parameters.
+
+**`eval` / `eval_file` code is compiled as a method body, not a file.** `using` directives are a syntax error there, so fully-qualify everything (`System.Text.StringBuilder`, `UnityEngine.Mathf`, `DG.Tweening.Ease`). `return` the value you want printed. To inspect editor GUI without dirtying a scene, build the object with `HideFlags.HideAndDontSave` and `DestroyImmediate` it in a `finally`.
 
 **`recompile_status` is the authoritative result, not `console`.** `clear_console` returns `{"cleared":true}` but the Pipeline capture buffer keeps replaying old entries, so `console` will happily show you errors from a previous session — check their timestamps and file paths before believing them. A clean build is `{"status":"completed","failed":false,"errors":[]}`.
 
