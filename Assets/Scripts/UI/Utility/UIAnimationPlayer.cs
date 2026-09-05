@@ -65,6 +65,22 @@ public class UIAnimationPlayer : MonoBehaviour
         StopAll();
     }
 
+#if UNITY_EDITOR
+    /// <summary>
+    /// Unity does not run C# field initialisers when you press + on a serialized list, so a new
+    /// animation arrives with Loops 0 and a new step with Duration 0 / Ease Unset. This fills
+    /// those blanks in. It only ever writes to fields still at their zero value, so it can never
+    /// overwrite something you authored.
+    /// </summary>
+    private void OnValidate()
+    {
+        for (int i = 0; i < Animations.Count; i++)
+        {
+            if (Animations[i] != null) Animations[i].FillUnsetDefaults();
+        }
+    }
+#endif
+
     // ---------------------------------------------------------------- public API
 
     /// <summary>Plays a named animation. Returns the live Sequence, or null if the name is unknown.</summary>
@@ -122,7 +138,7 @@ public class UIAnimationPlayer : MonoBehaviour
         // Must be applied to the outer Sequence - SetLink is a no-op on tweens inside one.
         sequence.SetLink(gameObject, LinkBehaviour.KillOnDestroy);
 
-        if (animation.Loops != 1) sequence.SetLoops(animation.Loops, animation.LoopType);
+        if (animation.EffectiveLoops != 1) sequence.SetLoops(animation.EffectiveLoops, animation.LoopType);
 
         sequence.Play();
         return sequence;

@@ -78,38 +78,92 @@ public enum UIAnimationTargetKind
 [Serializable]
 public class UIAnimationStep
 {
+    [Tooltip("Which property this step tweens. Changing it swaps the fields shown below.")]
     public UIAnimationStepType Type = UIAnimationStepType.CanvasGroupAlpha;
+
+    [Tooltip("After Previous = runs once the step above has finished (Append).\n" +
+             "With Previous = runs at the same time as the step above (Join).")]
     public UIAnimationStartMode Start = UIAnimationStartMode.AfterPrevious;
 
-    // Target slots. Leave empty to target the UIAnimationPlayer own GameObject.
+    [Tooltip("What to animate. Leave empty to use the GameObject this UIAnimationPlayer is on.")]
     public RectTransform RectTarget;
+
+    [Tooltip("What to animate. Leave empty to use the GameObject this UIAnimationPlayer is on.")]
     public CanvasGroup CanvasGroupTarget;
+
+    [Tooltip("What to animate. Accepts Image, RawImage, Text and TextMeshProUGUI.\n" +
+             "Leave empty to use the GameObject this UIAnimationPlayer is on.")]
     public Graphic GraphicTarget;
+
+    [Tooltip("The UIMaterialInstance component holding the per-element material clone.\n" +
+             "Leave empty to use the GameObject this UIAnimationPlayer is on.")]
     public UIMaterialInstance MaterialTarget;
+
+    [Tooltip("The GameObject to enable or disable. Leave empty to use this one.")]
     public GameObject ActiveTarget;
 
-    // Timing.
+    [Tooltip("How long the tween runs, in seconds. Does not include Delay.")]
     public float Duration = 0.25f;
+
+    [Tooltip("Seconds to wait before this step starts, measured from wherever Start places it.")]
     public float Delay;
+
+    [Tooltip("Easing curve preset. Out* eases decelerate into the end value and suit most UI.")]
     public Ease EaseType = Ease.OutQuad;
 
-    // Endpoints.
+    [Tooltip("Use a hand-drawn AnimationCurve instead of the Ease preset.\n" +
+             "The curve editor has a preset bar at the bottom for saving and reusing shapes.")]
+    public bool UseCustomCurve;
+
+    [Tooltip("Custom easing. Time runs 0 to 1 left to right; value 0 = the FROM value, 1 = the TO value.\n" +
+             "Going above 1 or below 0 overshoots, which is how you build a bounce.")]
+    public AnimationCurve Curve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+    [Tooltip("Tick to force a starting value. Untick to tween from wherever the property already is.")]
     public bool UseFrom;
+
+    [Tooltip("Absolute = the value as typed.\nBaseline = resting value captured at Awake, plus the value as an offset.")]
     public UIAnimationEndpointMode FromMode = UIAnimationEndpointMode.Absolute;
+
+    [Tooltip("Absolute = the value as typed.\n" +
+             "Baseline = resting value captured at Awake, plus the value as an offset. Use this to land on the authored state.\n" +
+             "Current = relative to the value when the tween starts. Only available when Use From is off.")]
     public UIAnimationEndpointMode ToMode = UIAnimationEndpointMode.Absolute;
+
+    [Tooltip("Starting value for this step.")]
     public Vector3 FromVector;
+
+    [Tooltip("Target value for this step.")]
     public Vector3 ToVector;
+
+    [Tooltip("Starting value for this step.")]
     public float FromFloat;
+
+    [Tooltip("Target value for this step.")]
     public float ToFloat = 1f;
+
+    [Tooltip("Starting value for this step.")]
     public Color FromColor = Color.white;
+
+    [Tooltip("Target value for this step.")]
     public Color ToColor = Color.white;
 
-    // Type specific.
+    [Tooltip("Shader property name to drive, e.g. _Progress. Must exist on the material's shader.")]
     public string ShaderProperty = "_Progress";
+
+    [Tooltip("The active state to apply when this step is reached.")]
     public bool ActiveValue = true;
+
+    [Tooltip("How many times the punch or shake oscillates over its Duration. Higher = busier.")]
     public int Vibrato = 10;
+
+    [Tooltip("How far the punch is allowed to overshoot past its starting value. 0 = no overshoot, 1 = full.")]
     public float Elasticity = 1f;
+
+    [Tooltip("How random the shake direction is, in degrees. 0 = shakes along one axis only.")]
     public float Randomness = 90f;
+
+    [Tooltip("Round positions to whole pixels each frame. Useful for pixel art, causes stepping otherwise.")]
     public bool Snapping;
 
     // Runtime only. Never serialized, so authored data is never mutated by play mode.
@@ -123,6 +177,7 @@ public class UIAnimationStep
     [NonSerialized] private float baselineFloat;
     [NonSerialized] private Color baselineColor;
     [NonSerialized] private int shaderPropertyId;
+    [NonSerialized] private bool shaderPropertyValid;
 
     /// <summary>Time this step occupies, used to lay out Append/Join positions.</summary>
     public float TotalDuration
@@ -202,7 +257,7 @@ public class UIAnimationStep
 
             case UIAnimationTargetKind.Material:
                 materialInstance = MaterialTarget != null ? MaterialTarget : owner.GetComponent<UIMaterialInstance>();
-                shaderPropertyId = Shader.PropertyToID(ShaderProperty);
+                ResolveShaderProperty(owner);
                 break;
 
             case UIAnimationTargetKind.GameObject:
@@ -423,9 +478,34 @@ public class UIAnimationStep
         }
 
         // Punch and shake carry their own internal easing; overriding it looks wrong.
-        if (!IsImpulse(Type)) tween.SetEase(EaseType);
+        if (!IsImpulse(Type))
+        {
+            if (UseCustomCurve && Curve != null && Curve.length > 0) tween.SetEase(Curve);
+            else tween.SetEase(EaseType);
+        }
+
         if (Delay > 0f) tween.SetDelay(Delay);
         return tween;
+    }
+
+    /// <summary>
+    /// Fills in fields that are still at their zero value, because Unity does not run C# field
+    /// initialisers when you press + on a serialized list - a fresh step arrives with Duration 0
+    /// and Ease Unset. Only ever fills blanks, so authored values are never overwritten.
+    /// Editor-only, driven from UIAnimationPlayer.OnValidate.
+    /// </summary>
+    public void FillUnsetDefaults()
+    {
+        if (Duration == 0f) Duration = 0.25f;
+        if (EaseType == Ease.Unset) EaseType = Ease.OutQuad;
+        if (Vibrato == 0) Vibrato = 10;
+        if (Elasticity == 0f) Elasticity = 1f;
+        if (Randomness == 0f) Randomness = 90f;
+        if (string.IsNullOrEmpty(ShaderProperty)) ShaderProperty = "_Progress";
+        if (Curve == null || Curve.length == 0) Curve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+        // FromFloat/ToFloat and the colours are deliberately left alone - 0 and transparent
+        // are legitimate authored values (fading to 0 is the whole point of a Hide).
     }
 
     /// <summary>Runs a SetActive step. The player calls this from a sequence callback.</summary>
@@ -449,9 +529,41 @@ public class UIAnimationStep
         return mode == UIAnimationEndpointMode.Baseline ? baselineColor + value : value;
     }
 
+    /// <summary>
+    /// Caches the shader property id and validates it against the material's shader, so a typo or
+    /// a blank name produces one clear warning instead of a Unity error on every tween frame.
+    /// </summary>
+    private void ResolveShaderProperty(GameObject owner)
+    {
+        shaderPropertyValid = false;
+
+        if (string.IsNullOrEmpty(ShaderProperty))
+        {
+            Debug.LogWarning(
+                "UIAnimationPlayer on '" + owner.name + "': a " + Type +
+                " step has no Shader Property name set. The step will be skipped.", owner);
+            return;
+        }
+
+        shaderPropertyId = Shader.PropertyToID(ShaderProperty);
+
+        if (materialInstance == null || materialInstance.Material == null) return;
+
+        if (!materialInstance.Material.HasProperty(shaderPropertyId))
+        {
+            Debug.LogWarning(
+                "UIAnimationPlayer on '" + owner.name + "': shader '" +
+                materialInstance.Material.shader.name + "' has no property '" + ShaderProperty +
+                "'. The step will be skipped.", owner);
+            return;
+        }
+
+        shaderPropertyValid = true;
+    }
+
     private bool HasMaterial()
     {
-        return materialInstance != null && materialInstance.Material != null;
+        return materialInstance != null && materialInstance.Material != null && shaderPropertyValid;
     }
 
     private bool HasTarget(string context)
@@ -472,6 +584,10 @@ public class UIAnimationStep
 
             case UIAnimationTargetKind.Material:
                 if (HasMaterial()) return true;
+
+                // A missing or misspelled shader property was already reported once, at Resolve
+                // time, with a far more useful message. Do not warn about it a second time here.
+                if (materialInstance != null && materialInstance.Material != null) return false;
                 break;
 
             case UIAnimationTargetKind.GameObject:

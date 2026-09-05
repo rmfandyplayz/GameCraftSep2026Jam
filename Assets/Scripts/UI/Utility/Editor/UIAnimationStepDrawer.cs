@@ -94,7 +94,14 @@ public class UIAnimationStepDrawer : PropertyDrawer
         Field(ref layout, property.FindPropertyRelative("Duration"));
         Field(ref layout, property.FindPropertyRelative("Delay"));
 
-        if (!impulse) Field(ref layout, property.FindPropertyRelative("EaseType"), "Ease");
+        if (!impulse)
+        {
+            SerializedProperty useCurve = property.FindPropertyRelative("UseCustomCurve");
+            Field(ref layout, useCurve, "Use Custom Curve");
+
+            if (useCurve.boolValue) Field(ref layout, property.FindPropertyRelative("Curve"));
+            else Field(ref layout, property.FindPropertyRelative("EaseType"), "Ease");
+        }
 
         if (impulse)
         {
@@ -155,7 +162,7 @@ public class UIAnimationStepDrawer : PropertyDrawer
         Rect r = layout.Line();
         if (!layout.Draw) return;
 
-        EditorGUI.PropertyField(r, target, new GUIContent(label, "Leave empty to use this GameObject."));
+        EditorGUI.PropertyField(r, target, new GUIContent(label, target.tooltip));
     }
 
     private void DrawImpulseFields(ref Layout layout, SerializedProperty property, UIAnimationStepType stepType)
@@ -189,7 +196,7 @@ public class UIAnimationStepDrawer : PropertyDrawer
         var modeRect = new Rect(r.x + LabelWidth, r.y, ModeWidth, r.height);
         var valueRect = new Rect(modeRect.xMax + 4f, r.y, Mathf.Max(40f, r.xMax - modeRect.xMax - 4f), r.height);
 
-        EditorGUI.LabelField(labelRect, label);
+        EditorGUI.LabelField(labelRect, new GUIContent(label, mode.tooltip));
 
         if (allowCurrent)
         {
@@ -245,29 +252,43 @@ public class UIAnimationStepDrawer : PropertyDrawer
         Rect r = layout.Line();
         if (!layout.Draw || property == null) return;
 
+        // Keep the field's [Tooltip] even when the drawer overrides its display name.
         if (label == null) EditorGUI.PropertyField(r, property);
-        else EditorGUI.PropertyField(r, property, new GUIContent(label));
+        else EditorGUI.PropertyField(r, property, new GUIContent(label, property.tooltip));
     }
 
     private static string Summary(SerializedProperty property, UIAnimationStepType type, UIAnimationStartMode start)
     {
         string prefix = start == UIAnimationStartMode.WithPrevious ? "with" : "then";
+        SerializedProperty typeProperty = property.FindPropertyRelative("Type");
+
+        // Use Unity's prettified enum names so the header matches the dropdowns below it.
+        string typeName = typeProperty.enumValueIndex >= 0
+            ? typeProperty.enumDisplayNames[typeProperty.enumValueIndex]
+            : type.ToString();
 
         if (type == UIAnimationStepType.SetActive)
         {
             bool value = property.FindPropertyRelative("ActiveValue").boolValue;
-            return prefix + "   SetActive " + (value ? "on" : "off");
+            return prefix + "   " + typeName + " " + (value ? "on" : "off");
         }
 
         float duration = property.FindPropertyRelative("Duration").floatValue;
-        SerializedProperty ease = property.FindPropertyRelative("EaseType");
-
         string tail = duration.ToString("0.##") + "s";
-        if (!UIAnimationStep.IsImpulse(type) && ease.enumValueIndex >= 0)
+
+        if (!UIAnimationStep.IsImpulse(type))
         {
-            tail += "  " + ease.enumDisplayNames[ease.enumValueIndex];
+            if (property.FindPropertyRelative("UseCustomCurve").boolValue)
+            {
+                tail += "  Custom Curve";
+            }
+            else
+            {
+                SerializedProperty ease = property.FindPropertyRelative("EaseType");
+                if (ease.enumValueIndex >= 0) tail += "  " + ease.enumDisplayNames[ease.enumValueIndex];
+            }
         }
 
-        return prefix + "   " + type + "   " + tail;
+        return prefix + "   " + typeName + "   " + tail;
     }
 }

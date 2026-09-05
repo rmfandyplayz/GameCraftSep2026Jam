@@ -64,6 +64,11 @@ Project DOTween settings: safe mode **on**, tween recycling **off**, default eas
 
 **Read `Assets/Scripts/UI/Utility/README.md` before changing it.** Do not add game-specific logic there.
 
+Two implementation notes that generalise beyond this folder:
+
+- **Unity does not run C# field initialisers for elements added with `+` on a serialized `List<T>`.** A new element is zero-filled, so `= 1` / `= 0.25f` / `= "_Progress"` defaults in the class silently do not apply. The fix used here is a `FillUnsetDefaults()` on the serializable class, called from the MonoBehaviour's `OnValidate`, which only ever writes to fields still at their zero value so authored data is never clobbered. Any new inspector-authored data class in this project needs the same treatment.
+- Validate shader property names against `Material.HasProperty` once at startup and warn, rather than letting `GetColor`/`SetFloat` error every frame.
+
 ## Verifying changes
 
 A Unity Editor is usually running with the Pipeline package connected. Compile-check for real rather than guessing:

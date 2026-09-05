@@ -52,6 +52,21 @@ Per-step **Delay** works with both. Read the step list top to bottom and that's 
 
 ---
 
+## Easing
+
+Each step uses one of two easing sources:
+
+- **Ease** — a DOTween preset. `Out*` eases decelerate into the end value and suit most UI.
+- **Use Custom Curve** — tick it and the Ease dropdown is replaced by an `AnimationCurve` field.
+
+For the curve, time runs 0→1 left to right, and value `0` = the FROM value, `1` = the TO value. Going above 1 or below 0 overshoots, which is how you build a bounce or an anticipation dip.
+
+Unity's curve editor has a **preset bar along the bottom** — click a swatch to apply a shape, or use the arrow at the right of the bar to save your own. That's a native Unity feature, so curve shapes are reusable without any extra asset.
+
+Punch and shake steps ignore both — DOTween drives their oscillation internally, so there's no ease field on them.
+
+---
+
 ## FROM / TO
 
 Each endpoint has a **mode**:
@@ -141,33 +156,44 @@ Fullscreen transition overlays aren't inside masks, so the common case is unaffe
 
 ## Example — Fade + Scale "Show"
 
-Panel with a `CanvasGroup`, laid out in the scene at its final resting state.
+Panel with a `CanvasGroup`, laid out in the scene at its final resting state. Every field below is shown exactly as the Inspector lists it, in order.
 
 ```
 UI Animation Player
-  Use Unscaled Time  ✔
-  Kill On Disable    ✔
+  Use Unscaled Time                ✔
+  Kill On Disable                  ✔
+  Animations                       1
+    ▼ Show
+        Name                       Show
+        ▼ Steps                    2
+            ▼ then  Canvas Group Alpha  0.25s  Out Quad
+                Type               Canvas Group Alpha
+                Start              After Previous
+                Canvas Group       None            ← empty = this GameObject
+                Duration           0.25
+                Delay              0
+                Use Custom Curve   ☐
+                Ease               Out Quad
+                Use From           ✔
+                From   [Absolute]  0
+                To     [Absolute]  1
 
-  Animations
-    [0] Name: Show
+            ▼ with  Scale  0.25s  Out Back
+                Type               Scale
+                Start              With Previous   ← parallel with the fade above
+                Rect Transform     None
+                Duration           0.25
+                Delay              0
+                Use Custom Curve   ☐
+                Ease               Out Back
+                Use From           ✔
+                From   [Absolute]  X 0.8  Y 0.8  Z 0.8
+                To     [Baseline]  X 0    Y 0    Z 0    ← lands on the authored scale
+        Loops                      1
+        Loop Type                  Restart
         Apply From Values Immediately  ✔
-        Interrupt Others               ✔
-        Steps
-          then   CanvasGroupAlpha   0.25s OutQuad
-                Canvas Group: (empty → self)
-                Start:    After Previous
-                Duration: 0.25   Ease: OutQuad
-                Use From  ✔
-                From  [Absolute]  0
-                To    [Absolute]  1
-
-          with   Scale   0.25s OutBack
-                Rect Transform: (empty → self)
-                Start:    With Previous        ← parallel with the fade
-                Duration: 0.25   Ease: OutBack
-                Use From  ✔
-                From  [Absolute]  (0.8, 0.8, 0.8)
-                To    [Baseline]  (0, 0, 0)    ← lands on the authored scale
+        Interrupt Others           ✔
+        On Complete                (UnityEvent)
 ```
 
 ```csharp
@@ -176,6 +202,8 @@ private void OnEnable() => anim.Play("Show");
 public  void Close()    => anim.Play("Hide", () => gameObject.SetActive(false));
 ```
 
+The `To [Baseline] (0,0,0)` on the scale step is the important part — `Baseline` means "the resting value captured at Awake, plus this offset", so a zero offset lands exactly on whatever scale you laid out in the scene.
+
 ---
 
 ## Example — fullscreen shader `_Progress`
@@ -183,16 +211,30 @@ public  void Close()    => anim.Play("Hide", () => gameObject.SetActive(false));
 Fullscreen `Image` → assign your transition material → **Add Component → UI Material Instance**.
 
 ```
-Animations
-  [0] Name: TransitionOut
-      Steps
-        then   MaterialFloat   0.8s InOutQuad
-              Material Inst.:  (empty → self)
-              Shader Property: _Progress
-              Duration: 0.8   Ease: InOutQuad
-              Use From  ✔
-              From  [Absolute]  0
-              To    [Absolute]  1
+UI Animation Player
+  Use Unscaled Time                ✔
+  Kill On Disable                  ✔
+  Animations                       1
+    ▼ TransitionOut
+        Name                       TransitionOut
+        ▼ Steps                    1
+            ▼ then  Material Float  0.8s  In Out Quad
+                Type               Material Float
+                Start              After Previous
+                Material Inst.     None            ← empty = this GameObject
+                Shader Property    _Progress
+                Duration           0.8
+                Delay              0
+                Use Custom Curve   ☐
+                Ease               In Out Quad
+                Use From           ✔
+                From   [Absolute]  0
+                To     [Absolute]  1
+        Loops                      1
+        Loop Type                  Restart
+        Apply From Values Immediately  ✔
+        Interrupt Others           ✔
+        On Complete                (UnityEvent)
 ```
 
 ```csharp
@@ -200,6 +242,21 @@ transition.Play("TransitionOut", () => {
     // your scene loading here
 });
 ```
+
+**Shader Property must not be blank** and must exist on the material's shader. If it's missing or misspelled you get one clear warning at startup naming the shader and the property, and the step is skipped rather than spamming errors every frame.
+
+---
+
+## Gotchas
+
+**Unity's `+` button does not run C# field initialisers.** A freshly added animation or step arrives zero-filled — `Loops 0`, `Duration 0`, `Ease Unset`, `Shader Property ""` — not with the defaults declared in code. The player's `OnValidate` patches this: it fills in any field still sitting at its zero value, and never touches a field you've already set. Two consequences worth knowing:
+
+- **`Loops` means play count.** `1` = play once (normal), `2` = play twice, `-1` = loop forever. `0` is meaningless and is treated as `1`.
+- If you genuinely want a `Duration` of `0`, it'll be bumped to `0.25`. Use `0.01` for an effectively instant tween, or a `SetActive` step.
+
+Tip: once one step exists, `+` **duplicates the last step** rather than creating a blank one, which is usually what you want anyway.
+
+**Every field has a tooltip.** Hover any label in a step for an explanation of what it does.
 
 ---
 
