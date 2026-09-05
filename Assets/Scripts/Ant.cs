@@ -28,7 +28,7 @@ public class Ant : MonoBehaviour
     [FormerlySerializedAs("moveSpeed")] [SerializeField] private float MoveSpeed;
 
     private Rigidbody rb;
-    private AntNest myNest;
+    public AntNest myNest { get; private set; }
 
     private NavMeshPath path;
     private int pathNode;
@@ -42,6 +42,22 @@ public class Ant : MonoBehaviour
 
     private AntInteractable currentInteractable;
     public AntCarriableObject carriedObject { get; private set; }
+
+    private static NavMeshQueryFilter antNavMeshQueryFilter;
+
+    public static int GetNavMeshID(string name)
+    {
+        for (int i = 0; i < NavMesh.GetSettingsCount(); i++)
+        {
+            NavMeshBuildSettings settings = NavMesh.GetSettingsByIndex(i);
+            if (name == NavMesh.GetSettingsNameFromID(settings.agentTypeID))
+            {
+                return settings.agentTypeID;
+            }
+        }
+
+        return 0;
+    }
     
     public void Direct(Vector3 pos)
     {
@@ -62,11 +78,11 @@ public class Ant : MonoBehaviour
     {
         State = EAntState.PathMove;
         
-        NavMesh.SamplePosition(transform.position, out NavMeshHit srcHit, 999, NavMesh.AllAreas);
-        NavMesh.SamplePosition(pos, out NavMeshHit dstHit, 999, NavMesh.AllAreas);
+        NavMesh.SamplePosition(transform.position, out NavMeshHit srcHit, 999, antNavMeshQueryFilter);
+        NavMesh.SamplePosition(pos, out NavMeshHit dstHit, 999, antNavMeshQueryFilter);
         path = new NavMeshPath();
         
-        if (NavMesh.CalculatePath(srcHit.position, dstHit.position, NavMesh.AllAreas, path))
+        if (NavMesh.CalculatePath(srcHit.position, dstHit.position, antNavMeshQueryFilter, path))
         {
             pathNode = 0;
         }
@@ -183,7 +199,13 @@ public class Ant : MonoBehaviour
     {
         currentDirectedPos = transform.position;
         rb = GetComponent<Rigidbody>();
-        hunger = MaxHunger;
+        hunger = myNest.GetMaxHunger();
+        
+        antNavMeshQueryFilter = new NavMeshQueryFilter()
+        {
+            areaMask = NavMesh.AllAreas,
+            agentTypeID = GetNavMeshID("Ant")
+        };
     }
 
     public void InteractWith(AntInteractable interactable)
@@ -255,7 +277,7 @@ public class Ant : MonoBehaviour
 
     private void NearNest()
     {
-        hunger = MaxHunger;
+        hunger = myNest.GetMaxHunger();
         if (carriedObject)
         {
             DepositObject(myNest);
@@ -285,7 +307,7 @@ public class Ant : MonoBehaviour
         Handles.color = Color.white;
         Handles.Label(transform.position + Vector3.up * 2, hunger.ToString(CultureInfo.InvariantCulture));
         
-        if (path != null)
+        if (path != null && pathNode < path.corners.Length)
         {
             Gizmos.color = Color.red;
             Gizmos.DrawLineStrip(path.corners, false);

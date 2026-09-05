@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class AntNest : MonoBehaviour
 {
-    [NonSerialized] public int foodCount;
+    [NonSerialized] public float foodCount;
 
     private List<Ant> ants = new();
     private List<StoredObject> inventory = new();
@@ -36,6 +36,11 @@ public class AntNest : MonoBehaviour
     public void RemoveFromInventory(StoredObject obj)
     {
         inventory.Remove(obj);
+    }
+
+    public float GetMaxHunger()
+    {
+        return foodCount + 20;
     }
     
 }
