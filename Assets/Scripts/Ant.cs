@@ -6,6 +6,7 @@ public class Ant : MonoBehaviour
     [SerializeField] private int hunger;
     [SerializeField] private Vector3 currentDirectedPos;
     [SerializeField] private float moveSpeed;
+    private AntNest nest;
     void Direct(Vector3 pos)
     {
         currentDirectedPos = pos;
@@ -19,6 +20,12 @@ public class Ant : MonoBehaviour
             transform.position = Vector3.MoveTowards(transform.position, goal, moveSpeed);
         }
         yield return null;
+    }
+
+    void Start()
+    {
+        nest = FindAnyObjectByType<AntNest>();
+        nest.AddAnt(this);
     }
 
 }
