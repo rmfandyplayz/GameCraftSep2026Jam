@@ -1,13 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class AntNest : MonoBehaviour
 {
-    [HideInInspector] public int foodCount
-    {
-        get { return foodCount; }
-        set { foodCount = value; }
-    }
+    [NonSerialized] public int foodCount;
 
     private List<Ant> ants = new();
     

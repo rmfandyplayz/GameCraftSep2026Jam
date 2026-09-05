@@ -1,8 +1,23 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+public enum EAntState
+{
+    Idle,
+    DirectMove,
+    PathMove,
+    Acting
+}
 
 public class Ant : MonoBehaviour
 {
@@ -13,12 +28,20 @@ public class Ant : MonoBehaviour
     [FormerlySerializedAs("moveSpeed")] [SerializeField] private float MoveSpeed;
 
     private Rigidbody rb;
-    private AntNest nest;
+    private AntNest myNest;
 
     private NavMeshPath path;
     private int pathNode;
+    private float stuckTimer;
 
     [NonSerialized] public bool returningToNest;
+
+    [NonSerialized] public List<AntInteractable> nearbyInteractables = new();
+    
+    public EAntState State { get; private set; }
+
+    private AntInteractable currentInteractable;
+    public AntCarriableObject carriedObject { get; private set; }
     
     public void Direct(Vector3 pos)
     {
@@ -26,11 +49,19 @@ public class Ant : MonoBehaviour
             return;
         
         currentDirectedPos = pos;
-        path = null;
+        State = EAntState.DirectMove;
+        stuckTimer = 0;
+    }
+
+    public void GoIdle()
+    {
+        State = EAntState.Idle;
     }
 
     public void DirectPathfind(Vector3 pos)
     {
+        State = EAntState.PathMove;
+        
         NavMesh.SamplePosition(transform.position, out NavMeshHit srcHit, 999, NavMesh.AllAreas);
         NavMesh.SamplePosition(pos, out NavMeshHit dstHit, 999, NavMesh.AllAreas);
         path = new NavMeshPath();
@@ -41,14 +72,31 @@ public class Ant : MonoBehaviour
         }
         else
         {
-            path = null;
+            GoIdle();
         }
     }
 
     public void ReturnToNest()
     {
-        DirectPathfind(nest.transform.position);
+        DirectPathfind(myNest.transform.position);
         returningToNest = true;
+    }
+
+    private void UnstuckMe()
+    {
+        if (returningToNest)
+        {
+            // PANIC
+            transform.position = myNest.transform.position;
+            ReturnToNest();
+        }
+        else
+        {
+            // probably running into a wall or something - just return to idle.
+            GoIdle();
+        }
+
+        stuckTimer = 0;
     }
 
     private bool CloseToTarget(Vector3 target)
@@ -56,19 +104,23 @@ public class Ant : MonoBehaviour
         Vector3 dist = (transform.position - target);
         dist.y = 0;
         
-        return dist.magnitude < (MoveSpeed * Time.deltaTime * 4);
+        return dist.magnitude < 0.2f;
     }
 
     private void MoveTowards(Vector3 target)
     {
         if (CloseToTarget(target))
         {
-            if (rb.linearVelocity.magnitude < 0.01)
+            if (rb.linearVelocity.magnitude < 0.01 && State != EAntState.PathMove)
             {
                 rb.linearVelocity = Vector3.zero;
+                GoIdle();
             }
+            return;
         }
+        StuckCheck();
 
+        // dont go up or down lol then we get flying ants
         Vector3 accel = (target - transform.position).normalized * (Acceleration * Time.deltaTime);
         accel.y = 0;
         
@@ -85,10 +137,27 @@ public class Ant : MonoBehaviour
 
         // Hunger loss
         hunger -= horizVel.magnitude * Time.deltaTime;
+        HungerCheck();
+    }
+
+    private void HungerCheck()
+    {
         if (hunger <= 0 && !returningToNest)
         {
             ReturnToNest();
         }
+    }
+
+    private void StuckCheck()
+    {
+        if (rb.linearVelocity.magnitude < 0.01)
+        {
+            stuckTimer += Time.deltaTime;
+            if (stuckTimer > 1)
+                UnstuckMe();
+        }
+        else
+            stuckTimer = 0;
     }
 
     private void PathFind()
@@ -100,9 +169,8 @@ public class Ant : MonoBehaviour
             if (pathNode == path.corners.Length)
             {
                 // end of path
-                path = null;
-                currentDirectedPos = transform.position;
                 returningToNest = false;
+                GoIdle();
                 return;
             }
             curGoal = path.corners[pathNode];
@@ -118,32 +186,105 @@ public class Ant : MonoBehaviour
         hunger = MaxHunger;
     }
 
+    public void InteractWith(AntInteractable interactable)
+    {
+        State = EAntState.Acting;
+        interactable.AntBeginInteract(this);
+        currentInteractable = interactable;
+    }
+
+    public void ReleaseInteract(AntInteractable interactable)
+    {
+        currentInteractable = null;
+        interactable.AntEndInteract(this);
+        GoIdle();
+    }
+
+    public void GrabObject(AntCarriableObject toCarry)
+    {
+        carriedObject = toCarry;
+        carriedObject.OnPickup();
+        ReturnToNest();
+    }
+
+    private void DepositObject(AntNest depositNest)
+    {
+        carriedObject.OnDeposit(depositNest);
+        
+        carriedObject = null;
+    }
+
+    private void IdleTick()
+    {
+        HungerCheck();
+        
+        AntInteractable first = nearbyInteractables.FirstOrDefault(interactable => interactable.CanAntInteract(this));
+        if (first)
+            InteractWith(first);
+    }
+
     private void Update()
     {
-        if(path == null)
-            MoveTowards(currentDirectedPos);
-        else
-            PathFind();
-
-        if (Vector3.Distance(transform.position, nest.transform.position) < 0.5)
+        switch (State)
         {
-            hunger = MaxHunger;
+            case EAntState.Idle:
+                IdleTick();
+                break;
+            case EAntState.DirectMove:
+                MoveTowards(currentDirectedPos);
+                break;
+            case EAntState.PathMove:
+                PathFind();
+                break;
+            case EAntState.Acting:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        if (Vector3.Distance(transform.position, myNest.transform.position) < 0.5)
+        {
+            NearNest();
+        }
+
+        if (carriedObject)
+        {
+            carriedObject.transform.position = transform.position + Vector3.up;
+        }
+    }
+
+    private void NearNest()
+    {
+        hunger = MaxHunger;
+        if (carriedObject)
+        {
+            DepositObject(myNest);
+        }
+
+        if (returningToNest)
+        {
+            returningToNest = false;
+            GoIdle();
         }
     }
 
     private void OnEnable()
     {
-        nest = FindAnyObjectByType<AntNest>();
-        nest.AddAnt(this);
+        myNest = FindAnyObjectByType<AntNest>();
+        myNest.AddAnt(this);
     }
 
     private void OnDisable()
     {
-        nest.RemoveAnt(this);
+        myNest.RemoveAnt(this);
     }
 
+    #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
+        Handles.color = Color.white;
+        Handles.Label(transform.position + Vector3.up * 2, hunger.ToString(CultureInfo.InvariantCulture));
+        
         if (path != null)
         {
             Gizmos.color = Color.red;
@@ -152,4 +293,5 @@ public class Ant : MonoBehaviour
             Gizmos.DrawLine(transform.position, path.corners[pathNode]);
         }
     }
+    #endif
 }
