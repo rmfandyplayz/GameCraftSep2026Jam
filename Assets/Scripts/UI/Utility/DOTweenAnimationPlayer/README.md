@@ -68,6 +68,8 @@ Unity's curve editor has a **preset bar along the bottom** — click a swatch to
 
 Punch and shake steps ignore both — DOTween drives their oscillation internally, so there's no ease field on them.
 
+Both are mirrored when you use the [mirror commands](#mirroring-an-animation).
+
 ---
 
 ## FROM / TO
@@ -135,10 +137,12 @@ Right-click a header in the Inspector:
 
 | Right-click on | You get |
 |---|---|
-| An **animation** header | `Copy Animation` · `Paste Animation (overwrite)` |
-| A **step** header | `Copy Step` · `Paste Step (overwrite)` |
-| The **Animations** list | `Paste Animation (add to end)` |
-| The **Steps** list | `Paste Step (add to end)` |
+| An **animation** header | `Copy Animation` · `Paste Animation (overwrite)` · `Mirror Animation` · `Duplicate as Mirrored` |
+| A **step** header | `Copy Step` · `Paste Step (overwrite)` · `Mirror Step` |
+| The **Animations** list | `Paste Animation (add to end)` · `Paste Animation Mirrored (add to end)` |
+| The **Steps** list | `Paste Step (add to end)` · `Paste Step Mirrored (add to end)` |
+
+The mirror commands are covered in [Mirroring an animation](#mirroring-an-animation).
 
 This works **across GameObjects** — copy a `Press` animation off one button, select another, right-click its Animations list, paste. Object references survive the round trip, so a step pointing at a specific `Graphic` or holding an `AudioClip` still points at it after pasting. (Unity's own generic Copy/Paste on a property drops those references, which is why this exists.)
 
@@ -147,6 +151,47 @@ A pasted animation whose name already exists on the target gets ` 2` appended, b
 The clipboard holds one animation and one step at a time, and lasts until you restart the Editor.
 
 For bulk reuse, **Copy Component / Paste Component Values** on the whole player and prefab variants both still work as normal.
+
+---
+
+## Mirroring an animation
+
+**Right-click a `Show` → `Duplicate as Mirrored`** and you get a `Show Mirrored` sitting under it, which you rename to `Hide`. It is ordinary authored data — every value is visible in the Inspector and yours to tune.
+
+This rewrites the steps once, at author time — there is no runtime reverse mode, and nothing about playback changes. What you get is a second animation, and it is yours to diverge from as soon as it exists.
+
+| Command | Does |
+|---|---|
+| `Mirror Animation` | Mirrors that animation in place |
+| `Duplicate as Mirrored` | Appends a mirrored copy named `<name> Mirrored` |
+| `Paste Animation Mirrored (add to end)` | Mirrors the clipboard on the way in — copy a `Show` off one object, paste a `Hide` onto another |
+| `Mirror Step` | Flips one step, for fixing a single wrong direction |
+
+### What it changes
+
+| Forwards | Mirrored |
+|---|---|
+| Step order | Reversed **by group**, not by row — steps joined with `With Previous` stay joined and stay in their authored order |
+| Staggered delays inside a joined group | Flipped, so the item that arrived last is the first to leave |
+| `From` / `To` | Swapped, values and modes both |
+| `Out*` ease | `In*` ease. `Linear` and the `InOut` / `OutIn` families are already symmetric and stay put |
+| Custom curve | Flipped through both axes |
+| `To: Current` relative offset | The same offset negated |
+| `SetActive` on | `SetActive` off |
+| Punch / shake | Unchanged — they already return to where they started |
+| `PlaySound` | Keeps its clip. If a hide needs a different sound, swap it afterwards |
+
+Everything outside the steps — `Loops`, `Loop Type`, `Interrupt Others`, `On Complete` — is carried across untouched.
+
+### The one case it can't get right
+
+A step with **Use From** off has no authored start, so there is nothing exact to mirror onto — its forward starting value was whatever the property happened to hold at the time.
+
+For those steps the mirror does the best it can: `Use From` is switched **on** and set to the forward `To` (which *is* known), and `To` becomes `Baseline + 0`, the resting value. Then it **logs a warning naming each affected step**, because that second half is a guess. Click the warning to ping the object.
+
+That guess is right for an animation authored away from rest, and a no-op for one that already ends at rest — if a mirrored step does nothing, this is why, and the fix is to type the `To` you actually want.
+
+A single step's delay is also left alone. Delays are flipped *within* a joined group; a lone step's delay is a gap between groups, which can't be expressed on the step itself.
 
 ---
 
@@ -176,7 +221,7 @@ bool IsAnyPlaying { get; }
 bool Has(string name);
 
 void ApplyFromState(string name);   // snap to an animation's FROM values without playing
-void CaptureBaseline();             // re-capture resting values after moving things at runtime
+void CaptureBaseline();             // re-capture resting values at runtime
 ```
 
 There's also a **UnityEvent `On Complete`** per animation if you'd rather wire it in the Inspector.
@@ -187,7 +232,7 @@ There's also a **UnityEvent `On Complete`** per animation if you'd rather wire i
 private void Awake() => anim.ApplyFromState("Show");
 ```
 
-In play mode the inspector shows **Play / From / Stop** buttons per animation so you can tune timing without a test script.
+In play mode the inspector shows **Play / Start / Stop** buttons per animation so you can tune timing without a test script. `Start` snaps to the FROM values without playing.
 
 ---
 

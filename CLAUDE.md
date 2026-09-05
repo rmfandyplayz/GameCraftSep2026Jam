@@ -18,7 +18,8 @@ Jam project: prefer small, obvious, working code over architecture. No DI, servi
 
 ```
 Assets/Scripts/Game/          gameplay (AntManager, IAntInteractable, ICarriableObject)
-Assets/Scripts/UI/Utility/    UI animation framework + its README.md
+Assets/Scripts/UI/Utility/    small self-contained UI utilities, one folder each
+  DOTweenAnimationPlayer/     the UI animation framework + its README.md
 Assets/Scenes/                SampleScene.unity
 Assets/Scenes/TestScenes/     UITest.unity, EliTest.unity
 Assets/Plugins/Demigiant/     DOTween Pro (do not edit)
@@ -55,14 +56,17 @@ These bite silently — no error, no warning:
 7. **A stencil `Mask` defeats material instancing.** `StencilMaterial.Add` takes a one-time cached copy and never re-syncs, so property writes don't reach the screen. `RectMask2D` is unaffected.
 8. `MaterialPropertyBlock` does **not** work with UGUI — `CanvasRenderer` ignores it.
 9. `DOTween.Init` is not needed (auto-inits). `SetUpdate(true)` works on `Sequence` and is required for UI that animates while `Time.timeScale == 0`.
+10. **A tween's `SetDelay` is added *on top of* its position in a Sequence, not instead of it.** Measured against the loaded DLL: `Append(t)` and `Join(t)` place `t` at `groupStart + t.delay`; `Insert(pos, t)` places it at `pos + t.delay`. So code that positions tweens explicitly must not also call `SetDelay`. `Join` offsets from the *group* start, not from the previous step's own start.
 
 Project DOTween settings: safe mode **on**, tween recycling **off**, default ease `OutQuad`, default autoKill **on**.
 
 ## UI animation framework
 
-`Assets/Scripts/UI/Utility/` holds a data-driven DOTween animation system — `UIAnimationPlayer` plays Inspector-authored named animations (`Play("Show")`). It is deliberately generic: it knows nothing about menus, HUDs, or transitions.
+`Assets/Scripts/UI/Utility/DOTweenAnimationPlayer/` holds a data-driven DOTween animation system — `UIAnimationPlayer` plays Inspector-authored named animations (`Play("Show")`). It is deliberately generic: it knows nothing about menus, HUDs, or transitions.
 
-**Read `Assets/Scripts/UI/Utility/README.md` before changing it.** Do not add game-specific logic there.
+**Read that folder's `README.md` before changing it.** Do not add game-specific logic there. `Assets/Scripts/UI/Utility/` is a home for several small self-contained utilities, one folder each — do not flatten them back out.
+
+**Reversing is an authoring operation, not a playback mode.** The `Mirror Animation` / `Duplicate as Mirrored` right-click commands rewrite the authored data once so you get a real second animation to tune — values, easings, `SetActive` and staggered delays all invert; punch/shake and `PlaySound` pass through. Nothing at runtime knows about mirroring, which is why the whole thing lives in `Editor/UIAnimationMirror.cs` and the runtime has no `PlayReverse`. **Do not add one back** without asking: a live reverse mode and an authored mirror are two answers to the same question, and having both was tried and cut.
 
 UI sounds also live here: a `PlaySound` step plays an `AudioClip` at a point in an animation's timeline. With no AudioSource assigned it falls back to a shared 2D one (`UIAnimationAudio.Shared`, a `DontDestroyOnLoad` object created on first use). That is the **only** global in the folder — if you need UI audio routed through a mixer, call `UIAnimationAudio.SetShared` once rather than adding another.
 
@@ -71,7 +75,9 @@ Implementation notes that generalise beyond this folder:
 - **Unity does not run C# field initialisers for elements added with `+` on a serialized `List<T>`.** A new element is zero-filled, so `= 1` / `= 0.25f` / `= "_Progress"` defaults in the class silently do not apply. The fix used here is a `FillUnsetDefaults()` on the serializable class, called from the MonoBehaviour's `OnValidate`, which only ever writes to fields still at their zero value so authored data is never clobbered. Any new inspector-authored data class in this project needs the same treatment.
 - Validate shader property names against `Material.HasProperty` once at startup and warn, rather than letting `GetColor`/`SetFloat` error every frame.
 - **Enums that appear on serialized fields are stored as integers — only ever append to them.** Inserting or reordering a value silently repoints every asset already authored against it. `UIAnimationStepType` carries a comment saying so.
-- **`EditorApplication.contextualPropertyMenu` + `SerializedProperty.boxedValue`** is the cheap way to add copy/paste to inspector-authored data (`Editor/UIAnimationClipboard.cs`). Serialize with `EditorJsonUtility`, not `JsonUtility` — only the editor one preserves `UnityEngine.Object` references, which is the whole point when the data holds scene targets. The property handed to the callback must be `.Copy()`d, since menu items run after it goes out of scope.
+- **`EditorApplication.contextualPropertyMenu` + `SerializedProperty.boxedValue`** is the cheap way to add copy/paste/transform commands to inspector-authored data (`Editor/UIAnimationContextMenu.cs`). Serialize with `EditorJsonUtility`, not `JsonUtility` — only the editor one preserves `UnityEngine.Object` references, which is the whole point when the data holds scene targets. The property handed to the callback must be `.Copy()`d, since menu items run after it goes out of scope. **Register the event once per folder**: two handlers append to the same menu in whatever order their static constructors happened to run.
+- **`WithPrevious` steps are groups, not rows.** Anything that reorders a step list must reverse the *groups* and keep each group's members together, or it silently re-parents which steps are joined to which. `Editor/UIAnimationMirror.cs` is the reference implementation.
+- **A step's `Delay` is applied in exactly one place: the insert position `UIAnimationPlayer.BuildSequence` computes.** `BuildTween` must never call `SetDelay` — DOTween adds a tween's own delay *on top of* its sequence position, so doing both silently doubles every delay. This regressed once already.
 
 ## Verifying changes
 
@@ -85,6 +91,8 @@ unity cmd console -- --level error --tail 50
 ```
 
 `unity list` shows all ~150 available commands; `unity list --query <term>` filters them.
+
+**`recompile_status` is the authoritative result, not `console`.** `clear_console` returns `{"cleared":true}` but the Pipeline capture buffer keeps replaying old entries, so `console` will happily show you errors from a previous session — check their timestamps and file paths before believing them. A clean build is `{"status":"completed","failed":false,"errors":[]}`.
 
 Treat the CLI as an **inspection and verification** tool. Do not use it (or `eval`) to modify gameplay systems, scenes, prefabs, materials, shaders, project settings, or assets, unless explicitly asked. Keep `eval` read-only.
 

@@ -3,7 +3,7 @@
 //
 // AI-GENERATED. Authored by Claude (Anthropic) via Claude Code, September 2026,
 // to a written design brief by the project author. Not hand-written by the
-// Twindrill Goose team. See Assets/Scripts/UI/Utility/README.md for usage.
+// Twindrill Goose team. See the README.md beside this file for usage.
 // -----------------------------------------------------------------------------
 
 using System;
@@ -34,6 +34,11 @@ public class UIAnimationPlayer : MonoBehaviour
     [SerializeField] private List<UIAnimation> Animations = new List<UIAnimation>();
 
     private readonly Dictionary<string, int> lookup = new Dictionary<string, int>();
+
+    // Scratch space for the timeline pass in BuildSequence. Reused so playing an animation
+    // does not allocate.
+    private readonly List<float> stepStarts = new List<float>();
+
     private bool initialized;
 
     /// <summary>True while any animation on this player is running.</summary>
@@ -173,8 +178,9 @@ public class UIAnimationPlayer : MonoBehaviour
     }
 
     /// <summary>
-    /// Snaps every FROM value of an animation to its target without playing anything.
-    /// Use this to put an element into its hidden start state, e.g. ApplyFromState("Show") in Awake.
+    /// Snaps every FROM value of an animation onto its targets without playing anything.
+    /// ApplyFromState("Show") in Awake is how you start a panel hidden without authoring a
+    /// separate state for it.
     /// </summary>
     public void ApplyFromState(string animationName)
     {
@@ -254,24 +260,46 @@ public class UIAnimationPlayer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Lays every step out on an explicit timeline, then Inserts it at a position, rather than
+    /// using Append/Join. The positions are the ones Append/Join would produce anyway, but doing
+    /// the arithmetic here keeps a step's Delay applied in exactly one place.
+    ///
+    /// That matters: verified against the loaded DOTween, a tween's own SetDelay is added ON TOP
+    /// of its insert position rather than instead of it. So BuildTween deliberately never calls
+    /// SetDelay, and the delay is folded into the position here.
+    /// </summary>
     private Sequence BuildSequence(UIAnimation animation)
     {
         List<UIAnimationStep> steps = animation.Steps;
         if (steps.Count == 0) return null;
 
+        stepStarts.Clear();
+
+        float total = 0f;
+        float groupStart = 0f;
+
+        for (int i = 0; i < steps.Count; i++)
+        {
+            UIAnimationStep step = steps[i];
+
+            // A step group starts with an AfterPrevious step and gathers the WithPrevious
+            // steps below it. Joined steps offset from the group start, not from each other.
+            if (i > 0 && step.Start == UIAnimationStartMode.AfterPrevious) groupStart = total;
+
+            stepStarts.Add(groupStart + step.Delay);
+            total = Mathf.Max(total, groupStart + step.TotalDuration);
+        }
+
         Sequence sequence = DOTween.Sequence();
         sequence.SetAutoKill(true);
 
-        // Track layout manually rather than reading Sequence.Duration() mid-construction.
-        float sequenceEnd = 0f;
-        float lastStepStart = 0f;
         bool anyContent = false;
 
         for (int i = 0; i < steps.Count; i++)
         {
             UIAnimationStep step = steps[i];
-            bool append = i == 0 || step.Start == UIAnimationStartMode.AfterPrevious;
-            float stepStart = append ? sequenceEnd : lastStepStart;
+            float at = stepStarts[i];
 
             if (UIAnimationStep.IsInstant(step.Type))
             {
@@ -281,11 +309,11 @@ public class UIAnimationPlayer : MonoBehaviour
 
                 if (step.Type == UIAnimationStepType.SetActive)
                 {
-                    sequence.InsertCallback(stepStart + step.Delay, () => captured.ApplyActiveValue());
+                    sequence.InsertCallback(at, () => captured.ApplyActiveValue());
                 }
                 else
                 {
-                    sequence.InsertCallback(stepStart + step.Delay, () => captured.PlaySound());
+                    sequence.InsertCallback(at, () => captured.PlaySound());
                 }
 
                 anyContent = true;
@@ -296,14 +324,9 @@ public class UIAnimationPlayer : MonoBehaviour
                 Tween tween = step.BuildTween(animation.ApplyFromValuesImmediately, context);
                 if (tween == null) continue;
 
-                if (append) sequence.Append(tween);
-                else sequence.Join(tween);
-
+                sequence.Insert(at, tween);
                 anyContent = true;
             }
-
-            if (append) lastStepStart = stepStart;
-            sequenceEnd = Mathf.Max(sequenceEnd, stepStart + step.TotalDuration);
         }
 
         if (!anyContent)

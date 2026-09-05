@@ -199,7 +199,7 @@ public class Ant : MonoBehaviour
     {
         currentDirectedPos = transform.position;
         rb = GetComponent<Rigidbody>();
-        hunger = MaxHunger;
+        hunger = myNest.GetMaxHunger();
         
         antNavMeshQueryFilter = new NavMeshQueryFilter()
         {
@@ -277,7 +277,7 @@ public class Ant : MonoBehaviour
 
     private void NearNest()
     {
-        hunger = MaxHunger;
+        hunger = myNest.GetMaxHunger();
         if (carriedObject)
         {
             DepositObject(myNest);

@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class AntNest : MonoBehaviour
 {
-    [NonSerialized] public int foodCount;
+    [NonSerialized] public float foodCount;
 
     private List<Ant> ants = new();
+    private List<StoredObject> inventory = new();
     
     void Start()
     {
@@ -25,6 +26,21 @@ public class AntNest : MonoBehaviour
     public IEnumerable<Ant> GetAnts()
     {
         return ants;
+    }
+
+    public void AddToInventory(StoredObject obj)
+    {
+        inventory.Add(obj);
+    }
+
+    public void RemoveFromInventory(StoredObject obj)
+    {
+        inventory.Remove(obj);
+    }
+
+    public float GetMaxHunger()
+    {
+        return foodCount + 20;
     }
     
 }
