@@ -72,6 +72,34 @@ Both are mirrored when you use the [mirror commands](#mirroring-an-animation).
 
 ---
 
+## Frame rate
+
+By default an animation moves smoothly, changing a little every rendered frame. Tick **Play At Custom FPS** on an animation and an **FPS** box appears below it — from then on that animation advances in discrete steps, for a stop-motion or flipbook look.
+
+```
+Loops                      1
+Loop Type                  Restart
+Play At Custom FPS         ✔
+FPS                        12
+```
+
+`12` is the classic hand-drawn look, `24` is film, `6`–`8` is deliberately crunchy. Setting it above your display's refresh rate does nothing, because there's no frame in between to hold on.
+
+**It's a look, not a throttle.** The tween still updates every frame — it just keeps returning the same value until the next frame boundary, which is what stepped playback actually is. Nothing gets cheaper, and `Duration` means exactly what it did before.
+
+Things worth knowing:
+
+- **Steps still land exactly.** The end of a step is always sampled at its true end, so `To: Baseline` lands precisely on the resting value even when the `Duration` isn't a whole number of frames. That last frame is just shorter than the rest.
+- **Every step shares one frame grid**, measured from the start of the animation rather than from each step's own start — so two steps staggered by an odd delay still tick together. Without that, a joined group reads as jitter rather than as stop-motion.
+- **Custom curves are stepped too**, exactly like Ease presets.
+- **Punch and shake are never stepped.** They drive their own oscillation internally rather than through the easing this works on, and overriding it breaks them silently. Same reason they have no Ease field.
+- **`SetActive` and `PlaySound` still fire at their exact authored time**, not snapped to the grid — snapping them would quietly collapse a sub-frame stagger onto one frame.
+- It's per animation, so a `Show` can be stepped while a `Hover` on the same object stays smooth.
+
+The setting is carried across by the [mirror commands](#mirroring-an-animation).
+
+---
+
 ## FROM / TO
 
 Each endpoint has a **mode**:
@@ -181,7 +209,7 @@ This rewrites the steps once, at author time — there is no runtime reverse mod
 | Punch / shake | Unchanged — they already return to where they started |
 | `PlaySound` | Keeps its clip. If a hide needs a different sound, swap it afterwards |
 
-Everything outside the steps — `Loops`, `Loop Type`, `Interrupt Others`, `On Complete` — is carried across untouched.
+Everything outside the steps — `Loops`, `Loop Type`, `Play At Custom FPS`, `Interrupt Others`, `On Complete` — is carried across untouched.
 
 ### The one case it can't get right
 
@@ -301,6 +329,7 @@ UI Animation Player
                 To     [Baseline]  X 0    Y 0    Z 0    ← lands on the authored scale
         Loops                      1
         Loop Type                  Restart
+        Play At Custom FPS         ☐
         Apply From Values Immediately  ✔
         Interrupt Others           ✔
         On Complete                (UnityEvent)
@@ -342,6 +371,7 @@ UI Animation Player
                 To     [Absolute]  1
         Loops                      1
         Loop Type                  Restart
+        Play At Custom FPS         ☐
         Apply From Values Immediately  ✔
         Interrupt Others           ✔
         On Complete                (UnityEvent)

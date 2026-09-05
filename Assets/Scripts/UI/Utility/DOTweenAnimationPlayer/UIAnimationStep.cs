@@ -204,6 +204,10 @@ public class UIAnimationStep
     [NonSerialized] private int shaderPropertyId;
     [NonSerialized] private bool shaderPropertyValid;
 
+    // Built on first use and reconfigured per build, so replaying a stepped animation does
+    // not allocate. Only one sequence per animation is ever live, so it is never shared.
+    [NonSerialized] private UIAnimationSteppedEase steppedEase;
+
     /// <summary>How long the tween itself runs. Zero for instant steps.</summary>
     public float TweenDuration
     {
@@ -445,8 +449,13 @@ public class UIAnimationStep
     /// its insert position rather than instead of it.
     /// Returns null for instant steps (the player turns those into a callback) and for
     /// steps whose target is missing.
+    ///
+    /// frameRate above 0 makes the step advance in discrete frames instead of smoothly, and
+    /// timelineOffset is where it sits in the sequence, so every step shares one frame grid.
+    /// The frame rate arrives per step deliberately - a per-step override would only need the
+    /// player to resolve a different number, not any new plumbing here.
     /// </summary>
-    public Tween BuildTween(bool applyFromImmediately, string context)
+    public Tween BuildTween(bool applyFromImmediately, float frameRate, float timelineOffset, string context)
     {
         if (IsInstant(Type)) return null;
         if (!HasTarget(context)) return null;
@@ -554,11 +563,25 @@ public class UIAnimationStep
                 return null;
         }
 
-        // Punch and shake carry their own internal easing; overriding it looks wrong.
+        // Punch and shake carry their own internal easing; overriding it looks wrong. Frame
+        // stepping rides on the ease, so it is also what leaves those two steps smooth.
         if (!IsImpulse(Type))
         {
-            if (UseCustomCurve && Curve != null && Curve.length > 0) tween.SetEase(Curve);
-            else tween.SetEase(EaseType);
+            bool useCurve = UseCustomCurve && Curve != null && Curve.length > 0;
+
+            if (frameRate > 0f)
+            {
+                if (steppedEase == null) steppedEase = new UIAnimationSteppedEase();
+                tween.SetEase(steppedEase.Configure(EaseType, useCurve ? Curve : null, frameRate, timelineOffset));
+            }
+            else if (useCurve)
+            {
+                tween.SetEase(Curve);
+            }
+            else
+            {
+                tween.SetEase(EaseType);
+            }
         }
 
         return tween;

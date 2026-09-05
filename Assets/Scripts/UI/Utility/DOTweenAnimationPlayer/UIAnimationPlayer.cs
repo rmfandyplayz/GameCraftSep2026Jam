@@ -294,6 +294,11 @@ public class UIAnimationPlayer : MonoBehaviour
         Sequence sequence = DOTween.Sequence();
         sequence.SetAutoKill(true);
 
+        // Resolved once here, so a future per-step override changes only this line. Steps that
+        // happen at a point in time rather than over one keep their exact authored position -
+        // snapping those to the grid would silently collapse a sub-frame stagger.
+        float frameRate = animation.EffectiveFrameRate;
+
         bool anyContent = false;
 
         for (int i = 0; i < steps.Count; i++)
@@ -321,7 +326,7 @@ public class UIAnimationPlayer : MonoBehaviour
             else
             {
                 string context = "UIAnimationPlayer on '" + name + "' animation '" + animation.Name + "' step " + i;
-                Tween tween = step.BuildTween(animation.ApplyFromValuesImmediately, context);
+                Tween tween = step.BuildTween(animation.ApplyFromValuesImmediately, frameRate, at, context);
                 if (tween == null) continue;
 
                 sequence.Insert(at, tween);

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: fa57ccac67cc19f4fa557dcfc36ac7a3
+guid: 7086da91e9f6c5647a79d92f4a4e6576
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -9,7 +9,7 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - OCR A Extended
+  - Geist Pixel
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0
