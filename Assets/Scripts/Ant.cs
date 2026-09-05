@@ -183,7 +183,7 @@ public class Ant : MonoBehaviour
     {
         currentDirectedPos = transform.position;
         rb = GetComponent<Rigidbody>();
-        hunger = MaxHunger;
+        hunger = myNest.GetMaxHunger();
     }
 
     public void InteractWith(AntInteractable interactable)
@@ -255,7 +255,7 @@ public class Ant : MonoBehaviour
 
     private void NearNest()
     {
-        hunger = MaxHunger;
+        hunger = myNest.GetMaxHunger();
         if (carriedObject)
         {
             DepositObject(myNest);
