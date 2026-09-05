@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: 66b7c32c6a529db438b6db242708c756
+=======
+guid: 29749eb5754678048b46aae272d1797b
+>>>>>>> e139b3d (Player AntManager script)
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
