@@ -13,6 +13,7 @@ public class AntFoodCrumb : AntCarriableObject
     public override void OnDeposit(AntNest nest)
     {
         nest.foodCount += FoodAmount;
+        Debug.Log(nest.foodCount);
         Destroy(gameObject);
     }
 }
