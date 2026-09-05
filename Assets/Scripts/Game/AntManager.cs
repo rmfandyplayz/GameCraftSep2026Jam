@@ -11,15 +11,19 @@ public class AntManager : MonoBehaviour
 
     [SerializeField] private float MoveSpeed;
     [SerializeField] private float TurnSensitivity;
+    [SerializeField] private float DirectDist;
 
     private Vector2 moveInput;
     private Vector2 rotateInput;
     private Vector2 cursorScreenPos;
+    private bool isDirecting;
 
     private float camYaw;
     private float camPitch;
 
     private Vector3 cursorWorldPos;
+
+    private AntNest nest;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
@@ -28,6 +32,8 @@ public class AntManager : MonoBehaviour
         camYaw = CamTargetTransform.rotation.eulerAngles.y;
 
         playerCamera = CameraTransform.GetComponent<Camera>();
+
+        nest = FindAnyObjectByType<AntNest>();
     }
 
     public void MoveCameraInput(InputAction.CallbackContext context)
@@ -45,6 +51,11 @@ public class AntManager : MonoBehaviour
         cursorScreenPos = context.ReadValue<Vector2>();
     }
 
+    public void DirectInput(InputAction.CallbackContext context)
+    {
+        isDirecting = context.ReadValueAsButton();
+    }
+
     // Update is called once per frame
     private void Update()
     {
@@ -53,6 +64,11 @@ public class AntManager : MonoBehaviour
         GetCursorWorldPosition();
 
         CursorTransform.position = cursorWorldPos + new Vector3(0, .01f, 0);
+
+        if (isDirecting)
+        {
+            DirectAnts();
+        }
     }
 
     private void MoveCamera()
@@ -86,5 +102,16 @@ public class AntManager : MonoBehaviour
         }
 
         return cursorWorldPos;
+    }
+
+    private void DirectAnts()
+    {
+        foreach (Ant ant in nest.GetAnts())
+        {
+            if ((ant.transform.position - cursorWorldPos).magnitude < DirectDist)
+            {
+                ant.Direct(cursorWorldPos);
+            }
+        }
     }
 }

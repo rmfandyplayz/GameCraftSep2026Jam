@@ -9,16 +9,25 @@ public class AntNest : MonoBehaviour
         set { foodCount = value; }
     }
 
-    private List<Ant> ants;
+    private List<Ant> ants = new();
     
     void Start()
     {
-        ants = new();
     }
 
     public void AddAnt(Ant ant)
     {
         ants.Add(ant);
+    }
+
+    public void RemoveAnt(Ant ant)
+    {
+        ants.Remove(ant);
+    }
+
+    public IEnumerable<Ant> GetAnts()
+    {
+        return ants;
     }
     
 }
