@@ -107,8 +107,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Ant
   MaxHunger: 20
   hunger: 0
-  Acceleration: 1000
-  MoveSpeed: 2
+  Acceleration: 200
+  MoveSpeed: 1
 --- !u!54 &3052650218380509166
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -117,7 +117,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4787837586805708417}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 0.1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
