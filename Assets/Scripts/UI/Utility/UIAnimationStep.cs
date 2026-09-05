@@ -30,6 +30,10 @@ public enum UIAnimationStepType
     PunchAnchoredPosition,
     ShakeAnchoredPosition,
     SetActive,
+
+    // Appended, not inserted. These are serialized as integers, so reordering this enum
+    // would silently repoint every step already authored in a scene or prefab.
+    PlaySound,
 }
 
 /// <summary>How a FROM/TO endpoint value is resolved at build time.</summary>
@@ -69,6 +73,7 @@ public enum UIAnimationTargetKind
     Graphic,
     Material,
     GameObject,
+    Audio,
 }
 
 /// <summary>
@@ -101,6 +106,10 @@ public class UIAnimationStep
 
     [Tooltip("The GameObject to enable or disable. Leave empty to use this one.")]
     public GameObject ActiveTarget;
+
+    [Tooltip("Which AudioSource plays the clip. Leave empty to use an AudioSource on this GameObject, " +
+             "or - if there isn't one - a shared 2D source the framework creates on first use.")]
+    public AudioSource AudioSourceTarget;
 
     [Tooltip("How long the tween runs, in seconds. Does not include Delay.")]
     public float Duration = 0.25f;
@@ -154,6 +163,21 @@ public class UIAnimationStep
     [Tooltip("The active state to apply when this step is reached.")]
     public bool ActiveValue = true;
 
+    [Tooltip("The sound to play when this step is reached. Played as a one-shot, so it is never " +
+             "cut off by the next sound and keeps playing if the animation is stopped.")]
+    public AudioClip Clip;
+
+    [Tooltip("Volume multiplier. 1 = the clip's own volume. Above 1 boosts it.")]
+    public float Volume = 1f;
+
+    [Tooltip("Playback speed and therefore pitch. 1 = normal. This is written to the AudioSource, " +
+             "so it also affects other sounds still playing on that same source.")]
+    public float Pitch = 1f;
+
+    [Tooltip("Random pitch spread, applied as Pitch +/- this amount. 0 = every play sounds identical. " +
+             "0.05 to 0.15 stops a repeated click sounding like a machine gun.")]
+    public float PitchVariation;
+
     [Tooltip("How many times the punch or shake oscillates over its Duration. Higher = busier.")]
     public int Vibrato = 10;
 
@@ -172,6 +196,7 @@ public class UIAnimationStep
     [NonSerialized] private Graphic graphic;
     [NonSerialized] private UIMaterialInstance materialInstance;
     [NonSerialized] private GameObject activeObject;
+    [NonSerialized] private AudioSource audioSource;
 
     [NonSerialized] private Vector3 baselineVector;
     [NonSerialized] private float baselineFloat;
@@ -182,7 +207,17 @@ public class UIAnimationStep
     /// <summary>Time this step occupies, used to lay out Append/Join positions.</summary>
     public float TotalDuration
     {
-        get { return Type == UIAnimationStepType.SetActive ? Delay : Delay + Mathf.Max(0f, Duration); }
+        get { return IsInstant(Type) ? Delay : Delay + Mathf.Max(0f, Duration); }
+    }
+
+    /// <summary>
+    /// True for steps that happen at a point in time rather than over one. These become a
+    /// sequence callback instead of a tween, and have no Duration or easing.
+    /// </summary>
+    public static bool IsInstant(UIAnimationStepType type)
+    {
+        return type == UIAnimationStepType.SetActive
+            || type == UIAnimationStepType.PlaySound;
     }
 
     public static UIAnimationValueKind ValueKindOf(UIAnimationStepType type)
@@ -200,6 +235,7 @@ public class UIAnimationStep
                 return UIAnimationValueKind.Color;
 
             case UIAnimationStepType.SetActive:
+            case UIAnimationStepType.PlaySound:
                 return UIAnimationValueKind.None;
 
             default:
@@ -224,6 +260,9 @@ public class UIAnimationStep
 
             case UIAnimationStepType.SetActive:
                 return UIAnimationTargetKind.GameObject;
+
+            case UIAnimationStepType.PlaySound:
+                return UIAnimationTargetKind.Audio;
 
             default:
                 return UIAnimationTargetKind.Rect;
@@ -262,6 +301,19 @@ public class UIAnimationStep
 
             case UIAnimationTargetKind.GameObject:
                 activeObject = ActiveTarget != null ? ActiveTarget : owner;
+                break;
+
+            case UIAnimationTargetKind.Audio:
+                // May stay null. The shared fallback source is resolved lazily at play time,
+                // so a player that never actually fires a sound never creates one.
+                audioSource = AudioSourceTarget != null ? AudioSourceTarget : owner.GetComponent<AudioSource>();
+
+                if (Clip == null)
+                {
+                    Debug.LogWarning(
+                        "UIAnimationPlayer on '" + owner.name +
+                        "': a Play Sound step has no Clip assigned. It will be skipped.", owner);
+                }
                 break;
         }
     }
@@ -366,12 +418,12 @@ public class UIAnimationStep
     /// Builds a fully configured tween. Everything (From/Ease/Delay/Relative) is applied
     /// HERE, before the caller hands it to Append/Join - DOTween silently ignores those
     /// calls once a tween has been inserted into a Sequence.
-    /// Returns null for SetActive steps (the player turns those into a callback) and for
+    /// Returns null for instant steps (the player turns those into a callback) and for
     /// steps whose target is missing.
     /// </summary>
     public Tween BuildTween(bool applyFromImmediately, string context)
     {
-        if (Type == UIAnimationStepType.SetActive) return null;
+        if (IsInstant(Type)) return null;
         if (!HasTarget(context)) return null;
 
         bool relative = !UseFrom && ToMode == UIAnimationEndpointMode.Current;
@@ -503,6 +555,8 @@ public class UIAnimationStep
         if (Randomness == 0f) Randomness = 90f;
         if (string.IsNullOrEmpty(ShaderProperty)) ShaderProperty = "_Progress";
         if (Curve == null || Curve.length == 0) Curve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+        if (Volume == 0f) Volume = 1f;
+        if (Pitch == 0f) Pitch = 1f;
 
         // FromFloat/ToFloat and the colours are deliberately left alone - 0 and transparent
         // are legitimate authored values (fading to 0 is the whole point of a Hide).
@@ -512,6 +566,25 @@ public class UIAnimationStep
     public void ApplyActiveValue()
     {
         if (activeObject != null) activeObject.SetActive(ActiveValue);
+    }
+
+    /// <summary>
+    /// Runs a PlaySound step. The player calls this from a sequence callback, so a stopped or
+    /// interrupted animation simply never reaches it.
+    /// PlayOneShot is used rather than Play, so overlapping UI sounds do not cut each other off.
+    /// </summary>
+    public void PlaySound()
+    {
+        if (Clip == null) return;
+
+        AudioSource source = audioSource != null ? audioSource : UIAnimationAudio.Shared;
+        if (source == null) return;
+
+        source.pitch = PitchVariation > 0f
+            ? Pitch + UnityEngine.Random.Range(-PitchVariation, PitchVariation)
+            : Pitch;
+
+        source.PlayOneShot(Clip, Mathf.Max(0f, Volume));
     }
 
     private Vector3 ResolveVector(UIAnimationEndpointMode mode, Vector3 value)
@@ -593,6 +666,11 @@ public class UIAnimationStep
             case UIAnimationTargetKind.GameObject:
                 if (activeObject != null) return true;
                 break;
+
+            case UIAnimationTargetKind.Audio:
+                // Never reached today - PlaySound is instant, so it never builds a tween.
+                // Returning true keeps a future change from producing a nonsense warning.
+                return true;
         }
 
         Debug.LogWarning(context + ": " + Type + " step has no " + TargetKindOf(Type) + " target and was skipped.");

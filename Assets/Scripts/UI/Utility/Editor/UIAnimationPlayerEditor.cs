@@ -28,7 +28,9 @@ public class UIAnimationPlayerEditor : Editor
 
         if (!Application.isPlaying)
         {
-            EditorGUILayout.HelpBox("Enter play mode to preview animations.", MessageType.None);
+            EditorGUILayout.HelpBox(
+                "Right-click an animation or step header to copy and paste it, here or on another object.\n" +
+                "Enter play mode to preview animations.", MessageType.None);
             return;
         }
 

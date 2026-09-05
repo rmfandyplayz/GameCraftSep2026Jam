@@ -273,10 +273,21 @@ public class UIAnimationPlayer : MonoBehaviour
             bool append = i == 0 || step.Start == UIAnimationStartMode.AfterPrevious;
             float stepStart = append ? sequenceEnd : lastStepStart;
 
-            if (step.Type == UIAnimationStepType.SetActive)
+            if (UIAnimationStep.IsInstant(step.Type))
             {
+                // SetActive and PlaySound happen at a point in the timeline rather than over
+                // a span of it, so they are callbacks rather than tweens.
                 UIAnimationStep captured = step;
-                sequence.InsertCallback(stepStart + step.Delay, () => captured.ApplyActiveValue());
+
+                if (step.Type == UIAnimationStepType.SetActive)
+                {
+                    sequence.InsertCallback(stepStart + step.Delay, () => captured.ApplyActiveValue());
+                }
+                else
+                {
+                    sequence.InsertCallback(stepStart + step.Delay, () => captured.PlaySound());
+                }
+
                 anyContent = true;
             }
             else
