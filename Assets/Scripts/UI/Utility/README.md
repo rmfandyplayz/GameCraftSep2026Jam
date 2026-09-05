@@ -25,7 +25,9 @@ Each step's collapsed header reads like a timeline line: `then   Scale   0.25s O
 
 ### Step types
 
-`AnchoredPosition` · `LocalPosition` · `Scale` · `Rotation` · `CanvasGroupAlpha` · `GraphicColor` · `GraphicAlpha` · `MaterialFloat` · `MaterialColor` · `PunchScale` · `PunchAnchoredPosition` · `ShakeAnchoredPosition` · `SetActive`
+`AnchoredPosition` · `LocalPosition` · `Scale` · `Rotation` · `CanvasGroupAlpha` · `GraphicColor` · `GraphicAlpha` · `MaterialFloat` · `MaterialColor` · `PunchScale` · `PunchAnchoredPosition` · `ShakeAnchoredPosition` · `SetActive` · `PlaySound`
+
+`SetActive` and `PlaySound` are **instant** — they happen at a point in the timeline rather than over one, so they show a `Delay` but no `Duration` and no easing.
 
 ---
 
@@ -37,6 +39,7 @@ Each step shows exactly one target slot, chosen by its type.
 
 - `GraphicColor` / `GraphicAlpha` take a **Graphic**, which covers `Image`, `RawImage`, legacy `Text` **and TextMeshProUGUI**. There is no separate TMP step type.
 - `AnchoredPosition` and `PunchAnchoredPosition` show an X/Y field — Z is not used.
+- `PlaySound` takes an **AudioSource**, and empty means something slightly different — see [Sound](#sound).
 - If a target is missing at play time the step is skipped with a console warning naming the animation and step index. It won't throw.
 
 ---
@@ -82,6 +85,68 @@ Each endpoint has a **mode**:
 **Use From** (unticked by default) enables the FROM endpoint. **Apply From Values Immediately** (on by default, per animation) snaps every FROM value the moment the animation starts rather than when each step begins — this is what prevents an element flashing at full opacity through a delayed step before jumping to 0.
 
 Punch and shake steps have no FROM/TO — they show `Punch` / `Strength` instead, and ignore Ease (they carry their own).
+
+---
+
+## Sound
+
+A **PlaySound** step fires a clip at its point in the timeline. Put one first in a `Press` animation and you have a button click; put one at `Delay 0.15` in a `Show` and it lands with the scale bounce.
+
+```
+▼ then  Play Sound  ui_click
+    Type               Play Sound
+    Start              After Previous
+    Audio Source       None            ← see below
+    Clip               ui_click
+    Volume             1
+    Pitch              1
+    Pitch Variation    0.08
+    Delay              0
+```
+
+**Which AudioSource plays it**, in order:
+
+1. The step's **Audio Source** field, if you assigned one.
+2. An `AudioSource` on the GameObject the player is on.
+3. A shared 2D source the framework creates on first use.
+
+Step 3 is the point of the whole thing — you can add a click sound to forty buttons without adding forty AudioSources. It appears in the hierarchy as **UI Animation Audio** under *DontDestroyOnLoad*, is 2D (so the AudioListener's position is irrelevant), and has `ignoreListenerPause` on.
+
+**Pitch Variation** is `± ` on top of Pitch, rolled fresh each play. `0.08` is enough to stop a repeated click sounding like a machine gun.
+
+Things worth knowing:
+
+- Clips play via `PlayOneShot`, so overlapping UI sounds don't cut each other off, and **stopping an animation does not stop a sound it already started**. A sound scheduled for later in the sequence simply never fires.
+- **Pitch is a property of the AudioSource, not of the one-shot.** Setting it also shifts any sound still playing on that same source. Imperceptible for clicks; if it matters, give that step its own AudioSource.
+- Audio ignores `Time.timeScale`, so pause-menu sounds work with no extra setup.
+- **For mixer routing** (a UI volume slider), either assign your own mixer-connected AudioSource on the step, or replace the shared one once at startup:
+
+```csharp
+UIAnimationAudio.SetShared(myUISfxSource);
+```
+
+- A `PlaySound` step with no **Clip** logs one warning at startup and is skipped.
+
+---
+
+## Copying animations and steps
+
+Right-click a header in the Inspector:
+
+| Right-click on | You get |
+|---|---|
+| An **animation** header | `Copy Animation` · `Paste Animation (overwrite)` |
+| A **step** header | `Copy Step` · `Paste Step (overwrite)` |
+| The **Animations** list | `Paste Animation (add to end)` |
+| The **Steps** list | `Paste Step (add to end)` |
+
+This works **across GameObjects** — copy a `Press` animation off one button, select another, right-click its Animations list, paste. Object references survive the round trip, so a step pointing at a specific `Graphic` or holding an `AudioClip` still points at it after pasting. (Unity's own generic Copy/Paste on a property drops those references, which is why this exists.)
+
+A pasted animation whose name already exists on the target gets ` 2` appended, because `Play()` resolves names first-match-wins and a duplicate would be silently unreachable.
+
+The clipboard holds one animation and one step at a time, and lasts until you restart the Editor.
+
+For bulk reuse, **Copy Component / Paste Component Values** on the whole player and prefab variants both still work as normal.
 
 ---
 
@@ -264,6 +329,7 @@ Tip: once one step exists, `+` **duplicates the last step** rather than creating
 
 There are no ScriptableObject presets — steps hold scene references, so an asset-based preset would need a whole target-binding layer. Instead:
 
+- **Right-click copy/paste** of a single animation or step, across objects — see [Copying animations and steps](#copying-animations-and-steps).
 - Leave targets empty (= self) and an animation is fully portable.
-- **Copy Component / Paste Component Values** to move a configured player to another element.
+- **Copy Component / Paste Component Values** to move a whole configured player to another element.
 - Prefab variants for anything genuinely shared.

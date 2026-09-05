@@ -86,6 +86,16 @@ public class UIAnimationStepDrawer : PropertyDrawer
             return;
         }
 
+        if (stepType == UIAnimationStepType.PlaySound)
+        {
+            Field(ref layout, property.FindPropertyRelative("Clip"));
+            Field(ref layout, property.FindPropertyRelative("Volume"));
+            Field(ref layout, property.FindPropertyRelative("Pitch"));
+            Field(ref layout, property.FindPropertyRelative("PitchVariation"), "Pitch Variation");
+            Field(ref layout, property.FindPropertyRelative("Delay"));
+            return;
+        }
+
         if (stepType == UIAnimationStepType.MaterialFloat || stepType == UIAnimationStepType.MaterialColor)
         {
             Field(ref layout, property.FindPropertyRelative("ShaderProperty"));
@@ -150,6 +160,11 @@ public class UIAnimationStepDrawer : PropertyDrawer
             case UIAnimationTargetKind.GameObject:
                 field = "ActiveTarget";
                 label = "Game Object";
+                break;
+
+            case UIAnimationTargetKind.Audio:
+                field = "AudioSourceTarget";
+                label = "Audio Source";
                 break;
 
             default:
@@ -271,6 +286,12 @@ public class UIAnimationStepDrawer : PropertyDrawer
         {
             bool value = property.FindPropertyRelative("ActiveValue").boolValue;
             return prefix + "   " + typeName + " " + (value ? "on" : "off");
+        }
+
+        if (type == UIAnimationStepType.PlaySound)
+        {
+            Object clip = property.FindPropertyRelative("Clip").objectReferenceValue;
+            return prefix + "   " + typeName + "   " + (clip != null ? clip.name : "(no clip)");
         }
 
         float duration = property.FindPropertyRelative("Duration").floatValue;

@@ -64,10 +64,14 @@ Project DOTween settings: safe mode **on**, tween recycling **off**, default eas
 
 **Read `Assets/Scripts/UI/Utility/README.md` before changing it.** Do not add game-specific logic there.
 
-Two implementation notes that generalise beyond this folder:
+UI sounds also live here: a `PlaySound` step plays an `AudioClip` at a point in an animation's timeline. With no AudioSource assigned it falls back to a shared 2D one (`UIAnimationAudio.Shared`, a `DontDestroyOnLoad` object created on first use). That is the **only** global in the folder — if you need UI audio routed through a mixer, call `UIAnimationAudio.SetShared` once rather than adding another.
+
+Implementation notes that generalise beyond this folder:
 
 - **Unity does not run C# field initialisers for elements added with `+` on a serialized `List<T>`.** A new element is zero-filled, so `= 1` / `= 0.25f` / `= "_Progress"` defaults in the class silently do not apply. The fix used here is a `FillUnsetDefaults()` on the serializable class, called from the MonoBehaviour's `OnValidate`, which only ever writes to fields still at their zero value so authored data is never clobbered. Any new inspector-authored data class in this project needs the same treatment.
 - Validate shader property names against `Material.HasProperty` once at startup and warn, rather than letting `GetColor`/`SetFloat` error every frame.
+- **Enums that appear on serialized fields are stored as integers — only ever append to them.** Inserting or reordering a value silently repoints every asset already authored against it. `UIAnimationStepType` carries a comment saying so.
+- **`EditorApplication.contextualPropertyMenu` + `SerializedProperty.boxedValue`** is the cheap way to add copy/paste to inspector-authored data (`Editor/UIAnimationClipboard.cs`). Serialize with `EditorJsonUtility`, not `JsonUtility` — only the editor one preserves `UnityEngine.Object` references, which is the whole point when the data holds scene targets. The property handed to the callback must be `.Copy()`d, since menu items run after it goes out of scope.
 
 ## Verifying changes
 
