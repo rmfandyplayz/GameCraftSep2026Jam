@@ -105,10 +105,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a14cac345d717542b19edb8815e7159, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Ant
-  MaxHunger: 20
   hunger: 0
-  Acceleration: 200
+  Acceleration: 50
   MoveSpeed: 1
+  AntAvoidRange: 0.75
+  AntAvoidForce: 40
 --- !u!54 &3052650218380509166
 Rigidbody:
   m_ObjectHideFlags: 0
