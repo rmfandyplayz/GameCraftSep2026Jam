@@ -149,11 +149,35 @@ public class UIAnimationPlayer : MonoBehaviour
         return sequence;
     }
 
+    /// <summary>
+    /// Plays a named animation, discarding the Sequence so that this returns void.
+    ///
+    /// This exists for Inspector UnityEvents. Unity only lists methods that return void and
+    /// take at most one argument, which rules out both Play overloads - and a void Play(string)
+    /// cannot be an overload, because C# will not overload on return type alone.
+    /// From code, call Play instead: it hands back the Sequence.
+    /// </summary>
+    public void PlayAnimation(string animationName)
+    {
+        Play(animationName, null);
+    }
+
     /// <summary>Stops one animation. complete=true jumps to the end state and fires its callbacks.</summary>
     public void Stop(string animationName, bool complete = false)
     {
         UIAnimation animation = Find(animationName);
         if (animation != null) Kill(animation, complete);
+    }
+
+    /// <summary>
+    /// Stops a named animation where it stands, without firing its callbacks.
+    ///
+    /// The UnityEvent-friendly form of Stop. An optional parameter is still a parameter, so
+    /// Stop(string, bool) reads as two arguments and Unity does not offer it in the Inspector.
+    /// </summary>
+    public void StopAnimation(string animationName)
+    {
+        Stop(animationName);
     }
 
     /// <summary>Stops every animation on this player.</summary>

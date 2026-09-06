@@ -167,7 +167,8 @@ public class Ant : MonoBehaviour
         rb.linearVelocity = new Vector3(horizVel.x, rb.linearVelocity.y, horizVel.z);
 
         // Hunger loss
-        hunger -= horizVel.magnitude * Time.deltaTime;
+        if(State != EAntState.Acting)
+            hunger -= horizVel.magnitude * Time.deltaTime;
         HungerCheck();
     }
 
@@ -308,6 +309,17 @@ public class Ant : MonoBehaviour
             
             rb.AddForce(offset.normalized * (force * Time.deltaTime));
         }
+
+        SetAntAngle();
+    }
+
+    private void SetAntAngle()
+    {
+        var vel = rb.linearVelocity;
+        vel.y = 0;
+        vel.Normalize();
+        float angle = Mathf.Atan2(vel.z, vel.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0, -angle, 0);
     }
 
     private void NearNest()
