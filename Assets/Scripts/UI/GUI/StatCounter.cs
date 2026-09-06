@@ -3,10 +3,11 @@ using UnityEngine;
 
 
 // written by andy (rmfz/rmfandyplayz)
-// simple script to change the ant counter text
-public class AntCounter : MonoBehaviour
+// simple script to change the ant & food counter text
+public class StatCounter : MonoBehaviour
 {
-    [SerializeField] TextMeshProUGUI text;
+    [SerializeField] TextMeshProUGUI antCountText;
+    [SerializeField] TextMeshProUGUI foodCountText;
     [SerializeField, Tooltip("update this when u add the actual ant icon")]
     int spriteIndex;
 
@@ -14,12 +15,10 @@ public class AntCounter : MonoBehaviour
     private int totalAnts;
 
 
-    private void Awake()
+    public void UpdateFoodCount(int newFoodCount)
     {
-        if(text == null)
-            text = GetComponent<TextMeshProUGUI>();
+        foodCountText.text = $"{newFoodCount} food";
     }
-
     
     public void UpdateAntCount(int newScreenAntCount, int newTotalAntCount)
     {
@@ -33,19 +32,19 @@ public class AntCounter : MonoBehaviour
     {
         if (screenAnts == 1 && totalAnts == 1)
         {
-            text.text = $"<sprite index={spriteIndex}> 1 ant on screen  •  1 ant total";
+            antCountText.text = $"<sprite index={spriteIndex}> 1 ant on screen  •  1 ant total";
         }
         else if(screenAnts == 1 && totalAnts != 1)
         {
-            text.text = $"<sprite index={spriteIndex}> 1 ant on screen  •  {totalAnts} ants total";
+            antCountText.text = $"<sprite index={spriteIndex}> 1 ant on screen  •  {totalAnts} ants total";
         }
         else if(screenAnts != 1 && totalAnts == 1)
         {
-            text.text = $"<sprite index={spriteIndex}> {screenAnts} ants on screen  •  1 ant total";
+            antCountText.text = $"<sprite index={spriteIndex}> {screenAnts} ants on screen  •  1 ant total";
         }
         else if(screenAnts != 1 && totalAnts != 1)
         {
-            text.text = $"<sprite index={spriteIndex}> {screenAnts} ants on screen  •  {totalAnts} ants total";
+            antCountText.text = $"<sprite index={spriteIndex}> {screenAnts} ants on screen  •  {totalAnts} ants total";
         }
     }
 }
