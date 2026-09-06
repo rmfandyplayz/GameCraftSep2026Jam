@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -28,6 +29,8 @@ public abstract class AntLargeCarriableObject : AntInteractable
     private bool carrying;
 
     private Rigidbody rb;
+
+    [SerializeField] private TextMeshPro text;
     
     
     
@@ -124,6 +127,11 @@ public abstract class AntLargeCarriableObject : AntInteractable
 
     private void Update()
     {
+        if (text)
+        {
+            text.text = GetAntCarryCount().ToString() + "/" + MinAntsForCarry;
+        }
+        
         if (!carrying)
         {
             if (GetAntCarryCount() >= MinAntsForCarry)
