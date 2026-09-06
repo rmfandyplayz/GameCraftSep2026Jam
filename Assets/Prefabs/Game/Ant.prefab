@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8026980354704929363}
   - component: {fileID: 3052650218380509166}
   - component: {fileID: 8156050770937103337}
+  - component: {fileID: 5923172870407463464}
   m_Layer: 0
   m_Name: Ant
   m_TagString: Untagged
@@ -69,7 +70,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: c81465a1bd292e9409cd2671b087c94b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -107,9 +108,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Ant
   hunger: 0
   Acceleration: 50
-  MoveSpeed: 1
+  MoveSpeed: 3
   AntAvoidRange: 0.75
   AntAvoidForce: 40
+  defaultColor: {r: 0.14117648, g: 0.11372549, b: 0.11372549, a: 1}
+  hungryColor: {r: 0.8509804, g: 0.24705882, b: 0.24705882, a: 1}
 --- !u!54 &3052650218380509166
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -158,3 +161,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.04
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5923172870407463464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4787837586805708417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff

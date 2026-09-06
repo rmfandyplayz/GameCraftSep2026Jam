@@ -80,7 +80,7 @@ public abstract class AntLargeCarriableObject : AntInteractable
 
     private void DirectAntToMe(Ant ant)
     {
-        ant.Direct(transform.position);
+        ant.MoveTowards(transform.position);
     }
 
     private void Start()

@@ -8,10 +8,5 @@ public class KeyLargeCarriable : AntLargeCarriableObject
         connectedDoor.Unlock();
     }
 
-    void Start()
-    {
-        
-    }
-
     
 }

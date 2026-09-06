@@ -47,6 +47,13 @@ public class Ant : MonoBehaviour
     public AntCarriableObject carriedObject { get; private set; }
 
     private static NavMeshQueryFilter antNavMeshQueryFilter;
+    private static readonly int BaseColorPropID = Shader.PropertyToID("_BaseColor");
+
+
+    private Renderer _renderer;
+    protected MaterialPropertyBlock matPropBlock;
+    [SerializeField] private Color defaultColor;
+    [SerializeField] private Color hungryColor;
 
     public static int GetNavMeshID(string name)
     {
@@ -72,6 +79,11 @@ public class Ant : MonoBehaviour
     {
         if (returningToNest)
             return;
+
+        if (State == EAntState.Acting)
+        {
+            ReleaseInteract(currentInteractable);
+        }
         
         currentDirectedPos = pos;
         State = EAntState.DirectMove;
@@ -88,6 +100,11 @@ public class Ant : MonoBehaviour
 
     public void DirectPathfind(Vector3 pos)
     {
+        if (State == EAntState.Acting)
+        {
+            ReleaseInteract(currentInteractable);
+        }
+        
         State = EAntState.PathMove;
         
         NavMesh.SamplePosition(transform.position, out NavMeshHit srcHit, 999, antNavMeshQueryFilter);
@@ -139,7 +156,7 @@ public class Ant : MonoBehaviour
         return dist.sqrMagnitude < distance * distance;
     }
 
-    private void MoveTowards(Vector3 target)
+    public void MoveTowards(Vector3 target)
     {
         if (CloseToTarget(target, AntAvoidRange * 2))
         {
@@ -215,6 +232,7 @@ public class Ant : MonoBehaviour
     {
         currentDirectedPos = transform.position;
         rb = GetComponent<Rigidbody>();
+        _renderer = GetComponent<Renderer>();
         hunger = myNest.GetMaxHunger();
         
         antNavMeshQueryFilter = new NavMeshQueryFilter()
@@ -222,6 +240,8 @@ public class Ant : MonoBehaviour
             areaMask = NavMesh.AllAreas,
             agentTypeID = GetNavMeshID("Ant")
         };
+
+        matPropBlock = new();
     }
 
     public void InteractWith(AntInteractable interactable)
@@ -311,6 +331,10 @@ public class Ant : MonoBehaviour
         }
 
         SetAntAngle();
+        
+        _renderer.GetPropertyBlock(matPropBlock);
+        matPropBlock.SetColor(BaseColorPropID, Color.Lerp(hungryColor, defaultColor, hunger / myNest.GetMaxHunger()));
+        _renderer.SetPropertyBlock(matPropBlock);
     }
 
     private void SetAntAngle()
