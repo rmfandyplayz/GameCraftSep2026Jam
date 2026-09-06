@@ -8,10 +8,10 @@ public class TitleScreenController : MonoBehaviour
 {
     
 
-    private void Start()
+    
+
+    public void ExitGame()
     {
-        
+        Application.Quit();
     }
-
-
 }
