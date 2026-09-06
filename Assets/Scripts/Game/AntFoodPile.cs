@@ -91,6 +91,11 @@ public class AntFoodPile : AntInteractable
                 children.RemoveAt(0);
                 Destroy(deleted.gameObject);
             }
+
+            if (FoodLeft <= 0)
+            {
+                Destroy(gameObject);
+            }
             break;
         }
     }

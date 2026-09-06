@@ -53,7 +53,7 @@ public class Ant : MonoBehaviour
 
     private bool idleStationary;
 
-    private AntInteractable currentInteractable;
+    public AntInteractable currentInteractable { get; private set; }
     public AntCarriableObject carriedObject { get; private set; }
 
     private static NavMeshQueryFilter antNavMeshQueryFilter;

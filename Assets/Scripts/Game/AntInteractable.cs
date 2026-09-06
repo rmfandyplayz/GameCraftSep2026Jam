@@ -12,12 +12,15 @@ public abstract class AntInteractable : MonoBehaviour
     public abstract void CancelAntInteract(Ant ant);
     public abstract void AntEndInteract(Ant ant);
 
+    private List<Ant> nearbyAnts = new();
+
     private void OnTriggerEnter(Collider other)
     {
         var ant = other.GetComponent<Ant>();
         if (!ant)
             return;
 
+        nearbyAnts.Add(ant);
         ant.nearbyInteractables.Add(this);
     }
 
@@ -27,7 +30,20 @@ public abstract class AntInteractable : MonoBehaviour
         if (!ant)
             return;
 
+        nearbyAnts.Remove(ant);
         ant.nearbyInteractables.Remove(this);
+    }
+
+    private void OnDestroy()
+    {
+        foreach (Ant nearbyAnt in nearbyAnts)
+        {
+            if (nearbyAnt.currentInteractable == this)
+            {
+                nearbyAnt.ReleaseInteract(this);
+            }
+            nearbyAnt.nearbyInteractables.Remove(this);
+        }
     }
 
     protected Dictionary<Vector3, Ant> GetRadialPlaces(float count, float radius)
