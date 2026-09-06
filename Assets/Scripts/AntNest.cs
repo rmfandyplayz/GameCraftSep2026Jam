@@ -16,9 +16,12 @@ public class AntNest : MonoBehaviour
     [SerializeField] private GameObject antPrefab;
 
     [SerializeField] private Animator Animator;
+    [SerializeField] private MusicMan music;
     
     void Start()
     {
+        music = FindAnyObjectByType<MusicMan>();
+        Debug.Log(music);
     }
 
     public void SpawnAnts(int count)
@@ -39,7 +42,16 @@ public class AntNest : MonoBehaviour
 
     public void AddAnt(Ant ant)
     {
-        ants.Add(ant);
+        ants.Add(ant); 
+        music.targetLayerCount = ants.Count/5 + 1;
+        if (music.targetLayerCount > 13)
+        {
+            music.targetLayerCount = 13;
+        }
+        if (music.targetLayerCount < 1)
+        {
+            music.targetLayerCount = 1;
+        }
     }
 
     public void RemoveAnt(Ant ant)
