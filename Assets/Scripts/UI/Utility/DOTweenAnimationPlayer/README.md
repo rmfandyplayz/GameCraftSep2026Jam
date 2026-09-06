@@ -218,7 +218,7 @@ This rewrites the steps once, at author time — there is no runtime reverse mod
 
 | Forwards | Mirrored |
 |---|---|
-| Step order | Reversed **by group**, not by row — steps joined with `With Previous` stay joined and stay in their authored order |
+| Step order | Fully reversed — the last step becomes the first. Joined groups stay joined and stay whole, and their members reverse too. Reversing inside a group only changes how the list reads: joined steps all start from the same point, so their order in the list never affected timing |
 | Staggered delays inside a joined group | Flipped, so the item that arrived last is the first to leave |
 | `From` / `To` | Swapped, values and modes both |
 | `Out*` ease | `In*` ease. `Linear` and the `InOut` / `OutIn` families are already symmetric and stay put |

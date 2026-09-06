@@ -54,6 +54,13 @@ internal static class UIAnimationMirror
         {
             List<UIAnimationStep> group = groups[g];
 
+            // Reverse inside the group too, so the whole list reads last-to-first. This is
+            // purely how it reads: joined steps all offset from the same group start, so their
+            // order in the list never affected timing, and MirrorGroupDelays has already
+            // flipped the stagger. Without this an animation authored as one joined group -
+            // the common case - appears not to mirror at all.
+            group.Reverse();
+
             for (int s = 0; s < group.Count; s++)
             {
                 group[s].Start = s == 0

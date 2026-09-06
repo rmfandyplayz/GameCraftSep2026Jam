@@ -13,8 +13,14 @@ using UnityEngine;
 /// Right-click authoring commands for animations and steps: copy, paste, and mirror.
 ///
 /// Unity's own generic Copy/Paste on a serialized property drops object references, which
-/// for this data means every target slot comes back empty. EditorJsonUtility keeps them, so
-/// a pasted step still points at the Graphic or AudioClip it was copied from.
+/// for this data means every target slot comes back empty. JsonUtility keeps them, so a
+/// pasted step still points at the Graphic or AudioClip it was copied from.
+///
+/// It must be JsonUtility and NOT EditorJsonUtility, despite the name suggesting otherwise.
+/// EditorJsonUtility serialises the way an asset file does, where a reference is a file ID -
+/// an in-memory scene object has none, so every reference is written as {"instanceID":0} and
+/// silently lost. JsonUtility writes the live instance ID, which resolves for the lifetime of
+/// the Editor session. Measured both ways; this regressed once and dropped every target slot.
 ///
 /// Entries appear on the property context menu:
 ///   right-click an animation header  -> Copy / Paste / Mirror / Duplicate as Mirrored
@@ -119,7 +125,7 @@ internal static class UIAnimationContextMenu
 
     private static void Copy(SerializedProperty element, bool isAnimation)
     {
-        string json = EditorJsonUtility.ToJson(element.boxedValue);
+        string json = JsonUtility.ToJson(element.boxedValue);
 
         if (isAnimation) animationJson = json;
         else stepJson = json;
@@ -203,10 +209,14 @@ internal static class UIAnimationContextMenu
         return element.serializedObject.FindProperty(element.propertyPath.Substring(0, cut));
     }
 
-    /// <summary>An independent copy of a property's value, references intact.</summary>
+    /// <summary>
+    /// An independent copy of a property's value, references intact. boxedValue already hands
+    /// back a deep copy, but round-tripping keeps one mechanism for cloning and clipboard
+    /// alike, so a reference bug can only ever exist in one place.
+    /// </summary>
     private static object Clone(SerializedProperty element, bool isAnimation)
     {
-        return FromJson(EditorJsonUtility.ToJson(element.boxedValue), isAnimation);
+        return FromJson(JsonUtility.ToJson(element.boxedValue), isAnimation);
     }
 
     /// <summary>Deserializes the clipboard onto a fresh instance.</summary>
@@ -227,12 +237,12 @@ internal static class UIAnimationContextMenu
         if (isAnimation)
         {
             var animation = new UIAnimation();
-            EditorJsonUtility.FromJsonOverwrite(json, animation);
+            JsonUtility.FromJsonOverwrite(json, animation);
             return animation;
         }
 
         var step = new UIAnimationStep();
-        EditorJsonUtility.FromJsonOverwrite(json, step);
+        JsonUtility.FromJsonOverwrite(json, step);
         return step;
     }
 
