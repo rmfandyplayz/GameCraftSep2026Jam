@@ -109,6 +109,17 @@ unity cmd console -- --level error --tail 50
 
 Treat the CLI as an **inspection and verification** tool. Do not use it (or `eval`) to modify gameplay systems, scenes, prefabs, materials, shaders, project settings, or assets, unless explicitly asked. Keep `eval` read-only.
 
+## Pause is the input lock
+
+Everything lives in one scene (`Level`), title screen included, and `AntManager`'s `PlayerInput` is enabled from frame 0 — nothing ever disables it. **`Time.timeScale == 0` is the only thing gating player input**, because every input path in `AntManager` scales by `Time.deltaTime`. `AntUIHandler.Awake` sets it to 0 so the title screen boots locked; `API_UI`'s `StartRequested` / `ResumeRequested` release it.
+
+Consequences worth knowing before touching any of this:
+
+- **Any new input path must go through `Time.deltaTime`, or it needs an explicit `if (Time.timeScale == 0) return;`.** `AntManager.ZoomCamera` is the one that didn't and leaked scroll zoom into the menu.
+- **`SceneManager.LoadScene` does not reset `Time.timeScale`.** `QuitToMenu` reaches the menu *from the pause menu*, i.e. with the clock at 0, so it resets to 1 explicitly. This was the actual bug: with no reset and no pause at boot, the menu only *looked* locked on the second visit, because it inherited the pause menu's frozen clock. First launch of a build had live input. Symptom reads as build-only, because the Editor also carries `timeScale` across Play Mode sessions and masks it.
+- **`API_UI`'s three events are the whole gameplay↔UI seam, and an unsubscribed one fails silently.** `StartRequested` sat with zero listeners while `TransitionIn`'s `OnComplete` fired it every time the player pressed Play. Check the C# side has a subscriber before assuming the UnityEvent wiring is wrong.
+- All `UIAnimationPlayer`s in `UI.prefab` have `UseUnscaledTime: 1`, which is what makes booting at `timeScale = 0` safe. Keep it that way or the menu freezes itself.
+
 ## Known repo issue
 
 `Assets/Scripts.meta` contains **unresolved git merge conflict markers** (`<<<<<<< HEAD` / `=======` / `>>>>>>>`) with two competing GUIDs. Unity recovers by string-matching and logs a warning on every refresh. It needs one of the two GUIDs picked and the markers deleted — but ask before touching it, since changing the surviving GUID would break references to the `Assets/Scripts` folder.

@@ -122,6 +122,10 @@ public class AntManager : MonoBehaviour
 
     private void ZoomCamera()
     {
+        // every other input path here scales by Time.deltaTime and so stops on its own while
+        // paused. this one does not, so without the guard the menu still leaks scroll zoom.
+        if (Time.timeScale == 0) return;
+
         zoom = Mathf.Clamp(zoom + zoomInput, -100, -30);
         Vector3 localPos = CameraTransform.localPosition;
         localPos.z = zoom;

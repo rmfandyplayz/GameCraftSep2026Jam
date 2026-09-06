@@ -24,6 +24,10 @@ public class QuitToMenu : MonoBehaviour
     {
         if (isQuitting)
         {
+            // LoadScene does not reset the clock and the pause menu left it at 0, which used
+            // to leak a frozen game into the reloaded scene. AntUIHandler.Awake pauses again
+            // for the title screen, so the menu still locks input.
+            Time.timeScale = 1;
             SceneManager.LoadScene("Level");
             pauseButtonGroup.blocksRaycasts = false;
         }
