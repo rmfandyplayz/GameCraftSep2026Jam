@@ -41,9 +41,9 @@ public class API_UI : MonoBehaviour
     /// Updates the "ants on screen" counter
     /// </summary>
     /// <param name="newAntCount"></param>
-    public void UpdateAntCount(int newAntCount)
+    public void UpdateAntCount(int newScreenAntCount, int newTotalAntCount)
     {
-        antCounter.UpdateAntCount(newAntCount);
+        antCounter.UpdateAntCount(newScreenAntCount, newTotalAntCount);
     }
 
 }
