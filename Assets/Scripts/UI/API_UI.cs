@@ -11,7 +11,8 @@ public class API_UI : MonoBehaviour
     public event Action ResumeRequested;
     public event Action StartRequested;
 
-    [SerializeField] private AntCounter antCounter;
+    [SerializeField] private StatCounter statCounter;
+    
 
     /// <summary>
     /// Requests the game to pause
@@ -43,7 +44,16 @@ public class API_UI : MonoBehaviour
     /// <param name="newAntCount"></param>
     public void UpdateAntCount(int newScreenAntCount, int newTotalAntCount)
     {
-        antCounter.UpdateAntCount(newScreenAntCount, newTotalAntCount);
+        statCounter.UpdateAntCount(newScreenAntCount, newTotalAntCount);
+    }
+
+    /// <summary>
+    /// Updates the "## food" counter
+    /// </summary>
+    /// <param name="newFoodCount"></param>
+    public void UpdateFoodCount(int newFoodCount)
+    {
+        statCounter.UpdateFoodCount(newFoodCount);
     }
 
 }
