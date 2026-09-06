@@ -227,6 +227,7 @@ public class Ant : MonoBehaviour
             horizVel = horizVel.normalized * MoveSpeed;
         }
         rb.linearVelocity = new Vector3(horizVel.x, rb.linearVelocity.y, horizVel.z);
+        SetAntAngle(rb.linearVelocity);
 
         // Hunger loss
         if(!IsActing() && !returningToNest)
@@ -410,11 +411,6 @@ public class Ant : MonoBehaviour
             force *= AntAvoidForce;
             
             rb.AddForce(offset.normalized * (force * Time.deltaTime));
-        }
-
-        if (!rb.isKinematic)
-        {
-            SetAntAngle(rb.linearVelocity);
         }
         
         _renderer.GetPropertyBlock(matPropBlock);

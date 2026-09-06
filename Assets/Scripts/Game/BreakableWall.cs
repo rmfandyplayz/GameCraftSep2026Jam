@@ -21,6 +21,21 @@ public class BreakableWall : AntInteractable
         GeneratePlaces();
     }
 
+    private void Update()
+    {
+        foreach (Ant ant in antsInteracting)
+        {
+            if (IsPointInFront(ant.transform.position))
+            {
+                ant.SetAntAngle(-transform.forward);
+            }
+            else
+            {
+                ant.SetAntAngle(transform.forward);
+            }
+        }
+    }
+
     private void GeneratePlaces()
     {
         frontPlaces.Clear();
@@ -33,7 +48,7 @@ public class BreakableWall : AntInteractable
         float minPos = -wallWidth * 0.5f + wallWidth / antsNeeded;
         float maxPos = wallWidth * 0.5f - wallWidth / antsNeeded;
 
-        float wallOffset = wallDepth + Ant.RadBuffer;
+        float wallOffset = wallDepth/2 + Ant.RadBuffer;
         float yOffset = wallCollider.size.y * -0.5f * transform.lossyScale.y;
         for (int i = 0; i < antsNeeded; i++)
         {

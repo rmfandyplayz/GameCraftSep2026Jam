@@ -5,6 +5,7 @@ using Random = UnityEngine.Random;
 
 public class AntNest : MonoBehaviour
 {
+    private static readonly int BirthAnim = Animator.StringToHash("Birth");
     [NonSerialized] public float foodCount;
 
     private List<Ant> ants = new();
@@ -13,6 +14,8 @@ public class AntNest : MonoBehaviour
     [SerializeField] private Vector2 SpawnArea;
 
     [SerializeField] private GameObject antPrefab;
+
+    [SerializeField] private Animator Animator;
     
     void Start()
     {
@@ -30,6 +33,8 @@ public class AntNest : MonoBehaviour
             rot.y = Random.Range(0, 360);
             Instantiate(antPrefab, pos, Quaternion.Euler(rot));
         }
+
+        Animator.SetTrigger(BirthAnim);
     }
 
     public void AddAnt(Ant ant)
