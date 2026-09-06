@@ -83,10 +83,11 @@ public class Ant : MonoBehaviour
         return 0;
     }
 
-    private IEnumerable<Ant> GetAntsInRange(float distance)
+    [SerializeField] LayerMask antLayerMask;
+
+    private Collider[] GetAntsInRange(float distance)
     {
-        distance *= distance;
-        return myNest.GetAnts().Where(a => a != this && (a.transform.position - transform.position).sqrMagnitude <= distance);
+        return Physics.OverlapSphere(transform.position, distance, antLayerMask);
     }
 
     public bool IsActing()
@@ -257,6 +258,12 @@ public class Ant : MonoBehaviour
 
     private void PathFind()
     {
+        if (pathNode > path.corners.Length)
+        {
+            GoIdle();
+            return;
+        }
+        
         Vector3 curGoal = path.corners[pathNode];
         if (CloseToTarget(curGoal))
         {
@@ -303,7 +310,8 @@ public class Ant : MonoBehaviour
     public void ReleaseInteract(AntInteractable interactable)
     {
         currentInteractable = null;
-        interactable.AntEndInteract(this);
+        if(interactable)
+            interactable.AntEndInteract(this);
         GoIdle();
     }
     
@@ -389,6 +397,11 @@ public class Ant : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
 
+        if (IsActing() && !currentInteractable)
+        {
+            ReleaseInteract(currentInteractable);
+        }
+
         if (Vector3.Distance(transform.position, myNest.transform.position) < 3)
         {
             NearNest();
@@ -401,9 +414,9 @@ public class Ant : MonoBehaviour
 
         float avoidRangeSqrd = AntAvoidRange * AntAvoidRange * 4;
 
-        foreach (Ant ant in GetAntsInRange(AntAvoidRange * 2))
+        foreach (var antCol in GetAntsInRange(AntAvoidRange * 2))
         {
-            Vector3 offset = transform.position - ant.transform.position;
+            Vector3 offset = transform.position - antCol.transform.position;
             offset.y = 0;
             float force = offset.sqrMagnitude;
             force /= avoidRangeSqrd;

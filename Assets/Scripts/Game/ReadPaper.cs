@@ -9,7 +9,9 @@ public class ReadPaper : AntInteractable
 
     public override void AntBeginInteract(Ant ant)
     {
+        Debug.Log("interacting");
         lorePiece.gameObject.SetActive(true);
+        
     }
 
     public override bool CanAntInteract(Ant ant)
@@ -34,7 +36,6 @@ public class ReadPaper : AntInteractable
 
     public void CloseImage()
     {
-        Debug.Log("clicked");
         lorePiece.gameObject.SetActive(false);
         Destroy((this.gameObject));
     }

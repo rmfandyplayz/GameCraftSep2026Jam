@@ -43,6 +43,11 @@ public abstract class AntLargeCarriableObject : AntInteractable
         return antsCarrying.Count;
     }
 
+    private int AvailableSpaces()
+    {
+        return places.Count(p => !p.Value);
+    }
+
     private void SetAntCollisions(Ant ant, bool collideEnabled)
     {
         Rigidbody antRB = ant.rb;
@@ -57,7 +62,7 @@ public abstract class AntLargeCarriableObject : AntInteractable
         ant.transform.SetParent(transform);
     }
     public override bool CanAntInteract(Ant ant){
-        return GetAntCarryCount() < MaxAntsForCarry;
+        return AvailableSpaces() < MaxAntsForCarry;
     }
     
     public override void CancelAntInteract(Ant ant)

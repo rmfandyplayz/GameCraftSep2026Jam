@@ -13,6 +13,20 @@ public class AntUIHandler : MonoBehaviour
     {
         nest = FindFirstObjectByType<AntNest>();
         playerCam = FindFirstObjectByType<Camera>();
+        
+        uiAPI.PauseRequested += Pause;
+        uiAPI.ResumeRequested += Unpause;
+        
+    }
+
+    private void Pause()
+    {
+        Time.timeScale = 0;
+    }
+
+    private void Unpause()
+    {
+        Time.timeScale = 1;
     }
 
     public static bool IsPointInFrustum(Camera camera, Vector3 point)

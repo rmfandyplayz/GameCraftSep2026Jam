@@ -67,8 +67,8 @@ public abstract class AntInteractable : MonoBehaviour
         if (closest == Vector3.zero)
         {
             // Uh, panic.
-            MysticLog.LogWarning("places array not being cleared.");
-            return closest;
+            MysticLog.LogWarning("cant do it.");
+            return Vector3.zero;
         }
 
         places[closest] = ant;
