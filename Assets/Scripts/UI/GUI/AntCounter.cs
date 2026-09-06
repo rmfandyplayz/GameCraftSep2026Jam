@@ -10,6 +10,10 @@ public class AntCounter : MonoBehaviour
     [SerializeField, Tooltip("update this when u add the actual ant icon")]
     int spriteIndex;
 
+    private int screenAnts;
+    private int totalAnts;
+
+
     private void Awake()
     {
         if(text == null)
@@ -17,16 +21,31 @@ public class AntCounter : MonoBehaviour
     }
 
     
-    public void UpdateAntCount(int newAntCount)
+    public void UpdateAntCount(int newScreenAntCount, int newTotalAntCount)
     {
-        if(newAntCount == 1)
-        {
-            text.text = $"<sprite index={spriteIndex}> 1 ant on screen";
-        }
-        else
-        {
-            text.text = $"<sprite index={spriteIndex}> {newAntCount} ants on screen";
-        }
+        screenAnts = newScreenAntCount;
+        totalAnts = newTotalAntCount;
+        UpdateText();
     }
 
+
+    private void UpdateText()
+    {
+        if (screenAnts == 1 && totalAnts == 1)
+        {
+            text.text = $"<sprite index={spriteIndex}> 1 ant on screen  •  1 ant total";
+        }
+        else if(screenAnts == 1 && totalAnts != 1)
+        {
+            text.text = $"<sprite index={spriteIndex}> 1 ant on screen  •  {totalAnts} ants total";
+        }
+        else if(screenAnts != 1 && totalAnts == 1)
+        {
+            text.text = $"<sprite index={spriteIndex}> {screenAnts} ants on screen  •  1 ant total";
+        }
+        else if(screenAnts != 1 && totalAnts != 1)
+        {
+            text.text = $"<sprite index={spriteIndex}> {screenAnts} ants on screen  •  {totalAnts} ants total";
+        }
+    }
 }
