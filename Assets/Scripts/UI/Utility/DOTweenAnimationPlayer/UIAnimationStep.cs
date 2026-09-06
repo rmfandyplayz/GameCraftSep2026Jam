@@ -18,21 +18,21 @@ using UnityEngine.UI;
 public enum UIAnimationStepType
 {
     AnchoredPosition,
-    LocalPosition,
-    Scale,
-    Rotation,
     CanvasGroupAlpha,
-    GraphicColor,
     GraphicAlpha,
-    MaterialFloat,
+    GraphicColor,
+    LocalPosition,
     MaterialColor,
-    PunchScale,
+    MaterialFloat,
+    OffsetMin,
+    OffsetMax,
     PunchAnchoredPosition,
-    ShakeAnchoredPosition,
+    PunchScale,
+    Rotation,
+    Scale,
     SetActive,
-
-    // Appended, not inserted. These are serialized as integers, so reordering this enum
-    // would silently repoint every step already authored in a scene or prefab.
+    ShakeAnchoredPosition,
+    SizeDelta,
     PlaySound,
 }
 
@@ -369,6 +369,18 @@ public class UIAnimationStep
                 if (rect != null) baselineVector = rect.localEulerAngles;
                 break;
 
+            case UIAnimationStepType.SizeDelta:
+                if (rect != null) baselineVector = rect.sizeDelta;
+                break;
+
+            case UIAnimationStepType.OffsetMin:
+                if (rect != null) baselineVector = rect.offsetMin;
+                break;
+
+            case UIAnimationStepType.OffsetMax:
+                if (rect != null) baselineVector = rect.offsetMax;
+                break;
+
             case UIAnimationStepType.CanvasGroupAlpha:
                 if (canvasGroup != null) baselineFloat = canvasGroup.alpha;
                 break;
@@ -412,6 +424,18 @@ public class UIAnimationStep
 
             case UIAnimationStepType.Rotation:
                 if (rect != null) rect.localEulerAngles = ResolveVector(FromMode, FromVector);
+                break;
+
+            case UIAnimationStepType.SizeDelta:
+                if (rect != null) rect.sizeDelta = ResolveVector(FromMode, FromVector);
+                break;
+
+            case UIAnimationStepType.OffsetMin:
+                if (rect != null) rect.offsetMin = ResolveVector(FromMode, FromVector);
+                break;
+
+            case UIAnimationStepType.OffsetMax:
+                if (rect != null) rect.offsetMax = ResolveVector(FromMode, FromVector);
                 break;
 
             case UIAnimationStepType.CanvasGroupAlpha:
@@ -497,6 +521,41 @@ public class UIAnimationStep
             {
                 var t = rect.DOLocalRotate(ResolveVector(ToMode, ToVector), Duration, RotateMode.FastBeyond360);
                 if (useFrom) t.From(ResolveVector(FromMode, FromVector), applyFromImmediately);
+                else if (relative) t.SetRelative(true);
+                tween = t;
+                break;
+            }
+
+            case UIAnimationStepType.SizeDelta:
+            {
+                var t = rect.DOSizeDelta(ResolveVector(ToMode, ToVector), Duration, Snapping);
+                if (useFrom) t.From((Vector2)ResolveVector(FromMode, FromVector), applyFromImmediately);
+                else if (relative) t.SetRelative(true);
+                tween = t;
+                break;
+            }
+
+            case UIAnimationStepType.OffsetMin:
+            {
+                // DOTween has no offsetMin/offsetMax shortcut, so drive the property directly.
+                // The generic To() tween supports From, SetRelative and snapping just the same.
+                RectTransform target = rect;
+                var t = DOTween.To(() => target.offsetMin, v => target.offsetMin = v,
+                                   (Vector2)ResolveVector(ToMode, ToVector), Duration);
+                t.SetOptions(Snapping);
+                if (useFrom) t.From((Vector2)ResolveVector(FromMode, FromVector), applyFromImmediately);
+                else if (relative) t.SetRelative(true);
+                tween = t;
+                break;
+            }
+
+            case UIAnimationStepType.OffsetMax:
+            {
+                RectTransform target = rect;
+                var t = DOTween.To(() => target.offsetMax, v => target.offsetMax = v,
+                                   (Vector2)ResolveVector(ToMode, ToVector), Duration);
+                t.SetOptions(Snapping);
+                if (useFrom) t.From((Vector2)ResolveVector(FromMode, FromVector), applyFromImmediately);
                 else if (relative) t.SetRelative(true);
                 tween = t;
                 break;

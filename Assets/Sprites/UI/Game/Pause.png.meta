@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: f41b0243481cde24980fcbad301f084c
+guid: 6bd95f0e7cc7163419721f7a18735c56
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,177 +110,67 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: GenericMenuBG_0
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 96
-        width: 96
-        height: 96
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 10, y: 10, z: 10, w: 10}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: dc47bba8e6d1cb243917e2ac1770d1d5
-      internalID: -1066928807
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: GenericMenuBG_1
-      rect:
-        serializedVersion: 2
-        x: 96
-        y: 96
-        width: 96
-        height: 96
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 10, y: 10, z: 10, w: 10}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 5fb578558b5278344a18e82641d765ce
-      internalID: 284966089
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: GenericMenuBG_2
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 96
-        width: 96
-        height: 96
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 10, y: 10, z: 10, w: 10}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 35298e45aed848a428e275b2703bd3b8
-      internalID: -881364488
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: GenericMenuBG_3
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 96
-        width: 96
-        height: 96
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 10, y: 10, z: 10, w: 10}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 913d084112ce1f54bb884fbbbf5e639e
-      internalID: -539999464
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: MenuSelect_0
+      name: Pause_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 96
-        height: 96
+        width: 48
+        height: 48
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 23, y: 0, z: 26, w: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9f63485e0f2e38b44b4147114ce10d89
-      internalID: -600658459
+      spriteID: 9d5ee1d3ecbde454883272aed9cf5381
+      internalID: 19372294
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MenuSelect_1
+      name: Pause_1
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 48
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 137c040b5ea907945a5943c5d37c8bf1
+      internalID: -308658108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pause_2
       rect:
         serializedVersion: 2
         x: 96
         y: 0
-        width: 96
-        height: 96
+        width: 48
+        height: 48
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 21, y: 0, z: 29, w: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 580446ab691bed640af615fe108e768a
-      internalID: 1927689678
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: MenuSelect_2
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 0
-        width: 96
-        height: 96
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 26, y: 0, z: 20, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c91d6fdae55a3604da1acd1893bf3a25
-      internalID: -1652652094
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: MenuSelect_3
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 0
-        width: 96
-        height: 96
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 21, y: 0, z: 22, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 98c20ef1f9f5bff42aaec5942998d5e0
-      internalID: -1520846894
+      spriteID: 83c03367d4957f942a0adce4ecf231e2
+      internalID: 1971813465
       vertices: []
       indices: 
       edges: []
@@ -289,7 +179,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 0dc93cb4beea1a14cb2effc63cae3045
+    spriteID: 2c1b2997164aaf144803901ba2ca584e
     internalID: 0
     vertices: []
     indices: 
@@ -299,16 +189,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":4.0,"y":2.0},"gridSpriteSize":{"x":96.0,"y":96.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":3.0,"y":1.0},"gridSpriteSize":{"x":48.0,"y":48.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      GenericMenuBG_0: -1066928807
-      GenericMenuBG_1: 284966089
-      GenericMenuBG_2: -881364488
-      GenericMenuBG_3: -539999464
-      MenuSelect_0: -600658459
-      MenuSelect_1: 1927689678
-      MenuSelect_2: -1652652094
-      MenuSelect_3: -1520846894
+      Pause_0: 19372294
+      Pause_1: -308658108
+      Pause_2: 1971813465
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

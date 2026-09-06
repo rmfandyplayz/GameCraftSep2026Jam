@@ -251,7 +251,10 @@ public class UIAnimationStepDrawer : PropertyDrawer
     private static bool IsTwoDimensional(UIAnimationStepType type)
     {
         return type == UIAnimationStepType.AnchoredPosition
-            || type == UIAnimationStepType.PunchAnchoredPosition;
+            || type == UIAnimationStepType.PunchAnchoredPosition
+            || type == UIAnimationStepType.SizeDelta
+            || type == UIAnimationStepType.OffsetMin
+            || type == UIAnimationStepType.OffsetMax;
     }
 
     private static bool UsesSnapping(UIAnimationStepType type)
@@ -259,7 +262,10 @@ public class UIAnimationStepDrawer : PropertyDrawer
         return type == UIAnimationStepType.AnchoredPosition
             || type == UIAnimationStepType.LocalPosition
             || type == UIAnimationStepType.PunchAnchoredPosition
-            || type == UIAnimationStepType.ShakeAnchoredPosition;
+            || type == UIAnimationStepType.ShakeAnchoredPosition
+            || type == UIAnimationStepType.SizeDelta
+            || type == UIAnimationStepType.OffsetMin
+            || type == UIAnimationStepType.OffsetMax;
     }
 
     private void Field(ref Layout layout, SerializedProperty property, string label = null)

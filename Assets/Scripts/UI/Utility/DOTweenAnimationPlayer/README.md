@@ -25,9 +25,28 @@ Each step's collapsed header reads like a timeline line: `then   Scale   0.25s O
 
 ### Step types
 
-`AnchoredPosition` · `LocalPosition` · `Scale` · `Rotation` · `CanvasGroupAlpha` · `GraphicColor` · `GraphicAlpha` · `MaterialFloat` · `MaterialColor` · `PunchScale` · `PunchAnchoredPosition` · `ShakeAnchoredPosition` · `SetActive` · `PlaySound`
+`AnchoredPosition` · `LocalPosition` · `Scale` · `Rotation` · `CanvasGroupAlpha` · `GraphicColor` · `GraphicAlpha` · `MaterialFloat` · `MaterialColor` · `PunchScale` · `PunchAnchoredPosition` · `ShakeAnchoredPosition` · `SetActive` · `PlaySound` · `SizeDelta` · `OffsetMin` · `OffsetMax`
 
 `SetActive` and `PlaySound` are **instant** — they happen at a point in the timeline rather than over one, so they show a `Delay` but no `Duration` and no easing.
+
+### Sizing a RectTransform
+
+Four step types write the same two rect corners from different directions. That's what makes them useful, and also what makes them fight:
+
+| Type | Drives | Reach for it when |
+|---|---|---|
+| `AnchoredPosition` | Position; size untouched | Moving something |
+| `SizeDelta` | Size, around the pivot | A panel that expands, a bar that grows |
+| `OffsetMin` | The **left and bottom** edges | Driving one pair of edges |
+| `OffsetMax` | The **right and top** edges | Driving one pair of edges |
+
+`OffsetMax` is measured **inward-negative** — the Inspector's Right and Top fields are `-offsetMax.x` and `-offsetMax.y`. So a stretched rect inset 12px on all sides is `Offset Min (12, 12)` with `Offset Max (-12, -12)`.
+
+**Don't animate two of these on the same target at once.** Unity stores one rect and derives all four views from it, so they overwrite each other instead of combining. Measured on a 100×40 rect: setting `offsetMin` from `(-50,-20)` to `(-10,-10)` *also* moved `sizeDelta` to `(60,30)` and `anchoredPosition` to `(20,5)`, with nothing else touched. Pick the one view that says what you mean and drive only that.
+
+`SizeDelta` is size **relative to the anchors**, so on a stretched rect it behaves as padding rather than as pixels. Un-stretch the anchors first if you want a literal pixel size.
+
+All three new types take X/Y (Z is unused) and offer **Snapping** for whole-pixel results.
 
 ---
 
@@ -38,7 +57,7 @@ Each step shows exactly one target slot, chosen by its type.
 **Leave it empty to target the GameObject the player is on.** Drag in a child or sibling to target something else. That's the whole system — no reflection, no name lookups.
 
 - `GraphicColor` / `GraphicAlpha` take a **Graphic**, which covers `Image`, `RawImage`, legacy `Text` **and TextMeshProUGUI**. There is no separate TMP step type.
-- `AnchoredPosition` and `PunchAnchoredPosition` show an X/Y field — Z is not used.
+- `AnchoredPosition`, `PunchAnchoredPosition`, `SizeDelta`, `OffsetMin` and `OffsetMax` show an X/Y field — Z is not used.
 - `PlaySound` takes an **AudioSource**, and empty means something slightly different — see [Sound](#sound).
 - If a target is missing at play time the step is skipped with a console warning naming the animation and step index. It won't throw.
 

@@ -11,7 +11,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// Which flipbook a <see cref="UIFlipbookButton"/> is showing.
+/// Which flipbook a <see cref="UIFlipbookSelectable"/> is showing.
 /// Not serialized anywhere, but kept explicit so the priority order is readable.
 /// </summary>
 public enum UIFlipbookButtonState
@@ -24,15 +24,15 @@ public enum UIFlipbookButtonState
 }
 
 /// <summary>
-/// Swaps a <see cref="UISpriteFlipbook"/> between per-state clips as a Button is hovered,
+/// Swaps a <see cref="UISpriteFlipbook"/> between per-state clips as a Selectable is hovered,
 /// pressed, selected or disabled.
 ///
-/// This sits BESIDE the Button, it does not replace it. The EventSystem dispatches pointer
+/// This sits BESIDE the Selectable, it does not replace it. The EventSystem dispatches pointer
 /// events to every component on the object that implements the handler interface, so the
-/// Button's own onClick, navigation and transition all keep working untouched.
+/// Selectable's own onClick, navigation and transition all keep working untouched.
 /// </summary>
 [DisallowMultipleComponent]
-public class UIFlipbookButton : MonoBehaviour,
+public class UIFlipbookSelectable : MonoBehaviour,
     IPointerEnterHandler, IPointerExitHandler,
     IPointerDownHandler, IPointerUpHandler,
     ISelectHandler, IDeselectHandler, ISubmitHandler
