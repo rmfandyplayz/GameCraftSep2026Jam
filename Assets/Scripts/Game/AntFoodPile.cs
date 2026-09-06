@@ -15,9 +15,7 @@ public class AntFoodPile : AntInteractable
     [SerializeField] private float GrabTime;
 
     [SerializeField] private GameObject CrumbPrefab;
-
-    [SerializeField] private float GrabRadius;
-
+    
     [ItemCanBeNull] private Dictionary<Vector3, Ant> places = new();
 
     private int AvailableFood()

@@ -1,17 +1,22 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 public class AntManager : MonoBehaviour
 {
     [SerializeField] private Transform CamTargetTransform;
     [SerializeField] private Transform CameraTransform;
     [SerializeField] private Transform CursorTransform;
+    [SerializeField] private Transform CursorCircleTransform;
     private Camera playerCamera;
 
     [SerializeField] private float MoveSpeed;
     [SerializeField] private float TurnSensitivity;
     [SerializeField] private float DirectDist;
+    [SerializeField] private float TimeTillMaxDirectDist;
+
+    private float directRadAmount;
 
     private Vector2 moveInput;
     private Vector2 rotateInput;
@@ -27,10 +32,14 @@ public class AntManager : MonoBehaviour
     
     private Renderer cursorRenderer;
     protected MaterialPropertyBlock cursorMatPropBlock;
+
+    private Renderer innerCursorRenderer;
+    protected MaterialPropertyBlock inCursorMatPropBlock;
+    
     [SerializeField] private float idleTransparency;
     [SerializeField] private float directTransparency;
-    [SerializeField] private float directFadeSpeed;
-    private float directFade;
+    [SerializeField] private Color OuterCircleColor;
+    [SerializeField] private Color InnerCircleColor;
     
     private static readonly int BaseColorPropID = Shader.PropertyToID("_BaseColor");
     
@@ -46,6 +55,8 @@ public class AntManager : MonoBehaviour
         
         cursorRenderer = CursorTransform.GetComponent<Renderer>();
         cursorMatPropBlock = new();
+        innerCursorRenderer = CursorCircleTransform.GetComponent<Renderer>();
+        inCursorMatPropBlock = new();
     }
 
     public void MoveCameraInput(InputAction.CallbackContext context)
@@ -78,21 +89,26 @@ public class AntManager : MonoBehaviour
         CursorTransform.position = cursorWorldPos + new Vector3(0, .01f, 0);
         CursorTransform.localScale = Vector3.one * (DirectDist * .2f);
 
+        CursorCircleTransform.localScale = Vector3.one * directRadAmount;
+
         if (isDirecting)
         {
+            directRadAmount = Mathf.Clamp(directRadAmount + Time.deltaTime / TimeTillMaxDirectDist, 0, 1);
             DirectAnts();
-            directFade += directFadeSpeed * Time.deltaTime;
         }
         else
         {
-            directFade -= directFadeSpeed * Time.deltaTime;
+            directRadAmount = 0;
         }
 
-        directFade = Math.Clamp(directFade, 0, 1);
         
         cursorRenderer.GetPropertyBlock(cursorMatPropBlock);
-        cursorMatPropBlock.SetColor(BaseColorPropID, new Color(1,1,1, Mathf.Lerp(idleTransparency, directTransparency, directFade)));
+        cursorMatPropBlock.SetColor(BaseColorPropID, OuterCircleColor * new Color(1,1,1, Mathf.Lerp(idleTransparency, directTransparency, directRadAmount)));
         cursorRenderer.SetPropertyBlock(cursorMatPropBlock);
+
+        innerCursorRenderer.GetPropertyBlock(inCursorMatPropBlock);
+        inCursorMatPropBlock.SetColor(BaseColorPropID, InnerCircleColor * new Color(1,1,1, Mathf.Lerp(idleTransparency, directTransparency, directRadAmount)));
+        innerCursorRenderer.SetPropertyBlock(inCursorMatPropBlock);
     }
 
     private void MoveCamera()
@@ -132,7 +148,7 @@ public class AntManager : MonoBehaviour
     {
         foreach (Ant ant in nest.GetAnts())
         {
-            if ((ant.transform.position - cursorWorldPos).magnitude < DirectDist)
+            if ((ant.transform.position - cursorWorldPos).magnitude < Mathf.Lerp(0, DirectDist, directRadAmount))
             {
                 ant.Direct(cursorWorldPos);
             }

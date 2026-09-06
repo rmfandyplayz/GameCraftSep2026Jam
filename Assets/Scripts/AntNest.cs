@@ -65,6 +65,6 @@ public class AntNest : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.blue;
-        Gizmos.DrawWireCube(transform.position, new Vector3(SpawnArea.x, 5, SpawnArea.y));
+        Gizmos.DrawWireCube(transform.position, new Vector3(SpawnArea.x*2, 5, SpawnArea.y*2));
     }
 }
