@@ -1,50 +1,122 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class BreakableWall : AntInteractable
 {
-    private List<Ant> antsInteracting;
+    private List<Ant> antsInteracting = new();
     [SerializeField] private int antsNeeded;
     private bool destroying = false;
 
+    private Dictionary<Vector3, Ant> frontPlaces = new(); 
+    private Dictionary<Vector3, Ant> backPlaces = new();
+
     void Start()
     {
-        antsInteracting = new();
+        BoxCollider wallCollider = GetComponents<BoxCollider>().First(p => !p.isTrigger);
+        float wallWidth = wallCollider.size.x * transform.lossyScale.x;
+        float wallDepth = wallCollider.size.z * transform.lossyScale.z;
+        
+        float minPos = -wallWidth * 0.5f + antsNeeded / wallWidth;
+        float maxPos = wallWidth * 0.5f - antsNeeded / wallWidth;
+
+        float wallOffset = wallDepth + Ant.RadBuffer;
+        float yOffset = wallCollider.size.y * -0.5f * transform.lossyScale.y;
+        for (int i = 0; i < antsNeeded; i++)
+        {
+            float fac = i / (float)antsNeeded;
+
+            var frontPos = new Vector3(Mathf.Lerp(minPos, maxPos, fac), yOffset, wallOffset);
+            frontPos = transform.rotation * frontPos;
+            frontPos += transform.position;
+            
+            var backPos = new Vector3(Mathf.Lerp(minPos, maxPos, fac), yOffset, -wallOffset);
+            backPos = transform.rotation * backPos;
+            backPos += transform.position;
+            
+            frontPlaces.Add(frontPos, null);
+            backPlaces.Add(backPos, null);
+        }
     }
+
+    private bool IsPointInFront(Vector3 point)
+    {
+        Vector3 offset = point - transform.position;
+        float dotProduct = Vector3.Dot(transform.forward, offset.normalized);
+        return dotProduct > 0;
+    }
+    
     public override void AntBeginInteract(Ant ant)
     { 
         if (!antsInteracting.Contains(ant))
         {
             antsInteracting.Add(ant);
-                    if (antsInteracting.Count >= antsNeeded)
-                    {
-                        destroying = true;
-                        for (int i = antsInteracting.Count - 1; i >= 0; i--)
-                        {
-                            AntEndInteract(antsInteracting[i]);
-                        }
-                        Destroy(this.gameObject);
-                    }
+            if (antsInteracting.Count >= antsNeeded)
+            {
+                destroying = true;
+                foreach (Ant inAnt in antsInteracting.ToList())
+                {
+                    inAnt.ReleaseInteract(this);
+                }
+                Destroy(this.gameObject);
+            }
         }
     }
 
     public override bool CanAntInteract(Ant ant)
     {
-        return !destroying;
+        if (destroying)
+            return false;
+
+        return IsPointInFront(ant.transform.position) ? frontPlaces.ContainsValue(null) : backPlaces.ContainsValue(null);
     }
 
     public override Vector3 GetAntInteractPos(Ant ant)
     {
-        return transform.position;
+        return AssignToPoint(IsPointInFront(ant.transform.position) ? frontPlaces : backPlaces, ant);
     }
 
     public override void AntEndInteract(Ant ant)
     {
         antsInteracting.Remove(ant);
+        UnassignFromPoint(IsPointInFront(ant.transform.position) ? frontPlaces : backPlaces, ant);
     }
     
     public override void CancelAntInteract(Ant ant)
     {
-        
+        UnassignFromPoint(IsPointInFront(ant.transform.position) ? frontPlaces : backPlaces, ant);
     }
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        Handles.color = Color.white;
+        Handles.Label(transform.position + Vector3.up * 2, antsInteracting.Count.ToString());
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        foreach (Vector3 place in frontPlaces.Keys)
+        {
+            Gizmos.DrawSphere(place, 0.1f);
+        }
+        
+        Gizmos.color = Color.blue;
+        foreach (Vector3 place in backPlaces.Keys)
+        {
+            Gizmos.DrawSphere(place, 0.1f);
+        }
+
+        Gizmos.color = Color.purple;
+        foreach (Ant ant in antsInteracting)
+        {
+            Gizmos.DrawLine(transform.position, ant.transform.position);
+        }
+    }
+    #endif
 }

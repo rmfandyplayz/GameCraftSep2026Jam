@@ -65,6 +65,8 @@ public class Ant : MonoBehaviour
 
     private float lastDirectTime = 0;
 
+    public const float RadBuffer = 0.26f;
+
     public static int GetNavMeshID(string name)
     {
         for (int i = 0; i < NavMesh.GetSettingsCount(); i++)
@@ -224,7 +226,7 @@ public class Ant : MonoBehaviour
         rb.linearVelocity = new Vector3(horizVel.x, rb.linearVelocity.y, horizVel.z);
 
         // Hunger loss
-        if(!IsActing())
+        if(!IsActing() && !returningToNest)
             hunger -= horizVel.magnitude * Time.deltaTime;
         HungerCheck();
     }
@@ -379,7 +381,7 @@ public class Ant : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
 
-        if (Vector3.Distance(transform.position, myNest.transform.position) < 0.5)
+        if (Vector3.Distance(transform.position, myNest.transform.position) < 3)
         {
             NearNest();
         }
@@ -464,5 +466,11 @@ public class Ant : MonoBehaviour
             Gizmos.DrawLine(transform.position, path.corners[pathNode]);
         }
     }
-    #endif
+
+    private void OnDrawGizmosSelected()
+    {
+        Handles.color = Color.white;
+        Handles.Label(transform.position + Vector3.up * 1, State.ToString() + " " + PathState.ToString());
+    }
+#endif
 }

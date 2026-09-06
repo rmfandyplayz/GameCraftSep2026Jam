@@ -56,7 +56,7 @@ public abstract class AntInteractable : MonoBehaviour
         float bestDist = float.MaxValue;
         foreach (var possiblePlace in possiblePlaces)
         {
-            float dist = (transform.position - possiblePlace.Key).sqrMagnitude;
+            float dist = (ant.transform.position - possiblePlace.Key).sqrMagnitude;
             if (dist < bestDist)
             {
                 closest = possiblePlace.Key;
@@ -82,7 +82,7 @@ public abstract class AntInteractable : MonoBehaviour
         places[place] = null;
     }
     
-    readonly private float radBuffer = 0.26f;
+    
     protected float GetBestRadius()
     {
         float scaleFactor = Mathf.Max(transform.lossyScale.x, Mathf.Max(transform.lossyScale.y, transform.lossyScale.z));
@@ -90,13 +90,13 @@ public abstract class AntInteractable : MonoBehaviour
         var sphere = GetComponents<SphereCollider>().FirstOrDefault(s => !s.isTrigger);
         if (sphere)
         {
-            return sphere.radius * scaleFactor + radBuffer;
+            return sphere.radius * scaleFactor + Ant.RadBuffer;
         }
 
         var capsule = GetComponents<CapsuleCollider>().FirstOrDefault(s => !s.isTrigger);
         if (capsule)
         {
-            return Mathf.Max(capsule.radius + capsule.height) * scaleFactor + radBuffer;
+            return Mathf.Max(capsule.radius + capsule.height) * scaleFactor + Ant.RadBuffer;
         }
 
         var box = GetComponents<BoxCollider>().FirstOrDefault(s => !s.isTrigger);
@@ -104,7 +104,7 @@ public abstract class AntInteractable : MonoBehaviour
         {
             float w = box.size.x;
             float h = box.size.z;
-            return Mathf.Sqrt(w * w + h * h) * 0.5f * scaleFactor + radBuffer;
+            return Mathf.Sqrt(w * w + h * h) * 0.5f * scaleFactor + Ant.RadBuffer;
         }
 
         MysticLog.LogWarning("GetBestRadiusFailed!");
