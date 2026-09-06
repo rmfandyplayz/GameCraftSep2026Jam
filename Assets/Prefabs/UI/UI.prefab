@@ -87,9 +87,9 @@ RectTransform:
   - {fileID: 3501594186123889835}
   m_Father: {fileID: 2534998845199127518}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 724.64764, y: -857.7239}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 440, y: 288}
   m_Pivot: {x: 1.0000001, y: 0.27179205}
 --- !u!222 &1449142192423232723
@@ -544,9 +544,9 @@ RectTransform:
   - {fileID: 7367276366986444604}
   m_Father: {fileID: 2534998845199127518}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 724.64764, y: -36.896038}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 550, y: 360}
   m_Pivot: {x: 1.0000001, y: 0.897511}
 --- !u!222 &8049994316190264809
@@ -831,9 +831,9 @@ RectTransform:
   - {fileID: 2331294749105594318}
   m_Father: {fileID: 7046979933660242962}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 125, y: -60}
   m_SizeDelta: {x: 190, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7575993380085096194
@@ -1118,7 +1118,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 19372294, guid: 6bd95f0e7cc7163419721f7a18735c56, type: 3}
+  m_Sprite: {fileID: -1120054707, guid: 51607ae500038f8459f7857dd3252152, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1223,9 +1223,10 @@ MonoBehaviour:
   TargetImage: {fileID: 234323729354457370}
   Clip:
     Frames:
-    - {fileID: 19372294, guid: 6bd95f0e7cc7163419721f7a18735c56, type: 3}
-    - {fileID: -308658108, guid: 6bd95f0e7cc7163419721f7a18735c56, type: 3}
-    - {fileID: 1971813465, guid: 6bd95f0e7cc7163419721f7a18735c56, type: 3}
+    - {fileID: -1120054707, guid: 51607ae500038f8459f7857dd3252152, type: 3}
+    - {fileID: 1173461615, guid: 51607ae500038f8459f7857dd3252152, type: 3}
+    - {fileID: -1562704983, guid: 51607ae500038f8459f7857dd3252152, type: 3}
+    - {fileID: 998088657, guid: 51607ae500038f8459f7857dd3252152, type: 3}
     FPS: 4
     Loop: 1
     FrameDurations: []
@@ -2001,11 +2002,11 @@ MonoBehaviour:
   Animations:
   - Name: hover
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 3387773570877236943}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 6415545763864535889}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -2058,7 +2059,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -2067,11 +2068,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: unhover
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 3387773570877236943}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 6415545763864535889}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -2124,7 +2125,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -2133,11 +2134,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: pressed
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 3387773570877236943}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 6415545763864535889}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -2190,7 +2191,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 8
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -2199,11 +2200,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: released
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 3387773570877236943}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 6415545763864535889}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -2256,7 +2257,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -2452,9 +2453,9 @@ RectTransform:
   - {fileID: 5611066375922949325}
   m_Father: {fileID: 2534998845199127518}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 724.6477, y: -1188.4451}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 440, y: 288}
   m_Pivot: {x: 1.0000002, y: 0.123454675}
 --- !u!222 &8310555701923969784
@@ -3060,7 +3061,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2021220175602176251
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3644,7 +3645,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -4107,7 +4108,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -4350,7 +4351,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -4460,11 +4461,11 @@ MonoBehaviour:
   Animations:
   - Name: hover
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 528046394228300117}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 3131694036683442920}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -4517,7 +4518,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -4526,11 +4527,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: unhover
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 528046394228300117}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 3131694036683442920}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -4583,7 +4584,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -4592,11 +4593,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: pressed
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 528046394228300117}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 3131694036683442920}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -4649,7 +4650,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 8
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -4658,11 +4659,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: released
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 528046394228300117}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 3131694036683442920}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -4715,7 +4716,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -4820,7 +4821,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -4896,9 +4897,9 @@ RectTransform:
   - {fileID: 4591699774623067217}
   m_Father: {fileID: 7046979933660242962}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 130, y: -150}
   m_SizeDelta: {x: 200, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6366722344433659161
@@ -5231,9 +5232,9 @@ RectTransform:
   - {fileID: 6320593253339095197}
   m_Father: {fileID: 2534998845199127518}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 724.6477, y: -453.2107}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 440, y: 288}
   m_Pivot: {x: 1.0000002, y: 0.6763517}
 --- !u!222 &5769468640091883404
@@ -5827,11 +5828,11 @@ MonoBehaviour:
   Animations:
   - Name: hover
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 6649420340354653865}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 7758430029084052747}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -5884,7 +5885,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -5893,11 +5894,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: unhover
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 6649420340354653865}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 7758430029084052747}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -5950,7 +5951,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -5959,11 +5960,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: pressed
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 6649420340354653865}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 7758430029084052747}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -6016,7 +6017,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 8
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -6025,11 +6026,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: released
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 6649420340354653865}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 7758430029084052747}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -6082,7 +6083,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -6444,6 +6445,7 @@ GameObject:
   - component: {fileID: 4521477970590039483}
   - component: {fileID: 1928313066015947474}
   - component: {fileID: 1279296586201949905}
+  - component: {fileID: 238050845434190910}
   m_Layer: 5
   m_Name: Logo
   m_TagString: Untagged
@@ -6460,15 +6462,15 @@ RectTransform:
   m_GameObject: {fileID: 7506185376571763661}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 4, y: 4, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 4722597805470126188}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -1217.8965, y: -209.55}
-  m_SizeDelta: {x: 548.6704, y: 337.5491}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 412, y: -254}
+  m_SizeDelta: {x: 192, y: 112}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1928313066015947474
 CanvasRenderer:
@@ -6498,7 +6500,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -1505883417, guid: d7eff6807a1cbed47a9db80d548d51fb, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6508,6 +6510,31 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &238050845434190910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7506185376571763661}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5892dc4127acfb54ebff1cab8887d232, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
+  TargetImage: {fileID: 1279296586201949905}
+  Clip:
+    Frames:
+    - {fileID: -1505883417, guid: d7eff6807a1cbed47a9db80d548d51fb, type: 3}
+    - {fileID: -110604795, guid: d7eff6807a1cbed47a9db80d548d51fb, type: 3}
+    - {fileID: 67764120, guid: d7eff6807a1cbed47a9db80d548d51fb, type: 3}
+    - {fileID: -34277976, guid: d7eff6807a1cbed47a9db80d548d51fb, type: 3}
+    FPS: 5
+    Loop: 1
+    FrameDurations: []
+    defaultsFilled: 1
+  PlayOnEnable: 1
+  UseUnscaledTime: 1
 --- !u!1 &7706140601969459607
 GameObject:
   m_ObjectHideFlags: 0
@@ -6574,7 +6601,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1929817352386999767
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6633,9 +6660,9 @@ RectTransform:
   - {fileID: 9075495646790361330}
   m_Father: {fileID: 7046979933660242962}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 155, y: -240}
   m_SizeDelta: {x: 250, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6634078127127882407
@@ -6930,11 +6957,11 @@ MonoBehaviour:
   Animations:
   - Name: hover
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 7428037857789735032}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 5276375826720582836}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -6987,7 +7014,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -6996,11 +7023,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: unhover
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 7428037857789735032}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 5276375826720582836}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -7053,7 +7080,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -7062,11 +7089,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: pressed
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 7428037857789735032}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 5276375826720582836}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -7119,7 +7146,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 8
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -7128,11 +7155,11 @@ MonoBehaviour:
         m_Calls: []
   - Name: released
     Steps:
-    - Type: 2
+    - Type: 12
       Start: 0
       RectTarget: {fileID: 7428037857789735032}
       CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
+      GraphicTarget: {fileID: 5276375826720582836}
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
@@ -7185,7 +7212,7 @@ MonoBehaviour:
       Snapping: 0
     Loops: 1
     LoopType: 0
-    PlayAtCustomFPS: 1
+    PlayAtCustomFPS: 0
     FPS: 12
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1

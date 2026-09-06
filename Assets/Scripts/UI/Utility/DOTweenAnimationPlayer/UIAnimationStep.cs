@@ -14,6 +14,13 @@ using UnityEngine.UI;
 /// <summary>
 /// What a single animation step drives. The framework never interprets these
 /// semantically - it only knows how to build a DOTween tween for each one.
+///
+/// APPEND ONLY. Unity serializes an enum field as its integer value, not its name, so
+/// inserting, removing or reordering anything below silently repoints every step already
+/// authored in a scene or prefab - with no error, no warning, and no import log.
+/// This list was alphabetised once, which turned 16 authored Scale steps on the main menu
+/// buttons into GraphicAlpha steps that faded the buttons to invisible. Add new types at
+/// the bottom, however untidy that looks.
 /// </summary>
 public enum UIAnimationStepType
 {
