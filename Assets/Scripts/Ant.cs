@@ -51,6 +51,8 @@ public class Ant : MonoBehaviour
     public EAntState State { get; private set; }
     public EAntPathState PathState { get; private set; }
 
+    private bool idleStationary;
+
     private AntInteractable currentInteractable;
     public AntCarriableObject carriedObject { get; private set; }
 
@@ -122,6 +124,7 @@ public class Ant : MonoBehaviour
 
     public void GoIdle()
     {
+        idleStationary = false;
         State = EAntState.Idle;
         stuckCount = 0;
         stuckTimer = 0;
@@ -327,18 +330,22 @@ public class Ant : MonoBehaviour
     {
         HungerCheck();
 
-        Vector3 decel = -rb.linearVelocity;
-        decel.y = 0;
-        decel.Normalize();
-        decel *= Time.deltaTime * Acceleration;
+        if (!idleStationary)
+        {
+            Vector3 decel = -rb.linearVelocity;
+            decel.y = 0;
+            decel.Normalize();
+            decel *= Time.deltaTime * Acceleration;
 
-        if (decel.sqrMagnitude <= .01)
-        {
-            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
-        }
-        else
-        {
-            rb.AddForce(decel);
+            if (decel.sqrMagnitude <= .05)
+            {
+                rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+                idleStationary = true;
+            }
+            else
+            {
+                rb.AddForce(decel);
+            }
         }
         
         

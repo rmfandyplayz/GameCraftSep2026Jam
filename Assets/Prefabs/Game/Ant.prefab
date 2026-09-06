@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 3052650218380509166}
   - component: {fileID: 8156050770937103337}
   - component: {fileID: 5923172870407463464}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Ant
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -160,7 +160,7 @@ SphereCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Radius: 0.03
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.015, z: 0}
 --- !u!114 &5923172870407463464
 MonoBehaviour:
   m_ObjectHideFlags: 0
