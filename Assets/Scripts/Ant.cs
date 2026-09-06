@@ -28,6 +28,7 @@ public enum EAntPathState
 
 public class Ant : MonoBehaviour
 {
+    private AudioSource scuttleSound;
     [SerializeField] private float hunger;
     private Vector3 currentDirectedPos;
     [SerializeField] private float Acceleration;
@@ -303,6 +304,7 @@ public class Ant : MonoBehaviour
 
     private void Start()
     {
+        scuttleSound = GetComponent<AudioSource>();
         currentDirectedPos = transform.position;
         rb = GetComponent<Rigidbody>();
         _renderer = GetComponent<Renderer>();
@@ -394,15 +396,19 @@ public class Ant : MonoBehaviour
         switch (State)
         {
             case EAntState.Idle:
+                scuttleSound.loop = false;
                 IdleTick();
                 break;
             case EAntState.DirectMove:
+                scuttleSound.loop = true;
                 DirectTick();
                 break;
             case EAntState.PathMove:
+                scuttleSound.loop = true;
                 PathFind();
                 break;
             case EAntState.Acting:
+                scuttleSound.loop = false;
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

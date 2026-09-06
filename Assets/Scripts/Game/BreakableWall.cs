@@ -16,11 +16,13 @@ public class BreakableWall : AntInteractable
 
     private Dictionary<Vector3, Ant> frontPlaces = new(); 
     private Dictionary<Vector3, Ant> backPlaces = new();
+    private AudioSource jingle;
 
     [SerializeField] private TextMeshPro wallText;
     
     void Start()
     {
+        jingle = GetComponent<AudioSource>();
         GeneratePlaces();
         wallText.text = antsNeeded.ToString();
     }
@@ -90,7 +92,9 @@ public class BreakableWall : AntInteractable
                 {
                     inAnt.ReleaseInteract(this);
                 }
+                jingle.Play()
                 Destroy(this.gameObject);
+                
             }
         }
     }

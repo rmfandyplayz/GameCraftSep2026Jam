@@ -17,10 +17,12 @@ public class AntNest : MonoBehaviour
 
     [SerializeField] private Animator Animator;
     [SerializeField] private MusicMan music;
+    private AudioSource birthClip;
     
     void Awake()
     {
         music = FindAnyObjectByType<MusicMan>();
+        birthClip = GetComponent<AudioSource>();
     }
 
     public void SpawnAnts(int count)
@@ -37,6 +39,7 @@ public class AntNest : MonoBehaviour
         }
 
         Animator.SetTrigger(BirthAnim);
+        birthClip.Play();
     }
 
     public void AddAnt(Ant ant)
