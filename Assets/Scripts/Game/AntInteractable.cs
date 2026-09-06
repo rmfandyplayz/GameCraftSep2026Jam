@@ -96,7 +96,7 @@ public abstract class AntInteractable : MonoBehaviour
         var capsule = GetComponents<CapsuleCollider>().FirstOrDefault(s => !s.isTrigger);
         if (capsule)
         {
-            return Mathf.Max(capsule.radius + capsule.height) * scaleFactor + Ant.RadBuffer;
+            return Mathf.Max(capsule.radius, capsule.height) * scaleFactor + Ant.RadBuffer;
         }
 
         var box = GetComponents<BoxCollider>().FirstOrDefault(s => !s.isTrigger);

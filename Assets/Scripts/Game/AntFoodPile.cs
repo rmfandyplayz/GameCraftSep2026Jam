@@ -27,12 +27,6 @@ public class AntFoodPile : AntInteractable
     public override void AntBeginInteract(Ant ant)
     {
         antTimers.Add(ant, 0);
-        if (children.Count > 0)
-        {
-            MeshFilter deleted = children[0];
-            children.RemoveAt(0);
-            Destroy(deleted.gameObject);
-        }
     }
 
     public override bool CanAntInteract(Ant ant)
@@ -90,6 +84,13 @@ public class AntFoodPile : AntInteractable
             GameObject crumbObj = Instantiate(CrumbPrefab);
             var crumbComp = crumbObj.GetComponent<AntFoodCrumb>();
             ant.GrabObject(crumbComp);
+            
+            if (children.Count > 0)
+            {
+                MeshFilter deleted = children[0];
+                children.RemoveAt(0);
+                Destroy(deleted.gameObject);
+            }
             break;
         }
     }
