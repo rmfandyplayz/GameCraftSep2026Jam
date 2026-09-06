@@ -211,6 +211,171 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1827343216
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 272978796574159992, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 272978796574159992, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 495787130238066993, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 495787130238066993, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 968235915325456809, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 968235915325456809, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 994071709714088986, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 994071709714088986, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1036645812300556589, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1036645812300556589, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345025006475077713, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.57559
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345025006475077713, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345025006475077713, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.57559
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345025006475077713, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345025006475077713, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345025006475077713, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345025006475077713, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345025006475077713, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345025006475077713, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345025006475077713, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1626312140403605294, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1626312140403605294, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2243621146981732762, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2243621146981732762, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2275185599665857733, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Name
+      value: MusicMan
+      objectReference: {fileID: 0}
+    - target: {fileID: 3332741199665104942, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3332741199665104942, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4270156837079607892, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4270156837079607892, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4598350487603989582, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: targetVolLevel
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6753424723227072609, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6753424723227072609, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6997600796003136354, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6997600796003136354, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7817629148819361327, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7817629148819361327, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7828854860092453202, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7828854860092453202, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
+      propertyPath: m_Volume
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: af1e379ddcc0ee64eaae0c1ba3a73ebd, type: 3}
 --- !u!1 &2044471156
 GameObject:
   m_ObjectHideFlags: 0
@@ -221,6 +386,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2044471158}
   - component: {fileID: 2044471157}
+  - component: {fileID: 2044471159}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -308,9 +474,39 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!114 &2044471159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2044471156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 844159557}
   - {fileID: 2044471158}
+  - {fileID: 1827343216}
