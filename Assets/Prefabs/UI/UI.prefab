@@ -510,6 +510,61 @@ MonoBehaviour:
           m_CallState: 2
   - Name: CloseCredits
     Steps:
+    - Type: 16
+      Start: 1
+      RectTarget: {fileID: 2534998845199127518}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      Duration: 0.4
+      Delay: 0
+      EaseType: 12
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 1
+      FromMode: 0
+      ToMode: 1
+      FromVector: {x: 263, y: -648, z: 0}
+      ToVector: {x: 0, y: 0, z: 0}
+      FromFloat: 0
+      ToFloat: 0
+      FromColor: {r: 0, g: 0, b: 0, a: 0}
+      ToColor: {r: 0, g: 0, b: 0, a: 0}
+      ShaderProperty: _Progress
+      ActiveValue: 0
+      Clip: {fileID: 8300000, guid: efb71d67cb2b42c4c9cd09e808ec8ef3, type: 3}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
     - Type: 0
       Start: 0
       RectTarget: {fileID: 2273892301035901233}
@@ -1171,6 +1226,249 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+  - Name: SceneTransIn
+    Steps:
+    - Type: 0
+      Start: 1
+      RectTarget: {fileID: 4521477970590039483}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      Duration: 0.4
+      Delay: 0
+      EaseType: 12
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 1
+      FromMode: 0
+      ToMode: 1
+      FromVector: {x: -510, y: -254, z: 0}
+      ToVector: {x: 0, y: 0, z: 0}
+      FromFloat: 0
+      ToFloat: 0
+      FromColor: {r: 0, g: 0, b: 0, a: 0}
+      ToColor: {r: 0, g: 0, b: 0, a: 0}
+      ShaderProperty: _Progress
+      ActiveValue: 0
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+    - Type: 0
+      Start: 1
+      RectTarget: {fileID: 2534998845199127518}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      Duration: 0.4
+      Delay: 0
+      EaseType: 12
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 1
+      FromMode: 0
+      ToMode: 1
+      FromVector: {x: 263, y: -648, z: 0}
+      ToVector: {x: 0, y: 0, z: 0}
+      FromFloat: 0
+      ToFloat: 0
+      FromColor: {r: 0, g: 0, b: 0, a: 0}
+      ToColor: {r: 0, g: 0, b: 0, a: 0}
+      ShaderProperty: _Progress
+      ActiveValue: 0
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+    - Type: 2
+      Start: 1
+      RectTarget: {fileID: 2534998845199127518}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 1279296586201949905}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      Duration: 0.4
+      Delay: 0
+      EaseType: 1
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 1
+      FromMode: 0
+      ToMode: 1
+      FromVector: {x: 263, y: -648, z: 0}
+      ToVector: {x: 0, y: 0, z: 0}
+      FromFloat: 0
+      ToFloat: 1
+      FromColor: {r: 0, g: 0, b: 0, a: 0}
+      ToColor: {r: 0, g: 0, b: 0, a: 0}
+      ShaderProperty: _Progress
+      ActiveValue: 0
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+    - Type: 1
+      Start: 1
+      RectTarget: {fileID: 2534998845199127518}
+      CanvasGroupTarget: {fileID: 7117943600414847548}
+      GraphicTarget: {fileID: 1279296586201949905}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      Duration: 0.4
+      Delay: 0
+      EaseType: 1
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 1
+      FromMode: 0
+      ToMode: 1
+      FromVector: {x: 263, y: -648, z: 0}
+      ToVector: {x: 0, y: 0, z: 0}
+      FromFloat: 0
+      ToFloat: 1
+      FromColor: {r: 0, g: 0, b: 0, a: 0}
+      ToColor: {r: 0, g: 0, b: 0, a: 0}
+      ShaderProperty: _Progress
+      ActiveValue: 0
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+    Loops: 1
+    LoopType: 0
+    PlayAtCustomFPS: 0
+    FPS: 12
+    ApplyFromValuesImmediately: 0
+    InterruptOthers: 1
+    OnComplete:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 7117943600414847548}
+          m_TargetAssemblyTypeName: UnityEngine.CanvasGroup, UnityEngine
+          m_MethodName: set_blocksRaycasts
+          m_Mode: 6
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 1
+          m_CallState: 2
 --- !u!1 &1567758182992142330
 GameObject:
   m_ObjectHideFlags: 0
@@ -1213,7 +1511,7 @@ RectTransform:
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 440, y: 288}
-  m_Pivot: {x: 1.0000001, y: 0.27179205}
+  m_Pivot: {x: 1.0000001, y: 0.34388852}
 --- !u!222 &1449142192423232723
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3972,7 +4270,7 @@ RectTransform:
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 440, y: 288}
-  m_Pivot: {x: 1.0000002, y: 0.123454675}
+  m_Pivot: {x: 1.0000002, y: 0.65387845}
 --- !u!222 &8310555701923969784
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -8136,6 +8434,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42aa91090d65818438a4cbfaeaa6dd6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TitleScreenController
+  player: {fileID: 7302015334328364316}
 --- !u!1 &8202232480411025371
 GameObject:
   m_ObjectHideFlags: 0
