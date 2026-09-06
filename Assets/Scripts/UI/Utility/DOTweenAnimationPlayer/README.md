@@ -244,6 +244,9 @@ Sequence Play(string name, Action onComplete);
 void Stop(string name, bool complete = false);
 void StopAll(bool complete = false);
 
+void PlayAnimation(string name);    // void wrappers, so UnityEvents can call them
+void StopAnimation(string name);
+
 bool IsPlaying(string name);
 bool IsAnyPlaying { get; }
 bool Has(string name);
@@ -252,7 +255,26 @@ void ApplyFromState(string name);   // snap to an animation's FROM values withou
 void CaptureBaseline();             // re-capture resting values at runtime
 ```
 
-There's also a **UnityEvent `On Complete`** per animation if you'd rather wire it in the Inspector.
+### From UnityEvents
+
+Unity's event dropdown only lists methods that **return void and take at most one argument**. That rules out `Play` (it returns a `Sequence`) and `Stop` (an optional parameter is still a parameter, so it reads as two). `PlayAnimation` and `StopAnimation` are void wrappers that do appear — and a void `Play(string)` can't be an overload, because C# won't overload on return type alone.
+
+What a UI Animation Player offers in the dropdown:
+
+| Entry | Does |
+|---|---|
+| `PlayAnimation (string)` | Plays the animation you type in the box |
+| `StopAnimation (string)` | Stops it where it stands |
+| `StopAll (bool)` | Stops everything on this player. Tick the box to complete rather than cut |
+| `ApplyFromState (string)` | Snaps to an animation's FROM values without playing |
+| `CaptureBaseline ()` | Re-captures resting values |
+
+So a Button's **On Click** plays an animation with no glue script, and an animation's own **On Complete** starts the next one — chaining without code.
+
+Chaining is safe even though the next animation's **Interrupt Others** tries to kill the one whose callback is currently running: an animation releases its sequence *before* firing callbacks, so by then there is nothing left to interrupt. Two things follow:
+
+- An animation whose `On Complete` plays **itself** restarts cleanly instead of recursing. That's a loop, though — `Loops -1` says it far better.
+- **`StopAnimation` never fires `On Complete`**, so stopping a chain stops it dead. Only a natural finish carries it on. That's the existing rule for interrupted animations, and it's what makes a chain interruptible at all.
 
 `ApplyFromState` is the clean way to start hidden without authoring a separate state:
 
