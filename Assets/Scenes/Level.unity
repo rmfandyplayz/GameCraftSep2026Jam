@@ -1477,6 +1477,10 @@ PrefabInstance:
       propertyPath: m_TextStyleHashCode
       value: -1183493901
       objectReference: {fileID: 0}
+    - target: {fileID: 4402223795518012171, guid: 90a19157a0d566e499c69a0e5354afa0, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
     - target: {fileID: 5008259371302678800, guid: 90a19157a0d566e499c69a0e5354afa0, type: 3}
       propertyPath: m_Name
       value: Breakable Wall
@@ -3772,7 +3776,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1745366607916508383, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
       propertyPath: MinAntsForCarry
-      value: 7
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 2904815875734260427, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
       propertyPath: m_LocalPosition.x
