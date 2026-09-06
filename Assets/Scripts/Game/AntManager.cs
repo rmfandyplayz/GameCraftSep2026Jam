@@ -22,9 +22,11 @@ public class AntManager : MonoBehaviour
     private Vector2 rotateInput;
     private Vector2 cursorScreenPos;
     private bool isDirecting;
+    private float zoomInput;
 
     private float camYaw;
     private float camPitch;
+    private float zoom;
 
     private Vector3 cursorWorldPos;
 
@@ -48,6 +50,7 @@ public class AntManager : MonoBehaviour
     {
         camPitch = CamTargetTransform.rotation.eulerAngles.x;
         camYaw = CamTargetTransform.rotation.eulerAngles.y;
+        zoom = CameraTransform.localPosition.z;
 
         playerCamera = CameraTransform.GetComponent<Camera>();
 
@@ -79,12 +82,18 @@ public class AntManager : MonoBehaviour
         isDirecting = context.ReadValueAsButton();
     }
 
+    public void ZoomInput(InputAction.CallbackContext context)
+    {
+        zoomInput = context.ReadValue<float>();
+    }
+
     // Update is called once per frame
     private void Update()
     {
         MoveCamera();
         TurnCamera();
         GetCursorWorldPosition();
+        ZoomCamera();
 
         CursorTransform.position = cursorWorldPos + new Vector3(0, .01f, 0);
         CursorTransform.localScale = Vector3.one * (DirectDist * .2f);
@@ -109,6 +118,14 @@ public class AntManager : MonoBehaviour
         innerCursorRenderer.GetPropertyBlock(inCursorMatPropBlock);
         inCursorMatPropBlock.SetColor(BaseColorPropID, InnerCircleColor * new Color(1,1,1, Mathf.Lerp(idleTransparency, directTransparency, directRadAmount)));
         innerCursorRenderer.SetPropertyBlock(inCursorMatPropBlock);
+    }
+
+    private void ZoomCamera()
+    {
+        zoom = Mathf.Clamp(zoom + zoomInput, -100, -30);
+        Vector3 localPos = CameraTransform.localPosition;
+        localPos.z = zoom;
+        CameraTransform.localPosition = localPos;
     }
 
     private void MoveCamera()
