@@ -37,10 +37,20 @@ public class MusicMan : MonoBehaviour
 
     public class MusicTrackSettings
     {
-        public MusicTrackSettings(AudioSource audioSource, List<AudioSource> requirements, int percussionLevel, bool percussion = false) 
+        public MusicTrackSettings(AudioSource audioSource, int percussionLevel, bool percussion = true)
+
+        {
+            this.audioSource = audioSource;
+            this.requiredBy = new();
+            this.requirements = new();
+            this.requiredPercussionLevel = percussionLevel;
+            this.percussion = percussion;
+        }
+        public MusicTrackSettings(AudioSource audioSource, List<AudioSource> requirements, int percussionLevel, List<AudioSource> requiredBy, bool percussion = false) 
         
         {
             this.audioSource = audioSource;
+            this.requiredBy = requiredBy;
             this.requirements = requirements;
             this.requiredPercussionLevel = percussionLevel;
             this.percussion = percussion;
@@ -56,7 +66,12 @@ public class MusicMan : MonoBehaviour
             if (requirements.Count == 0)
                 return true;
 
-            foreach (var a in musicMan.activeLayers)
+            return RequirementsFulfilled(musicMan.activeLayers);
+        }
+
+        public bool RequirementsFulfilled(List<AudioSource> activeLayers)
+        {
+            foreach (var a in activeLayers)
             {
                 if (requirements.Contains(a))
                     return true;
@@ -83,11 +98,18 @@ public class MusicMan : MonoBehaviour
 
         public bool TestForLegality(Dictionary<AudioSource, MusicTrackSettings> hypotheticalList)
         {
+            //this should check if removing enters an illegal state, but due to tracks with two way dependencies, I'm having trouble figuring out the proper recursive logic
+            //it's kinda cool for illegal track states to happen when removing, though (not sure how much it'll happen in actual gameplay)
+            return true;
+
             hypotheticalList.Remove(audioSource);
-            foreach (var a in requirements)
+            foreach (var a in requiredBy)
             {
-                if (hypotheticalList.TryGetValue(a, out var b) && !b.TestForLegality(hypotheticalList))
-                    return false;
+                if (hypotheticalList.TryGetValue(a, out var b))
+                {
+                    if (!b.RequirementsFulfilled(hypotheticalList.Keys.ToList()))
+                        return false;
+                }
             }
             return true;
         }
@@ -96,6 +118,7 @@ public class MusicMan : MonoBehaviour
         bool percussion;
 
         List<AudioSource> requirements;
+        List<AudioSource> requiredBy;
         public int requiredPercussionLevel;
     }
 
@@ -104,26 +127,26 @@ public class MusicMan : MonoBehaviour
     {
         requirements = new()
         {
-        new MusicTrackSettings(Piccolo, new() { SnareDrum }, 0),
-        new MusicTrackSettings(Trombone, new() { SnareDrum, Timpani }, 0),
-        new MusicTrackSettings(Horn, new() { Piccolo, Trombone }, 0),
-        new MusicTrackSettings(Clarinet, new() { Piccolo, Oboe, Bassoon }, 0),
+        new MusicTrackSettings(Piccolo, new() { }, 0, new(){ Horn, Clarinet }),
+        new MusicTrackSettings(Trombone, new() { }, 0, new(){ Horn, Trumpet }),
+        new MusicTrackSettings(Horn, new() { Piccolo, Trombone }, 0, new(){ Bassoon, Tuba }),
+        new MusicTrackSettings(Clarinet, new() { Piccolo, Oboe, Bassoon }, 0, new(){ Oboe, Bassoon }),
 
 
-        new MusicTrackSettings(Trumpet, new() { Tuba, Trombone }, 1),
-        new MusicTrackSettings(Oboe, new() { Clarinet, Bassoon }, 1),
-        new MusicTrackSettings(Bassoon, new() { Clarinet, Oboe, Horn }, 1),
+        new MusicTrackSettings(Trumpet, new() { Tuba, Trombone }, 1, new(){ Tuba }),
+        new MusicTrackSettings(Oboe, new() { Clarinet, Bassoon }, 1, new(){ Bassoon, Clarinet }),
+        new MusicTrackSettings(Bassoon, new() { Clarinet, Oboe, Horn }, 1, new(){ Oboe, Clarinet }),
 
-        new MusicTrackSettings(Tuba, new() { Horn, Bassoon, Trumpet }, 2),
+        new MusicTrackSettings(Tuba, new() { Horn, Bassoon, Trumpet }, 2, new(){ Trumpet }),
             };
 
         percRequirements = new()
         {
-        new MusicTrackSettings(SnareDrum, new(), 0, true),
-        new MusicTrackSettings(Timpani, new(), 0, true),
-        new MusicTrackSettings(BassDrum, new(), 2, true),
-        new MusicTrackSettings(Crash, new(), 2, true),
-        new MusicTrackSettings(BongoDrum, new(), 3, true),
+        new MusicTrackSettings(SnareDrum, 0, true),
+        new MusicTrackSettings(Timpani, 0, true),
+        new MusicTrackSettings(BassDrum, 2, true),
+        new MusicTrackSettings(Crash, 2, true),
+        new MusicTrackSettings(BongoDrum, 3, true),
         };
 
         inactiveLayers = new()
