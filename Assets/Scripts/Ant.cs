@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
@@ -17,6 +18,12 @@ public enum EAntState
     DirectMove,
     PathMove,
     Acting
+}
+
+public enum EAntPathState
+{
+    ReturnToHome,
+    ActPath
 }
 
 public class Ant : MonoBehaviour
@@ -42,6 +49,7 @@ public class Ant : MonoBehaviour
     [NonSerialized] public List<AntInteractable> nearbyInteractables = new();
     
     public EAntState State { get; private set; }
+    public EAntPathState PathState { get; private set; }
 
     private AntInteractable currentInteractable;
     public AntCarriableObject carriedObject { get; private set; }
@@ -54,6 +62,8 @@ public class Ant : MonoBehaviour
     protected MaterialPropertyBlock matPropBlock;
     [SerializeField] private Color defaultColor;
     [SerializeField] private Color hungryColor;
+
+    private float lastDirectTime = 0;
 
     public static int GetNavMeshID(string name)
     {
@@ -77,9 +87,11 @@ public class Ant : MonoBehaviour
     
     public void Direct(Vector3 pos)
     {
-        if (returningToNest)
+        if (State == EAntState.PathMove)
             return;
 
+        lastDirectTime = Time.time;
+        
         if (State == EAntState.Acting)
         {
             ReleaseInteract(currentInteractable);
@@ -98,7 +110,7 @@ public class Ant : MonoBehaviour
         stuckTimer = 0;
     }
 
-    public void DirectPathfind(Vector3 pos)
+    public void DirectPathfind(Vector3 pos, EAntPathState pathingType)
     {
         if (State == EAntState.Acting)
         {
@@ -106,6 +118,7 @@ public class Ant : MonoBehaviour
         }
         
         State = EAntState.PathMove;
+        PathState = pathingType;
         
         NavMesh.SamplePosition(transform.position, out NavMeshHit srcHit, 999, antNavMeshQueryFilter);
         NavMesh.SamplePosition(pos, out NavMeshHit dstHit, 999, antNavMeshQueryFilter);
@@ -121,9 +134,21 @@ public class Ant : MonoBehaviour
         }
     }
 
+    public void InteractWith(AntInteractable interactable)
+    {
+        DirectPathfind(interactable.GetAntInteractPos(this), EAntPathState.ActPath);
+        currentInteractable = interactable;
+    }
+
+    public void ArriveInteract()
+    {
+        State = EAntState.Acting;
+        currentInteractable.AntBeginInteract(this);
+    }
+    
     public void ReturnToNest()
     {
-        DirectPathfind(myNest.transform.position);
+        DirectPathfind(myNest.transform.position, EAntPathState.ReturnToHome);
         returningToNest = true;
     }
 
@@ -135,7 +160,7 @@ public class Ant : MonoBehaviour
             {
                 transform.position = path.corners.Last();
             }
-            DirectPathfind(path.corners.Last());
+            DirectPathfind(path.corners.Last(), PathState);
             stuckCount++;
         }
         else if(State != EAntState.Acting)
@@ -215,12 +240,21 @@ public class Ant : MonoBehaviour
         if (CloseToTarget(curGoal))
         {
             pathNode++;
-            if (pathNode == path.corners.Length && State == EAntState.PathMove)
+            if (pathNode == path.corners.Length)
             {
-                // end of path
-                returningToNest = false;
-                GoIdle();
-                return;
+                // End of path
+                switch (PathState)
+                {
+                    case EAntPathState.ReturnToHome:
+                        returningToNest = false;
+                        GoIdle();
+                        return;
+                    case EAntPathState.ActPath:
+                        ArriveInteract();
+                        return;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
             curGoal = path.corners[pathNode];
         }
@@ -244,12 +278,6 @@ public class Ant : MonoBehaviour
         matPropBlock = new();
     }
 
-    public void InteractWith(AntInteractable interactable)
-    {
-        State = EAntState.Acting;
-        interactable.AntBeginInteract(this);
-        currentInteractable = interactable;
-    }
 
     public void ReleaseInteract(AntInteractable interactable)
     {
@@ -280,9 +308,32 @@ public class Ant : MonoBehaviour
         decel.y = 0;
         decel.Normalize();
         decel *= Time.deltaTime * Acceleration;
+
+        if (decel.sqrMagnitude <= .01)
+        {
+            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+        }
+        else
+        {
+            rb.AddForce(decel);
+        }
         
-        rb.AddForce(decel);
         
+        
+        CheckForInteractables();
+    }
+
+    private void DirectTick()
+    {
+        MoveTowards(currentDirectedPos);
+        if (Time.time > lastDirectTime + 0.5f)
+        {
+            CheckForInteractables();
+        }
+    }
+
+    private void CheckForInteractables()
+    {
         AntInteractable first = nearbyInteractables.FirstOrDefault(interactable => interactable.CanAntInteract(this));
         if (first)
             InteractWith(first);
@@ -296,7 +347,7 @@ public class Ant : MonoBehaviour
                 IdleTick();
                 break;
             case EAntState.DirectMove:
-                MoveTowards(currentDirectedPos);
+                DirectTick();
                 break;
             case EAntState.PathMove:
                 PathFind();
@@ -322,6 +373,7 @@ public class Ant : MonoBehaviour
         foreach (Ant ant in GetAntsInRange(AntAvoidRange * 2))
         {
             Vector3 offset = transform.position - ant.transform.position;
+            offset.y = 0;
             float force = offset.sqrMagnitude;
             force /= avoidRangeSqrd;
             force = 1 - force;

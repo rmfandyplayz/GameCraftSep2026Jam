@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -15,9 +16,13 @@ public class AntFoodPile : AntInteractable
 
     [SerializeField] private GameObject CrumbPrefab;
 
+    [SerializeField] private float GrabRadius;
+
+    [ItemCanBeNull] private Dictionary<Vector3, Ant> places = new();
+
     private int AvailableFood()
     {
-        return FoodLeft - antTimers.Count;
+        return FoodLeft - places.Count(p => p.Value);
     }
     
     public override void AntBeginInteract(Ant ant)
@@ -30,9 +35,21 @@ public class AntFoodPile : AntInteractable
         return AvailableFood() > 0 && !ant.carriedObject;
     }
 
+    public override Vector3 GetAntInteractPos(Ant ant)
+    {
+        return AssignToPoint(places, ant);
+    }
+
     public override void AntEndInteract(Ant ant)
     {
         antTimers.Remove(ant);
+        Vector3 place = places.First(p => p.Value == ant).Key;
+        places[place] = null;
+    }
+
+    private void Start()
+    {
+        places = GetRadialPlaces(FoodLeft, GetBestRadius());
     }
 
     private void Update()

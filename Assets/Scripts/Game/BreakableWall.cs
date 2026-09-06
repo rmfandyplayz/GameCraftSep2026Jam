@@ -33,6 +33,11 @@ public class BreakableWall : AntInteractable
         return !destroying;
     }
 
+    public override Vector3 GetAntInteractPos(Ant ant)
+    {
+        return transform.position;
+    }
+
     public override void AntEndInteract(Ant ant)
     {
         antsInteracting.Remove(ant);

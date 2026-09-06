@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -27,12 +28,13 @@ public abstract class AntLargeCarriableObject : AntInteractable
     private bool carrying;
 
     private Rigidbody rb;
+    
+    [ItemCanBeNull] private Dictionary<Vector3, Ant> places = new();
 
     protected abstract void DepositToNest(AntNest nest);
 
     private static NavMeshQueryFilter navMeshQueryFilter;
     
-
 
     private int GetAntCarryCount()
     {
@@ -50,6 +52,11 @@ public abstract class AntLargeCarriableObject : AntInteractable
     public override void AntEndInteract(Ant ant)
     {
         antsCarrying.Remove(ant);
+    }
+    
+    public override Vector3 GetAntInteractPos(Ant ant)
+    {
+        return AssignToPoint(places, ant);
     }
 
     // ReSharper disable Unity.PerformanceAnalysis
@@ -91,6 +98,8 @@ public abstract class AntLargeCarriableObject : AntInteractable
             areaMask = NavMesh.AllAreas,
             agentTypeID = Ant.GetNavMeshID("LargeObject")
         };
+
+        places = GetRadialPlaces(MaxAntsForCarry, GetBestRadius());
     }
 
     private void Update()
