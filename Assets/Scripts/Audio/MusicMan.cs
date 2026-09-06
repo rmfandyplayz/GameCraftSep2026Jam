@@ -143,7 +143,7 @@ public class MusicMan : MonoBehaviour
         percRequirements = new()
         {
         new MusicTrackSettings(SnareDrum, 0, true),
-        new MusicTrackSettings(Timpani, 0, true),
+        new MusicTrackSettings(Timpani, 1, true),
         new MusicTrackSettings(BassDrum, 2, true),
         new MusicTrackSettings(Crash, 2, true),
         new MusicTrackSettings(BongoDrum, 3, true),
