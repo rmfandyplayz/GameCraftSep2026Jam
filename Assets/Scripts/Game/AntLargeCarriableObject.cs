@@ -80,7 +80,7 @@ public abstract class AntLargeCarriableObject : AntInteractable
     
     public override Vector3 GetAntInteractPos(Ant ant)
     {
-        return AssignToPoint(places, ant);
+        return AssignToPoint(places, ant) + transform.position;
     }
 
     // ReSharper disable Unity.PerformanceAnalysis
@@ -111,6 +111,7 @@ public abstract class AntLargeCarriableObject : AntInteractable
 
     private void Start()
     {
+        places = GetRadialPlaces(MaxAntsForCarry, GetBestRadius() / 2, true);
         rb = GetComponent<Rigidbody>();
         navMeshQueryFilter = new NavMeshQueryFilter()
         {
@@ -118,7 +119,7 @@ public abstract class AntLargeCarriableObject : AntInteractable
             agentTypeID = Ant.GetNavMeshID("LargeObject")
         };
 
-        places = GetRadialPlaces(MaxAntsForCarry, GetBestRadius() / 2);
+        
     }
 
     private void Update()

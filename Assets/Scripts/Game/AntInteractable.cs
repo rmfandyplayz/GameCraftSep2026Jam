@@ -46,7 +46,7 @@ public abstract class AntInteractable : MonoBehaviour
         }
     }
 
-    protected Dictionary<Vector3, Ant> GetRadialPlaces(float count, float radius)
+    protected Dictionary<Vector3, Ant> GetRadialPlaces(float count, float radius, bool relative = false)
     {
         Dictionary<Vector3, Ant> places = new();
         for (int i = 0; i < count; i++)
@@ -58,7 +58,8 @@ public abstract class AntInteractable : MonoBehaviour
             pos = Quaternion.AngleAxis(angle, Vector3.up) * pos;
             pos *= radius;
 
-            pos += transform.position;
+            if(!relative)
+                pos += transform.position;
             places.Add(pos, null);
         }
 
