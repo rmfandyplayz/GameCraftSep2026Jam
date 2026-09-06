@@ -29,6 +29,8 @@ public abstract class AntLargeCarriableObject : AntInteractable
 
     private Rigidbody rb;
     
+    
+    
     [ItemCanBeNull] private Dictionary<Vector3, Ant> places = new();
 
     protected abstract void DepositToNest(AntNest nest);
@@ -41,17 +43,34 @@ public abstract class AntLargeCarriableObject : AntInteractable
         return antsCarrying.Count;
     }
 
+    private void SetAntCollisions(Ant ant, bool collideEnabled)
+    {
+        Rigidbody antRB = ant.rb;
+        antRB.isKinematic = !collideEnabled;
+        antRB.detectCollisions = collideEnabled;
+    }
+
     public override void AntBeginInteract(Ant ant)
     {
         antsCarrying.Add(ant);
-        DirectAntToMe(ant);
+        SetAntCollisions(ant, false);
+        ant.transform.SetParent(transform);
     }
     public override bool CanAntInteract(Ant ant){
         return GetAntCarryCount() < MaxAntsForCarry;
     }
+    
+    public override void CancelAntInteract(Ant ant)
+    {
+        UnassignFromPoint(places, ant);
+    }
+    
     public override void AntEndInteract(Ant ant)
     {
         antsCarrying.Remove(ant);
+        ant.transform.SetParent(null);
+        SetAntCollisions(ant, true);
+        UnassignFromPoint(places, ant);
     }
     
     public override Vector3 GetAntInteractPos(Ant ant)
@@ -76,18 +95,13 @@ public abstract class AntLargeCarriableObject : AntInteractable
         else
         {
             // fuck
-            Debug.LogWarning("CANT RETURN ITEM TO BASE");
+            MysticLog.LogWarning("CANT RETURN ITEM TO BASE");
         }
     }
 
     private void StopCarrying()
     {
         carrying = false;
-    }
-
-    private void DirectAntToMe(Ant ant)
-    {
-        ant.MoveTowards(transform.position);
     }
 
     private void Start()
@@ -99,7 +113,7 @@ public abstract class AntLargeCarriableObject : AntInteractable
             agentTypeID = Ant.GetNavMeshID("LargeObject")
         };
 
-        places = GetRadialPlaces(MaxAntsForCarry, GetBestRadius());
+        places = GetRadialPlaces(MaxAntsForCarry, GetBestRadius() / 2);
     }
 
     private void Update()
@@ -123,10 +137,10 @@ public abstract class AntLargeCarriableObject : AntInteractable
         {
             PathFind();
         }
-        
+
         foreach (Ant ant in antsCarrying)
         {
-            DirectAntToMe(ant);
+            ant.SetAntAngle(rb.linearVelocity);
         }
     }
     

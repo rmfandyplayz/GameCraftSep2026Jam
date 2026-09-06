@@ -9,6 +9,7 @@ public abstract class AntInteractable : MonoBehaviour
     public abstract void AntBeginInteract(Ant ant);
     public abstract bool CanAntInteract(Ant ant);
     public abstract Vector3 GetAntInteractPos(Ant ant);
+    public abstract void CancelAntInteract(Ant ant);
     public abstract void AntEndInteract(Ant ant);
 
     private void OnTriggerEnter(Collider other)
@@ -65,8 +66,8 @@ public abstract class AntInteractable : MonoBehaviour
 
         if (closest == Vector3.zero)
         {
-            // ReSharper disable once Unity.PerformanceCriticalCodeInvocation
-            Debug.LogError("FUCK");
+            // Uh, panic.
+            MysticLog.LogWarning("places array not being cleared.");
             return closest;
         }
 
@@ -74,8 +75,14 @@ public abstract class AntInteractable : MonoBehaviour
 
         return closest;
     }
+
+    protected void UnassignFromPoint(Dictionary<Vector3, Ant> places, Ant ant)
+    {
+        Vector3 place = places.First(p => p.Value == ant).Key;
+        places[place] = null;
+    }
     
-    readonly private float radBuffer = 0.4f;
+    readonly private float radBuffer = 0.26f;
     protected float GetBestRadius()
     {
         float scaleFactor = Mathf.Max(transform.lossyScale.x, Mathf.Max(transform.lossyScale.y, transform.lossyScale.z));
@@ -89,7 +96,7 @@ public abstract class AntInteractable : MonoBehaviour
         var capsule = GetComponents<CapsuleCollider>().FirstOrDefault(s => !s.isTrigger);
         if (capsule)
         {
-            return (capsule.radius + capsule.height) * scaleFactor + radBuffer;
+            return Mathf.Max(capsule.radius + capsule.height) * scaleFactor + radBuffer;
         }
 
         var box = GetComponents<BoxCollider>().FirstOrDefault(s => !s.isTrigger);
@@ -100,7 +107,7 @@ public abstract class AntInteractable : MonoBehaviour
             return Mathf.Sqrt(w * w + h * h) * 0.5f * scaleFactor + radBuffer;
         }
 
-        Debug.LogWarning("GetBestRadiusFailed!");
+        MysticLog.LogWarning("GetBestRadiusFailed!");
         return 0;
     }
 }

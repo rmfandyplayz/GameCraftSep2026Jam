@@ -40,11 +40,15 @@ public class AntFoodPile : AntInteractable
         return AssignToPoint(places, ant);
     }
 
+    public override void CancelAntInteract(Ant ant)
+    {
+        UnassignFromPoint(places, ant);
+    }
+
     public override void AntEndInteract(Ant ant)
     {
         antTimers.Remove(ant);
-        Vector3 place = places.First(p => p.Value == ant).Key;
-        places[place] = null;
+        UnassignFromPoint(places, ant);
     }
 
     private void Start()

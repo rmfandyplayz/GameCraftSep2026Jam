@@ -15,7 +15,6 @@ public class AntFoodCrumb : AntCarriableObject
     {
         nest.foodCount += FoodAmount;
         nest.SpawnAnts(AntAmount);
-        Debug.Log(nest.foodCount);
         Destroy(gameObject);
     }
 }

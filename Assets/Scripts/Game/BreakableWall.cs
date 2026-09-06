@@ -42,4 +42,9 @@ public class BreakableWall : AntInteractable
     {
         antsInteracting.Remove(ant);
     }
+    
+    public override void CancelAntInteract(Ant ant)
+    {
+        
+    }
 }

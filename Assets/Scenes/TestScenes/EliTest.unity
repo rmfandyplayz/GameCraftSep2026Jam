@@ -708,17 +708,25 @@ PrefabInstance:
       propertyPath: m_Name
       value: Key
       objectReference: {fileID: 0}
+    - target: {fileID: 2710049123611276072, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
+      propertyPath: m_Height
+      value: 0.31
+      objectReference: {fileID: 0}
+    - target: {fileID: 2710049123611276072, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
+      propertyPath: m_Radius
+      value: 0.15
+      objectReference: {fileID: 0}
     - target: {fileID: 2904815875734260427, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
       propertyPath: m_LocalPosition.x
       value: -4.8457
       objectReference: {fileID: 0}
     - target: {fileID: 2904815875734260427, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.492
+      value: 0.49
       objectReference: {fileID: 0}
     - target: {fileID: 2904815875734260427, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.103
+      value: 5.26
       objectReference: {fileID: 0}
     - target: {fileID: 2904815875734260427, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
       propertyPath: m_LocalRotation.w
@@ -920,7 +928,7 @@ MonoBehaviour:
   m_LayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_UseGeometry: 0
+  m_UseGeometry: 1
   m_DefaultArea: 0
   m_GenerateLinks: 0
   m_IgnoreNavMeshAgent: 1
@@ -1139,6 +1147,7 @@ GameObject:
   - component: {fileID: 7970416438442923414}
   - component: {fileID: 7970416438442923416}
   - component: {fileID: 7970416438442923415}
+  - component: {fileID: 7970416438442923417}
   m_Layer: 0
   m_Name: FoodPileTest (1)
   m_TagString: Untagged
@@ -1212,7 +1221,7 @@ Transform:
   m_GameObject: {fileID: 6936619467649150788}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10.85, y: 0.98, z: -12.45}
+  m_LocalPosition: {x: 10.85, y: 1.56, z: -12.45}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1284,6 +1293,22 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.67
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!208 &7970416438442923417
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6936619467649150788}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 0
+  m_Extents: {x: 0.5, y: 1, z: 0.5}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 0, z: 0}
+  m_TimeToStationary: 0.5
 --- !u!1001 &9068995251767608642
 PrefabInstance:
   m_ObjectHideFlags: 0

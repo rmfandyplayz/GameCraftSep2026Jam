@@ -36,7 +36,7 @@ public class Ant : MonoBehaviour
     [SerializeField] private float AntAvoidRange;
     [SerializeField] private float AntAvoidForce;
 
-    private Rigidbody rb;
+    public Rigidbody rb { get; private set; }
     public AntNest myNest { get; private set; }
 
     private NavMeshPath path;
@@ -84,17 +84,32 @@ public class Ant : MonoBehaviour
         distance *= distance;
         return myNest.GetAnts().Where(a => a != this && (a.transform.position - transform.position).sqrMagnitude <= distance);
     }
+
+    public bool IsActing()
+    {
+        return State == EAntState.Acting || (State == EAntState.PathMove && PathState == EAntPathState.ActPath);
+    }
     
     public void Direct(Vector3 pos)
     {
-        if (State == EAntState.PathMove)
+        if (State == EAntState.PathMove && PathState != EAntPathState.ActPath)
             return;
 
         lastDirectTime = Time.time;
         
-        if (State == EAntState.Acting)
+        if (IsActing())
         {
-            ReleaseInteract(currentInteractable);
+            if (State == EAntState.Acting)
+            {
+                // actively acting
+                ReleaseInteract(currentInteractable);
+            }
+            else
+            {
+                // Cancel pathing
+                CancelInteractPathing();
+            }
+            
         }
         
         currentDirectedPos = pos;
@@ -128,7 +143,7 @@ public class Ant : MonoBehaviour
         {
             pathNode = 0;
         }
-        else if(State != EAntState.Acting)
+        else
         {
             GoIdle();
         }
@@ -163,7 +178,7 @@ public class Ant : MonoBehaviour
             DirectPathfind(path.corners.Last(), PathState);
             stuckCount++;
         }
-        else if(State != EAntState.Acting)
+        else
         {
             // probably running into a wall or something - just return to idle.
             GoIdle();
@@ -209,7 +224,7 @@ public class Ant : MonoBehaviour
         rb.linearVelocity = new Vector3(horizVel.x, rb.linearVelocity.y, horizVel.z);
 
         // Hunger loss
-        if(State != EAntState.Acting)
+        if(!IsActing())
             hunger -= horizVel.magnitude * Time.deltaTime;
         HungerCheck();
     }
@@ -284,6 +299,12 @@ public class Ant : MonoBehaviour
         currentInteractable = null;
         interactable.AntEndInteract(this);
         GoIdle();
+    }
+    
+    private void CancelInteractPathing()
+    {
+        currentInteractable.CancelAntInteract(this);
+        currentInteractable = null;
     }
 
     public void GrabObject(AntCarriableObject toCarry)
@@ -382,19 +403,21 @@ public class Ant : MonoBehaviour
             rb.AddForce(offset.normalized * (force * Time.deltaTime));
         }
 
-        SetAntAngle();
+        if (!rb.isKinematic)
+        {
+            SetAntAngle(rb.linearVelocity);
+        }
         
         _renderer.GetPropertyBlock(matPropBlock);
         matPropBlock.SetColor(BaseColorPropID, Color.Lerp(hungryColor, defaultColor, hunger / myNest.GetMaxHunger()));
         _renderer.SetPropertyBlock(matPropBlock);
     }
 
-    private void SetAntAngle()
+    public void SetAntAngle(Vector3 dir)
     {
-        var vel = rb.linearVelocity;
-        vel.y = 0;
-        vel.Normalize();
-        float angle = Mathf.Atan2(vel.z, vel.x) * Mathf.Rad2Deg;
+        dir.y = 0;
+        dir.Normalize();
+        float angle = Mathf.Atan2(dir.z, dir.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, -angle, 0);
     }
 
