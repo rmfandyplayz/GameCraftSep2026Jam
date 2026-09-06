@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 // written by andy (rmfz/rmfandyplayz)
@@ -23,7 +24,7 @@ public class QuitToMenu : MonoBehaviour
     {
         if (isQuitting)
         {
-            Debug.LogError("not implemented yet. return to main menu somehow");
+            SceneManager.LoadScene("Level");
             pauseButtonGroup.blocksRaycasts = false;
         }
         else

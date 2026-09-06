@@ -103,5 +103,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de6dd0b5abbc41ebb4cb08e4cb6dc9a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AntFoodCrumb
-  FoodAmount: 1
+  FoodAmount: 5
   AntAmount: 1

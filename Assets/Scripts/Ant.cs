@@ -54,7 +54,7 @@ public class Ant : MonoBehaviour
 
     private bool idleStationary;
 
-    private AntInteractable currentInteractable;
+    public AntInteractable currentInteractable { get; private set; }
     public AntCarriableObject carriedObject { get; private set; }
 
     private static NavMeshQueryFilter antNavMeshQueryFilter;
@@ -126,6 +126,17 @@ public class Ant : MonoBehaviour
 
     public void GoIdle()
     {
+        if (IsActing() && currentInteractable)
+        {
+            if (State == EAntState.Acting)
+            {
+                ReleaseInteract(currentInteractable);
+            }  else if (State == EAntState.PathMove)
+            {
+                CancelInteractPathing();
+            }
+        }
+        
         idleStationary = false;
         State = EAntState.Idle;
         stuckCount = 0;
@@ -259,7 +270,7 @@ public class Ant : MonoBehaviour
 
     private void PathFind()
     {
-        if (pathNode > path.corners.Length)
+        if (pathNode > path.corners.Length || pathNode < 0 || path.corners.Length <= 0)
         {
             GoIdle();
             return;
@@ -312,7 +323,7 @@ public class Ant : MonoBehaviour
     public void ReleaseInteract(AntInteractable interactable)
     {
         currentInteractable = null;
-        if(interactable)
+        if(interactable && State == EAntState.Acting)
             interactable.AntEndInteract(this);
         GoIdle();
     }

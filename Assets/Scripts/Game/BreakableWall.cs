@@ -92,7 +92,8 @@ public class BreakableWall : AntInteractable
                 {
                     inAnt.ReleaseInteract(this);
                 }
-                jingle.Play()
+
+                jingle.Play();
                 Destroy(this.gameObject);
                 
             }

@@ -12,12 +12,15 @@ public abstract class AntInteractable : MonoBehaviour
     public abstract void CancelAntInteract(Ant ant);
     public abstract void AntEndInteract(Ant ant);
 
+    private List<Ant> nearbyAnts = new();
+
     private void OnTriggerEnter(Collider other)
     {
         var ant = other.GetComponent<Ant>();
         if (!ant)
             return;
 
+        nearbyAnts.Add(ant);
         ant.nearbyInteractables.Add(this);
     }
 
@@ -27,10 +30,23 @@ public abstract class AntInteractable : MonoBehaviour
         if (!ant)
             return;
 
+        nearbyAnts.Remove(ant);
         ant.nearbyInteractables.Remove(this);
     }
 
-    protected Dictionary<Vector3, Ant> GetRadialPlaces(float count, float radius)
+    private void OnDestroy()
+    {
+        foreach (Ant nearbyAnt in nearbyAnts)
+        {
+            if (nearbyAnt.currentInteractable == this)
+            {
+                nearbyAnt.ReleaseInteract(this);
+            }
+            nearbyAnt.nearbyInteractables.Remove(this);
+        }
+    }
+
+    protected Dictionary<Vector3, Ant> GetRadialPlaces(float count, float radius, bool relative = false)
     {
         Dictionary<Vector3, Ant> places = new();
         for (int i = 0; i < count; i++)
@@ -42,7 +58,8 @@ public abstract class AntInteractable : MonoBehaviour
             pos = Quaternion.AngleAxis(angle, Vector3.up) * pos;
             pos *= radius;
 
-            pos += transform.position;
+            if(!relative)
+                pos += transform.position;
             places.Add(pos, null);
         }
 
