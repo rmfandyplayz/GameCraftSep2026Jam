@@ -1128,6 +1128,10 @@ PrefabInstance:
       propertyPath: FoodLeft
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 1505753678137159263, guid: 026136f984b83d849ab7020a56bcfd28, type: 3}
+      propertyPath: GrabTime
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2245218752979942343, guid: 026136f984b83d849ab7020a56bcfd28, type: 3}
       propertyPath: m_LocalPosition.x
       value: 6.38
