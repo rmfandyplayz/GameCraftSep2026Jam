@@ -9,19 +9,38 @@ public class API_UI : MonoBehaviour
 {
     public event Action PauseRequested;
     public event Action ResumeRequested;
+    public event Action StartRequested;
 
     [SerializeField] private AntCounter antCounter;
 
+    /// <summary>
+    /// Requests the game to pause
+    /// </summary>
     public void RequestPause()
     {
         PauseRequested?.Invoke();
     }
 
+    /// <summary>
+    /// Requests the game to resume
+    /// </summary>
     public void RequestResume()
     {
         ResumeRequested?.Invoke();
     }
 
+    /// <summary>
+    /// Requests the game to start to the gameplay code
+    /// </summary>
+    public void RequestStart()
+    {
+        StartRequested?.Invoke();
+    }
+
+    /// <summary>
+    /// Updates the "ants on screen" counter
+    /// </summary>
+    /// <param name="newAntCount"></param>
     public void UpdateAntCount(int newAntCount)
     {
         antCounter.UpdateAntCount(newAntCount);
