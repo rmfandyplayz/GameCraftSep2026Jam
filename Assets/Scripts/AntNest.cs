@@ -18,10 +18,9 @@ public class AntNest : MonoBehaviour
     [SerializeField] private Animator Animator;
     [SerializeField] private MusicMan music;
     
-    void Start()
+    void Awake()
     {
         music = FindAnyObjectByType<MusicMan>();
-        Debug.Log(music);
     }
 
     public void SpawnAnts(int count)
