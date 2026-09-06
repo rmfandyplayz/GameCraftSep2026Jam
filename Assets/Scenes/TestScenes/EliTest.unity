@@ -708,18 +708,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Key
       objectReference: {fileID: 0}
-    - target: {fileID: 1745366607916508383, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
-      propertyPath: Acceleration
-      value: 300
-      objectReference: {fileID: 0}
-    - target: {fileID: 1745366607916508383, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
-      propertyPath: MaxCarrySpeed
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1745366607916508383, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
-      propertyPath: BaseCarrySpeed
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 2904815875734260427, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
       propertyPath: m_LocalPosition.x
       value: -4.8457
@@ -1033,6 +1021,18 @@ PrefabInstance:
     - target: {fileID: 2161460415486981373, guid: 5cc292329e92c6e40828e15abba7cdd7, type: 3}
       propertyPath: m_Name
       value: AntManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372493540502704990, guid: 5cc292329e92c6e40828e15abba7cdd7, type: 3}
+      propertyPath: directFadeSpeed
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372493540502704990, guid: 5cc292329e92c6e40828e15abba7cdd7, type: 3}
+      propertyPath: idleTransparency
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372493540502704990, guid: 5cc292329e92c6e40828e15abba7cdd7, type: 3}
+      propertyPath: directTransparency
+      value: 0.7
       objectReference: {fileID: 0}
     - target: {fileID: 7823892194598316925, guid: 5cc292329e92c6e40828e15abba7cdd7, type: 3}
       propertyPath: m_LocalPosition.x

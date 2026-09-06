@@ -25,6 +25,15 @@ public class AntManager : MonoBehaviour
 
     private AntNest nest;
     
+    private Renderer cursorRenderer;
+    protected MaterialPropertyBlock cursorMatPropBlock;
+    [SerializeField] private float idleTransparency;
+    [SerializeField] private float directTransparency;
+    [SerializeField] private float directFadeSpeed;
+    private float directFade;
+    
+    private static readonly int BaseColorPropID = Shader.PropertyToID("_BaseColor");
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
     {
@@ -34,6 +43,9 @@ public class AntManager : MonoBehaviour
         playerCamera = CameraTransform.GetComponent<Camera>();
 
         nest = FindAnyObjectByType<AntNest>();
+        
+        cursorRenderer = CursorTransform.GetComponent<Renderer>();
+        cursorMatPropBlock = new();
     }
 
     public void MoveCameraInput(InputAction.CallbackContext context)
@@ -64,11 +76,23 @@ public class AntManager : MonoBehaviour
         GetCursorWorldPosition();
 
         CursorTransform.position = cursorWorldPos + new Vector3(0, .01f, 0);
+        CursorTransform.localScale = Vector3.one * (DirectDist * .2f);
 
         if (isDirecting)
         {
             DirectAnts();
+            directFade += directFadeSpeed * Time.deltaTime;
         }
+        else
+        {
+            directFade -= directFadeSpeed * Time.deltaTime;
+        }
+
+        directFade = Math.Clamp(directFade, 0, 1);
+        
+        cursorRenderer.GetPropertyBlock(cursorMatPropBlock);
+        cursorMatPropBlock.SetColor(BaseColorPropID, new Color(1,1,1, Mathf.Lerp(idleTransparency, directTransparency, directFade)));
+        cursorRenderer.SetPropertyBlock(cursorMatPropBlock);
     }
 
     private void MoveCamera()
