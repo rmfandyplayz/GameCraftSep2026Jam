@@ -3,6 +3,7 @@ using UnityEngine;
 public class MainMenuMusic : MonoBehaviour
 {
     public AudioSource audioSource;
+    public MusicMan musicMan;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private bool started;
     private bool audioPlaying = true;
@@ -24,6 +25,8 @@ public class MainMenuMusic : MonoBehaviour
             {
                 audioSource.volume = 0f;
                 audioPlaying = false;
+                if (musicMan != null)
+                    musicMan.mainMenuLeft = true;
             }
         }
     }

@@ -155,9 +155,12 @@ public class MusicMan : MonoBehaviour
         };
     }
 
+    public bool mainMenuLeft = false;
     // Update is called once per frame
     void Update()
     {
+        if (!mainMenuLeft)
+            return;
         while (layerCount < targetLayerCount)
         {
             AddLayer(layerCount % 3 == 0);
