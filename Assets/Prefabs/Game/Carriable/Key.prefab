@@ -72,8 +72,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b500ff7eda72f5043a96e36528e86527, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  MinAntsForCarry: 2
-  MaxAntsForCarry: 5
+  MinAntsForCarry: 5
+  MaxAntsForCarry: 10
   BaseCarrySpeed: 1
   MaxCarrySpeed: 2
   Acceleration: 300
