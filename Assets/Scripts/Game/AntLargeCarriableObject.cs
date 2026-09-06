@@ -62,7 +62,7 @@ public abstract class AntLargeCarriableObject : AntInteractable
         ant.transform.SetParent(transform);
     }
     public override bool CanAntInteract(Ant ant){
-        return AvailableSpaces() < MaxAntsForCarry;
+        return AvailableSpaces() > 0;
     }
     
     public override void CancelAntInteract(Ant ant)

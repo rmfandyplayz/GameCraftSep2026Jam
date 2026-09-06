@@ -47,5 +47,6 @@ public class AntUIHandler : MonoBehaviour
         int antsInCam = nest.GetAnts().Count(ant => IsPointInFrustum(playerCam, ant.transform.position));
 
         uiAPI.UpdateAntCount(antsInCam, nest.GetAntCount());
+        uiAPI.UpdateFoodCount(Mathf.RoundToInt(nest.foodCount * 10));
     }
 }
