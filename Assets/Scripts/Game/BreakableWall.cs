@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -16,9 +17,12 @@ public class BreakableWall : AntInteractable
     private Dictionary<Vector3, Ant> frontPlaces = new(); 
     private Dictionary<Vector3, Ant> backPlaces = new();
 
+    [SerializeField] private TextMeshPro wallText;
+    
     void Start()
     {
         GeneratePlaces();
+        wallText.text = antsNeeded.ToString();
     }
 
     private void Update()
