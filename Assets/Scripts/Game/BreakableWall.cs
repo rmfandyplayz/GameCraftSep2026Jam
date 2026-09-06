@@ -18,18 +18,26 @@ public class BreakableWall : AntInteractable
 
     void Start()
     {
+        GeneratePlaces();
+    }
+
+    private void GeneratePlaces()
+    {
+        frontPlaces.Clear();
+        backPlaces.Clear();
+        
         BoxCollider wallCollider = GetComponents<BoxCollider>().First(p => !p.isTrigger);
         float wallWidth = wallCollider.size.x * transform.lossyScale.x;
         float wallDepth = wallCollider.size.z * transform.lossyScale.z;
-        
-        float minPos = -wallWidth * 0.5f + antsNeeded / wallWidth;
-        float maxPos = wallWidth * 0.5f - antsNeeded / wallWidth;
+
+        float minPos = -wallWidth * 0.5f + wallWidth / antsNeeded;
+        float maxPos = wallWidth * 0.5f - wallWidth / antsNeeded;
 
         float wallOffset = wallDepth + Ant.RadBuffer;
         float yOffset = wallCollider.size.y * -0.5f * transform.lossyScale.y;
         for (int i = 0; i < antsNeeded; i++)
         {
-            float fac = i / (float)antsNeeded;
+            float fac = i / (float)(antsNeeded-1);
 
             var frontPos = new Vector3(Mathf.Lerp(minPos, maxPos, fac), yOffset, wallOffset);
             frontPos = transform.rotation * frontPos;
@@ -100,6 +108,11 @@ public class BreakableWall : AntInteractable
 
     private void OnDrawGizmosSelected()
     {
+        if (frontPlaces.Count != antsNeeded)
+        {
+            GeneratePlaces();
+        }
+        
         Gizmos.color = Color.red;
         foreach (Vector3 place in frontPlaces.Keys)
         {
