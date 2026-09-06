@@ -1022,18 +1022,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: AntManager
       objectReference: {fileID: 0}
-    - target: {fileID: 4372493540502704990, guid: 5cc292329e92c6e40828e15abba7cdd7, type: 3}
-      propertyPath: directFadeSpeed
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 4372493540502704990, guid: 5cc292329e92c6e40828e15abba7cdd7, type: 3}
-      propertyPath: idleTransparency
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4372493540502704990, guid: 5cc292329e92c6e40828e15abba7cdd7, type: 3}
-      propertyPath: directTransparency
-      value: 0.7
-      objectReference: {fileID: 0}
     - target: {fileID: 7823892194598316925, guid: 5cc292329e92c6e40828e15abba7cdd7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
