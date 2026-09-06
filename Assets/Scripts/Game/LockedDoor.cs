@@ -10,7 +10,7 @@ public class LockedDoor : MonoBehaviour
     }
     public void Unlock()
     {
-        jingle.Play()
+        jingle.Play();
         Destroy(this.gameObject);
     }
 }
