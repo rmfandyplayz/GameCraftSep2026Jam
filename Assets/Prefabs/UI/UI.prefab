@@ -10573,7 +10573,7 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 6237098781222213407}
           m_TargetAssemblyTypeName: API_UI, Assembly-CSharp
-          m_MethodName: RequestResume
+          m_MethodName: RequestStart
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
