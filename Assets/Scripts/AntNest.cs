@@ -64,6 +64,11 @@ public class AntNest : MonoBehaviour
         return ants;
     }
 
+    public int GetAntCount()
+    {
+        return ants.Count;
+    }
+
     public void AddToInventory(StoredObject obj)
     {
         inventory.Add(obj);
