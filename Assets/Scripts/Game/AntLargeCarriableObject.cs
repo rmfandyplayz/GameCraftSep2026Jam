@@ -160,6 +160,7 @@ public abstract class AntLargeCarriableObject : AntInteractable
     private void PathFind()
     {
         Vector3 curGoal = path.corners[pathNode];
+        
         if (CloseToTarget(curGoal))
         {
             pathNode++;
