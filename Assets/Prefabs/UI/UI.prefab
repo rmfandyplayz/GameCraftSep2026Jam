@@ -3649,6 +3649,61 @@ MonoBehaviour:
       Elasticity: 1
       Randomness: 90
       Snapping: 0
+    - Type: 16
+      Start: 1
+      RectTarget: {fileID: 3387773570877236943}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 6415545763864535889}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      Duration: 0.4
+      Delay: 0
+      EaseType: 12
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 0
+      FromMode: 2
+      ToMode: 0
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 0.9, y: 0.9, z: 0.9}
+      FromFloat: 0
+      ToFloat: 0
+      FromColor: {r: 0, g: 0, b: 0, a: 0}
+      ToColor: {r: 0, g: 0, b: 0, a: 0}
+      ShaderProperty: _Progress
+      ActiveValue: 0
+      Clip: {fileID: 8300000, guid: efb71d67cb2b42c4c9cd09e808ec8ef3, type: 3}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
     Loops: 1
     LoopType: 0
     PlayAtCustomFPS: 0
@@ -5963,6 +6018,61 @@ MonoBehaviour:
       ShaderProperty: _Progress
       ActiveValue: 0
       Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+    - Type: 16
+      Start: 1
+      RectTarget: {fileID: 528046394228300117}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 3131694036683442920}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      Duration: 0.4
+      Delay: 0
+      EaseType: 12
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 0
+      FromMode: 2
+      ToMode: 0
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 0.9, y: 0.9, z: 0.9}
+      FromFloat: 0
+      ToFloat: 0
+      FromColor: {r: 0, g: 0, b: 0, a: 0}
+      ToColor: {r: 0, g: 0, b: 0, a: 0}
+      ShaderProperty: _Progress
+      ActiveValue: 0
+      Clip: {fileID: 8300000, guid: efb71d67cb2b42c4c9cd09e808ec8ef3, type: 3}
       Volume: 1
       Pitch: 1
       PitchVariation: 0
