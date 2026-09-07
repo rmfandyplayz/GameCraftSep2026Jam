@@ -22,6 +22,29 @@ public class UIAnimationStepDrawer : PropertyDrawer
 
     private static readonly string[] AbsoluteBaselineOnly = { "Absolute", "Baseline" };
 
+    private static GUIStyle boldFoldout;
+
+    /// <summary>
+    /// Bold version of the foldout style, so a collapsed step header stands out from the
+    /// ordinary fields around it.
+    ///
+    /// Built as a COPY. Setting fontStyle on EditorStyles.foldout itself would bold every
+    /// foldout in the whole Editor, and built-in styles are shared global state. Built lazily
+    /// because EditorStyles is not available until there is a GUI skin, i.e. not at load.
+    /// </summary>
+    private static GUIStyle BoldFoldout
+    {
+        get
+        {
+            if (boldFoldout == null)
+            {
+                boldFoldout = new GUIStyle(EditorStyles.foldout) { fontStyle = FontStyle.Bold };
+            }
+
+            return boldFoldout;
+        }
+    }
+
     /// <summary>Tracks vertical layout. Run once to measure, once to draw.</summary>
     private struct Layout
     {
@@ -65,7 +88,8 @@ public class UIAnimationStepDrawer : PropertyDrawer
         Rect header = layout.Line();
         if (layout.Draw)
         {
-            property.isExpanded = EditorGUI.Foldout(header, property.isExpanded, Summary(property, stepType, startMode), true);
+            property.isExpanded = EditorGUI.Foldout(header, property.isExpanded,
+                Summary(property, stepType, startMode), true, BoldFoldout);
         }
 
         if (!property.isExpanded) return;
@@ -278,9 +302,17 @@ public class UIAnimationStepDrawer : PropertyDrawer
         else EditorGUI.PropertyField(r, property, new GUIContent(label, property.tooltip));
     }
 
+    /// <summary>
+    /// The one-line header shown when a step is collapsed, which is how the list is read most
+    /// of the time. Reads: AFTER   ButtonContainer (Anchored Position)   0.6s   Out Quart
+    ///
+    /// The object name comes first because a long animation is scanned by "which element does
+    /// this row move", and the property is named rather than the component type so that two
+    /// Rect steps on the same object stay distinguishable while collapsed.
+    /// </summary>
     private static string Summary(SerializedProperty property, UIAnimationStepType type, UIAnimationStartMode start)
     {
-        string prefix = start == UIAnimationStartMode.WithPrevious ? "with" : "then";
+        string prefix = start == UIAnimationStartMode.WithPrevious ? "WITH" : "AFTER";
         SerializedProperty typeProperty = property.FindPropertyRelative("Type");
 
         // Use Unity's prettified enum names so the header matches the dropdowns below it.
@@ -288,16 +320,18 @@ public class UIAnimationStepDrawer : PropertyDrawer
             ? typeProperty.enumDisplayNames[typeProperty.enumValueIndex]
             : type.ToString();
 
+        string target = TargetName(property, type);
+
         if (type == UIAnimationStepType.SetActive)
         {
             bool value = property.FindPropertyRelative("ActiveValue").boolValue;
-            return prefix + "   " + typeName + " " + (value ? "on" : "off");
+            return prefix + "   " + target + " (" + typeName + " " + (value ? "on" : "off") + ")";
         }
 
         if (type == UIAnimationStepType.PlaySound)
         {
             Object clip = property.FindPropertyRelative("Clip").objectReferenceValue;
-            return prefix + "   " + typeName + "   " + (clip != null ? clip.name : "(no clip)");
+            return prefix + "   " + (clip != null ? clip.name : "(no clip)") + " (" + typeName + ")";
         }
 
         float duration = property.FindPropertyRelative("Duration").floatValue;
@@ -307,15 +341,43 @@ public class UIAnimationStepDrawer : PropertyDrawer
         {
             if (property.FindPropertyRelative("UseCustomCurve").boolValue)
             {
-                tail += "  Custom Curve";
+                tail += "   Custom Curve";
             }
             else
             {
                 SerializedProperty ease = property.FindPropertyRelative("EaseType");
-                if (ease.enumValueIndex >= 0) tail += "  " + ease.enumDisplayNames[ease.enumValueIndex];
+                if (ease.enumValueIndex >= 0) tail += "   " + ease.enumDisplayNames[ease.enumValueIndex];
             }
         }
 
-        return prefix + "   " + typeName + "   " + tail;
+        return prefix + "   " + target + " (" + typeName + ")   " + tail;
+    }
+
+    /// <summary>
+    /// Name of the object this step drives. An empty target slot means "the GameObject this
+    /// player is on", which is spelled out rather than left blank so a self-targeting row does
+    /// not read as a broken one.
+    /// </summary>
+    private static string TargetName(SerializedProperty property, UIAnimationStepType type)
+    {
+        string field;
+
+        switch (UIAnimationStep.TargetKindOf(type))
+        {
+            case UIAnimationTargetKind.CanvasGroup: field = "CanvasGroupTarget"; break;
+            case UIAnimationTargetKind.Graphic: field = "GraphicTarget"; break;
+            case UIAnimationTargetKind.Material: field = "MaterialTarget"; break;
+            case UIAnimationTargetKind.GameObject: field = "ActiveTarget"; break;
+            case UIAnimationTargetKind.Audio: field = "AudioSourceTarget"; break;
+            default: field = "RectTarget"; break;
+        }
+
+        SerializedProperty target = property.FindPropertyRelative(field);
+        if (target != null && target.objectReferenceValue != null) return target.objectReferenceValue.name;
+
+        Object owner = property.serializedObject.targetObject;
+        var component = owner as Component;
+
+        return component != null ? component.gameObject.name + " (self)" : "self";
     }
 }

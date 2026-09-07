@@ -15,52 +15,62 @@ using UnityEngine.UI;
 /// What a single animation step drives. The framework never interprets these
 /// semantically - it only knows how to build a DOTween tween for each one.
 ///
-/// APPEND ONLY. Unity serializes an enum field as its integer value, not its name, so
-/// inserting, removing or reordering anything below silently repoints every step already
-/// authored in a scene or prefab - with no error, no warning, and no import log.
-/// This list was alphabetised once, which turned 16 authored Scale steps on the main menu
-/// buttons into GraphicAlpha steps that faded the buttons to invisible. Add new types at
-/// the bottom, however untidy that looks.
+/// Unity serializes an enum field as its integer value, not its name, so what is stored in
+/// a scene or prefab is the NUMBER. The numbers below are therefore written out explicitly
+/// and are the real contract - each one is permanently spoken for by authored data.
+///
+/// Reordering these lines is now harmless, because a value carries its number with it.
+/// CHANGING a number, or reusing a retired one, silently repoints every step already
+/// authored against it - with no error, no warning, and no import log. This list was
+/// alphabetised once while the numbers were still implicit, which turned 16 authored Scale
+/// steps on the main menu buttons into GraphicAlpha steps that faded them to invisible.
+/// New types take the next free number.
 /// </summary>
 public enum UIAnimationStepType
 {
-    AnchoredPosition,
-    CanvasGroupAlpha,
-    GraphicAlpha,
-    GraphicColor,
-    LocalPosition,
-    MaterialColor,
-    MaterialFloat,
-    OffsetMin,
-    OffsetMax,
-    PunchAnchoredPosition,
-    PunchScale,
-    Rotation,
-    Scale,
-    SetActive,
-    ShakeAnchoredPosition,
-    SizeDelta,
-    PlaySound,
+    AnchoredPosition = 0,
+    CanvasGroupAlpha = 1,
+    GraphicAlpha = 2,
+    GraphicColor = 3,
+    LocalPosition = 4,
+    MaterialColor = 5,
+    MaterialFloat = 6,
+    OffsetMin = 7,
+    OffsetMax = 8,
+    PunchAnchoredPosition = 9,
+    PunchScale = 10,
+    Rotation = 11,
+    Scale = 12,
+    SetActive = 13,
+    ShakeAnchoredPosition = 14,
+    SizeDelta = 15,
+    PlaySound = 16,
 }
 
-/// <summary>How a FROM/TO endpoint value is resolved at build time.</summary>
+/// <summary>
+/// How a FROM/TO endpoint value is resolved at build time.
+/// Serialized as an integer - see the note on UIAnimationStepType. Numbers are the contract.
+/// </summary>
 public enum UIAnimationEndpointMode
 {
     /// <summary>Use the authored value exactly as typed.</summary>
-    Absolute,
+    Absolute = 0,
 
     /// <summary>Resting value captured at Awake, plus the authored value as an offset.</summary>
-    Baseline,
+    Baseline = 1,
 
     /// <summary>Value when the tween starts, plus the authored value as an offset (DOTween relative).</summary>
-    Current,
+    Current = 2,
 }
 
-/// <summary>Whether a step is appended after the previous one or joined alongside it.</summary>
+/// <summary>
+/// Whether a step is appended after the previous one or joined alongside it.
+/// Serialized as an integer - see the note on UIAnimationStepType. Numbers are the contract.
+/// </summary>
 public enum UIAnimationStartMode
 {
-    AfterPrevious,
-    WithPrevious,
+    AfterPrevious = 0,
+    WithPrevious = 1,
 }
 
 /// <summary>Which value fields a step type actually uses. Drives the inspector drawer.</summary>
@@ -208,8 +218,17 @@ public class UIAnimationStep
     [NonSerialized] private Vector3 baselineVector;
     [NonSerialized] private float baselineFloat;
     [NonSerialized] private Color baselineColor;
+    [NonSerialized] private bool baselineActive;
     [NonSerialized] private int shaderPropertyId;
     [NonSerialized] private bool shaderPropertyValid;
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// Set by the inspector's edit-mode preview so PlaySound steps do nothing. Static because
+    /// preview is a single, editor-only, one-at-a-time operation; there is nothing to scope it to.
+    /// </summary>
+    public static bool EditorSuppressSound;
+#endif
 
     // Built on first use and reconfigured per build, so replaying a stepped animation does
     // not allocate. Only one sequence per animation is ever live, so it is never shared.
@@ -407,6 +426,110 @@ public class UIAnimationStep
             case UIAnimationStepType.MaterialColor:
                 if (HasMaterial()) baselineColor = materialInstance.Material.GetColor(shaderPropertyId);
                 break;
+
+            case UIAnimationStepType.SetActive:
+                if (activeObject != null) baselineActive = activeObject.activeSelf;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Writes the captured resting value back onto the target - the exact inverse of
+    /// CaptureBaseline, property for property.
+    ///
+    /// This is what makes edit-mode preview safe: an animation previewed in the Inspector
+    /// writes to real scene objects, and without this the values would simply stay wherever
+    /// the preview stopped and get saved into the scene as if you had authored them.
+    ///
+    /// Only ever touches the one property this step drives, which is why it cannot be a
+    /// blanket EditorJsonUtility round-trip of the component: that would also rewrite object
+    /// reference fields (an Image's sprite and material) and blank them.
+    ///
+    /// Steps with nothing to restore - PlaySound, and punch/shake, which already end where
+    /// they began - do nothing here.
+    /// </summary>
+    public void RestoreBaseline()
+    {
+        switch (Type)
+        {
+            case UIAnimationStepType.AnchoredPosition:
+                if (rect != null) rect.anchoredPosition = baselineVector;
+                break;
+
+            case UIAnimationStepType.LocalPosition:
+                if (rect != null) rect.localPosition = baselineVector;
+                break;
+
+            case UIAnimationStepType.Scale:
+                if (rect != null) rect.localScale = baselineVector;
+                break;
+
+            case UIAnimationStepType.Rotation:
+                if (rect != null) rect.localEulerAngles = baselineVector;
+                break;
+
+            case UIAnimationStepType.SizeDelta:
+                if (rect != null) rect.sizeDelta = baselineVector;
+                break;
+
+            case UIAnimationStepType.OffsetMin:
+                if (rect != null) rect.offsetMin = baselineVector;
+                break;
+
+            case UIAnimationStepType.OffsetMax:
+                if (rect != null) rect.offsetMax = baselineVector;
+                break;
+
+            case UIAnimationStepType.CanvasGroupAlpha:
+                if (canvasGroup != null) canvasGroup.alpha = baselineFloat;
+                break;
+
+            case UIAnimationStepType.GraphicColor:
+                if (graphic != null) graphic.color = baselineColor;
+                break;
+
+            case UIAnimationStepType.GraphicAlpha:
+                if (graphic != null)
+                {
+                    Color c = graphic.color;
+                    c.a = baselineFloat;
+                    graphic.color = c;
+                }
+                break;
+
+            case UIAnimationStepType.MaterialFloat:
+                if (HasMaterial()) materialInstance.Material.SetFloat(shaderPropertyId, baselineFloat);
+                break;
+
+            case UIAnimationStepType.MaterialColor:
+                if (HasMaterial()) materialInstance.Material.SetColor(shaderPropertyId, baselineColor);
+                break;
+
+            // Punch and shake move a RectTransform and are excluded on purpose: they return to
+            // their own start value, and the property they drive is already covered by whichever
+            // ordinary step authored it.
+            case UIAnimationStepType.SetActive:
+                if (activeObject != null) activeObject.SetActive(baselineActive);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// The Unity object this step writes to, or null for steps that write to none.
+    /// Used by the editor preview to build its Undo record before anything moves.
+    /// </summary>
+    public UnityEngine.Object ResolvedTarget()
+    {
+        switch (TargetKindOf(Type))
+        {
+            case UIAnimationTargetKind.Rect: return rect;
+            case UIAnimationTargetKind.CanvasGroup: return canvasGroup;
+            case UIAnimationTargetKind.Graphic: return graphic;
+            case UIAnimationTargetKind.GameObject: return activeObject;
+
+            // The material is a runtime clone owned by UIMaterialInstance, not a scene object,
+            // so there is nothing for Undo to record. RestoreBaseline still puts it back.
+            default: return null;
         }
     }
 
@@ -689,6 +812,13 @@ public class UIAnimationStep
     public void PlaySound()
     {
         if (Clip == null) return;
+
+#if UNITY_EDITOR
+        // Edit-mode preview leaves this on. A one-shot in edit mode would keep playing after
+        // the preview stops and cannot be scrubbed, and the shared fallback source would spawn
+        // a DontDestroyOnLoad GameObject into the open scene just to make a click noise.
+        if (EditorSuppressSound) return;
+#endif
 
         AudioSource source = audioSource != null ? audioSource : UIAnimationAudio.Shared;
         if (source == null) return;

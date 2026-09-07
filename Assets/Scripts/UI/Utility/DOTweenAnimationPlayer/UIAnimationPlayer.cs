@@ -412,5 +412,53 @@ public class UIAnimationPlayer : MonoBehaviour
     {
         get { return Animations; }
     }
+
+    /// <summary>
+    /// Re-resolves every target and re-captures every baseline from whatever the targets hold
+    /// right now. Editor-only, for the inspector preview.
+    ///
+    /// Awake never runs in edit mode, so without this the first preview would resolve nothing.
+    /// It has to run again before EVERY preview rather than once: the caller restores the
+    /// resting values after each one, and re-capturing from that restored state is what stops
+    /// Baseline endpoints drifting a little further every time you press Play.
+    /// </summary>
+    public void EditorPrepareForPreview()
+    {
+        initialized = false;
+        Initialize();
+    }
+
+    /// <summary>
+    /// Puts every target back to the resting value captured by the last
+    /// EditorPrepareForPreview. Editor-only, for the inspector preview.
+    /// </summary>
+    public void EditorRestoreBaselines()
+    {
+        for (int i = 0; i < Animations.Count; i++)
+        {
+            List<UIAnimationStep> steps = Animations[i].Steps;
+            for (int s = 0; s < steps.Count; s++)
+            {
+                steps[s].RestoreBaseline();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Every distinct scene object the animations write to, for the preview's Undo record.
+    /// Editor-only. Call after EditorPrepareForPreview, since targets resolve there.
+    /// </summary>
+    public void EditorCollectTargets(List<UnityEngine.Object> into)
+    {
+        for (int i = 0; i < Animations.Count; i++)
+        {
+            List<UIAnimationStep> steps = Animations[i].Steps;
+            for (int s = 0; s < steps.Count; s++)
+            {
+                UnityEngine.Object target = steps[s].ResolvedTarget();
+                if (target != null && !into.Contains(target)) into.Add(target);
+            }
+        }
+    }
 #endif
 }

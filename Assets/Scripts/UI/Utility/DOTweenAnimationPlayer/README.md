@@ -6,6 +6,16 @@ You define **named** animations (`Show`, `Hide`, `Hover`, `Attention`, `Transiti
 
 ---
 
+## Dropping this into a new project
+
+Needs **DOTween** (Pro for edit-mode preview), **uGUI** and **TextMeshPro**. Unity 2021.3+.
+
+**After importing DOTween, run its setup panel** — `Tools → Demigiant → DOTween Utility Panel → Setup DOTween…`. This is not optional and not the same as importing DOTween: `DOAnchorPos`, `DOFade`, `DOColor` and `DOSizeDelta` don't live in `DOTween.dll`, they're generated into `DOTween/Modules/DOTweenModuleUI.cs` by that panel. Skip it and this folder won't compile, with errors pointing at *this* code rather than at the real cause.
+
+**Don't add an `.asmdef`** to this folder unless you know what you're doing. Those generated modules land in `Assembly-CSharp-firstpass`, and an assembly definition cannot reference a predefined assembly — so adding one silently removes every DOTween UI shortcut this framework is built on.
+
+---
+
 ## Components
 
 | Component | Add it to | Why |
@@ -21,7 +31,7 @@ You define **named** animations (`Show`, `Hide`, `Hover`, `Attention`, `Transiti
 2. `+` on **Animations**, set **Name** to `Show`.
 3. `+` on that animation's **Steps**, pick a **Type**. The inspector collapses to only the fields that type uses.
 
-Each step's collapsed header reads like a timeline line: `then   Scale   0.25s OutBack`.
+Each step's collapsed header reads like a timeline line: `AFTER   Logo (Scale)   0.25s   Out Back` — start mode, the object it drives, the property in parentheses, duration, ease.
 
 ### Step types
 
@@ -87,7 +97,7 @@ Unity's curve editor has a **preset bar along the bottom** — click a swatch to
 
 Punch and shake steps ignore both — DOTween drives their oscillation internally, so there's no ease field on them.
 
-Both are mirrored when you use the [mirror commands](#mirroring-an-animation).
+Neither is changed by the [mirror commands](#mirroring-an-animation) — a mirrored `Hide` keeps the ease its `Show` was authored with.
 
 ---
 
@@ -142,7 +152,7 @@ Punch and shake steps have no FROM/TO — they show `Punch` / `Strength` instead
 A **PlaySound** step fires a clip at its point in the timeline. Put one first in a `Press` animation and you have a button click; put one at `Delay 0.15` in a `Show` and it lands with the scale bounce.
 
 ```
-▼ then  Play Sound  ui_click
+▼ AFTER  ui_click (Play Sound)
     Type               Play Sound
     Start              After Previous
     Audio Source       None            ← see below
@@ -184,10 +194,12 @@ Right-click a header in the Inspector:
 
 | Right-click on | You get |
 |---|---|
-| An **animation** header | `Copy Animation` · `Paste Animation (overwrite)` · `Mirror Animation` · `Duplicate as Mirrored` |
-| A **step** header | `Copy Step` · `Paste Step (overwrite)` · `Mirror Step` |
+| An **animation** header | `Copy Animation` · `Paste Animation (overwrite)` · `Paste Animation Above` · `Paste Animation Below` · `Mirror Animation` · `Duplicate as Mirrored` |
+| A **step** header | `Copy Step` · `Paste Step (overwrite)` · `Paste Step Above` · `Paste Step Below` · `Mirror Step` |
 | The **Animations** list | `Paste Animation (add to end)` · `Paste Animation Mirrored (add to end)` |
 | The **Steps** list | `Paste Step (add to end)` · `Paste Step Mirrored (add to end)` |
+
+**Above / Below insert a new element** and shuffle the rest down, rather than overwriting the one you right-clicked — that's how you land a step in the middle of a list without adding a blank one at the end and dragging it up. The pasted `Start` mode comes across as copied, so pasting a `With Previous` step into a group is how you widen it.
 
 The mirror commands are covered in [Mirroring an animation](#mirroring-an-animation).
 
@@ -221,14 +233,16 @@ This rewrites the steps once, at author time — there is no runtime reverse mod
 | Step order | Fully reversed — the last step becomes the first. Joined groups stay joined and stay whole, and their members reverse too. Reversing inside a group only changes how the list reads: joined steps all start from the same point, so their order in the list never affected timing |
 | Staggered delays inside a joined group | Flipped, so the item that arrived last is the first to leave |
 | `From` / `To` | Swapped, values and modes both |
-| `Out*` ease | `In*` ease. `Linear` and the `InOut` / `OutIn` families are already symmetric and stay put |
-| Custom curve | Flipped through both axes |
+| Ease preset | **Unchanged.** A mirrored `Hide` keeps the `Out Quart` its `Show` was authored with |
+| Custom curve | **Unchanged** |
 | `To: Current` relative offset | The same offset negated |
 | `SetActive` on | `SetActive` off |
 | Punch / shake | Unchanged — they already return to where they started |
 | `PlaySound` | Keeps its clip. If a hide needs a different sound, swap it afterwards |
 
-Everything outside the steps — `Loops`, `Loop Type`, `Play At Custom FPS`, `Interrupt Others`, `On Complete` — is carried across untouched.
+Everything outside the steps — `Loops`, `Loop Type`, `Play At Custom FPS`, `Interrupt Others`, `Notes`, `On Complete` — is carried across untouched.
+
+**Easing is deliberately not mirrored.** A strict time-reversal would turn `Out Quart` into `In Quart`, but the house style here is that things decelerate into place in *both* directions, so the ease you authored is the ease you keep. Endpoints and timing are what mirror; how the motion feels is a separate choice. Change it by hand on the mirrored copy if you want the other reading.
 
 ### The one case it can't get right
 
@@ -239,6 +253,34 @@ For those steps the mirror does the best it can: `Use From` is switched **on** a
 That guess is right for an animation authored away from rest, and a no-op for one that already ends at rest — if a mirrored step does nothing, this is why, and the fix is to type the `To` you actually want.
 
 A single step's delay is also left alone. Delays are flipped *within* a joined group; a lone step's delay is a gap between groups, which can't be expressed on the step itself.
+
+---
+
+## Previewing
+
+The Inspector has **Play / Start / Stop** buttons per animation, and they work **without entering play mode**.
+
+| Button | Does |
+|---|---|
+| `Play` | Runs the animation on the real scene objects |
+| `Start` | Snaps just the `From` values on, so you can check a starting pose |
+| `Stop and Restore` | Ends the preview and puts every value back |
+
+Edit-mode preview animates **real objects in your open scene**, so it takes some care:
+
+- Values are **captured before it starts and restored when it stops**, so a preview leaves nothing behind. Stop it before you save.
+- The whole preview is **one Undo step** — `Ctrl+Z` is the escape hatch if something looks wrong.
+- Starting a new preview restores the previous one first. That matters: it's what stops `To: Baseline` endpoints drifting a little further every time you press `Play`.
+- Selecting another object ends the preview and restores.
+- **`Play Sound` steps are skipped**, and **`On Complete` events do not fire** — an `On Complete` is a UnityEvent wired to arbitrary game code, and a preview has no business running that outside play mode.
+
+In play mode the buttons just call the ordinary runtime API, so sound and `On Complete` behave normally.
+
+---
+
+## Notes
+
+Each animation has a free-text **`Notes`** box. Nothing reads it — it's for you: what this animates, what plays it, why that one weird delay is there. It travels with copy/paste and mirroring like any other field.
 
 ---
 
@@ -345,7 +387,7 @@ UI Animation Player
     ▼ Show
         Name                       Show
         ▼ Steps                    2
-            ▼ then  Canvas Group Alpha  0.25s  Out Quad
+            ▼ AFTER  Panel (self) (Canvas Group Alpha)  0.25s  Out Quad
                 Type               Canvas Group Alpha
                 Start              After Previous
                 Canvas Group       None            ← empty = this GameObject
@@ -398,7 +440,7 @@ UI Animation Player
     ▼ TransitionOut
         Name                       TransitionOut
         ▼ Steps                    1
-            ▼ then  Material Float  0.8s  In Out Quad
+            ▼ AFTER  Overlay (self) (Material Float)  0.8s  In Out Quad
                 Type               Material Float
                 Start              After Previous
                 Material Inst.     None            ← empty = this GameObject
@@ -438,6 +480,8 @@ transition.Play("TransitionOut", () => {
 Tip: once one step exists, `+` **duplicates the last step** rather than creating a blank one, which is usually what you want anyway.
 
 **Every field has a tooltip.** Hover any label in a step for an explanation of what it does.
+
+**If you extend the tool: enum values are written out as explicit numbers, and those numbers are the contract.** Unity serializes an enum field as its integer, not its name, so what your scenes and prefabs actually store is the number. Reordering the lines in `UIAnimationStepType` is therefore safe, but *changing* a number — or reusing a retired one — silently repoints every step already authored against it, with no error and no warning. New step types take the next free number. This list was alphabetised once while the numbers were still implicit, which turned 16 authored `Scale` steps into `GraphicAlpha` steps and faded a menu to invisible.
 
 ---
 

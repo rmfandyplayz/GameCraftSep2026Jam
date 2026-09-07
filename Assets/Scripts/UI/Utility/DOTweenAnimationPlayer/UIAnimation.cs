@@ -22,6 +22,11 @@ public class UIAnimation
     [Tooltip("The name you pass to Play(). Must be unique on this player.")]
     public string Name = "New Animation";
 
+    [Tooltip("Free-text note for yourself. What this animates, where it is played from, " +
+             "anything that would otherwise be lost. Never read by the framework.")]
+    [TextArea(2, 6)]
+    public string Notes;
+
     [Tooltip("Runs top to bottom. Each step is appended after, or joined alongside, the one above it.")]
     public List<UIAnimationStep> Steps = new List<UIAnimationStep>();
 
@@ -29,8 +34,13 @@ public class UIAnimation
              "2 = play twice. -1 = loop forever until stopped. 0 is not valid and is treated as 1.")]
     public int Loops = 1;
 
-    [Tooltip("Restart = jump back to the start each loop. Yoyo = play forwards then backwards. " +
-             "Only has an effect when Loops is not 1.")]
+    [Tooltip("Only has an effect when Loops is not 1.\n\n" +
+             "Restart = jump back to the start each loop.\n" +
+             "Yoyo = play forwards, then backwards, then forwards again.\n" +
+             "Incremental = each loop starts where the last one ended and repeats the same " +
+             "CHANGE rather than the same values, so a +50 move keeps climbing: 50, 100, 150. " +
+             "It reads the step's From/To as a difference, so it only makes sense on steps " +
+             "that move by an amount, and does nothing useful on one that fades to a fixed 1.")]
     public LoopType LoopType = LoopType.Restart;
 
     [Tooltip("Play in discrete frames instead of smoothly, for a stop-motion or flipbook look. " +

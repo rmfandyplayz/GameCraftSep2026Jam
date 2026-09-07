@@ -54,6 +54,11 @@ internal static class UIAnimationContextMenu
         // Guards out strings, which also report isArray == true.
         if (property.propertyType != SerializedPropertyType.Generic) return;
 
+        // SerializedProperty.type reports the UNQUALIFIED type name, so a namespace does not
+        // disambiguate it and any other project's "UIAnimation" would match the strings below.
+        // Requiring our own component as the inspected object is what actually scopes this.
+        if (!(property.serializedObject.targetObject is UIAnimationPlayer)) return;
+
         // The property handed to this callback is only valid for the duration of the call,
         // and menu items run later. Copy it so the deferred handler has something to use.
         SerializedProperty captured = property.Copy();
@@ -82,6 +87,23 @@ internal static class UIAnimationContextMenu
 
         if (HasCopy(isAnimation)) menu.AddItem(paste, false, () => Paste(element, isAnimation));
         else menu.AddDisabledItem(paste);
+
+        // Inserting rather than overwriting. Without these the only paste that does not destroy
+        // something is "add to end", and landing a step in the middle means adding a blank one
+        // and dragging it up the list by hand.
+        var above = new GUIContent("Paste " + noun + " Above");
+        var below = new GUIContent("Paste " + noun + " Below");
+
+        if (HasCopy(isAnimation) && ParentList(element) != null)
+        {
+            menu.AddItem(above, false, () => Insert(element, isAnimation, false));
+            menu.AddItem(below, false, () => Insert(element, isAnimation, true));
+        }
+        else
+        {
+            menu.AddDisabledItem(above);
+            menu.AddDisabledItem(below);
+        }
 
         menu.AddSeparator(string.Empty);
         menu.AddItem(new GUIContent("Mirror " + noun), false, () => MirrorInPlace(element, isAnimation));
@@ -182,6 +204,37 @@ internal static class UIAnimationContextMenu
         AddToEnd(list, value, isAnimation);
     }
 
+    /// <summary>
+    /// Pastes the clipboard as a NEW element next to the one right-clicked, shuffling the rest
+    /// down, rather than overwriting it.
+    ///
+    /// The pasted Start mode is left exactly as copied. Pasting a With Previous step is
+    /// therefore how you deliberately widen a joined group, and the framework already treats
+    /// whatever ends up at index 0 as opening a group regardless of what its Start says.
+    /// </summary>
+    private static void Insert(SerializedProperty element, bool isAnimation, bool below)
+    {
+        SerializedProperty list = ParentList(element);
+        if (list == null) return;
+
+        object value = Rebuild(isAnimation);
+        if (value == null) return;
+
+        int index = ElementIndex(element);
+        if (index < 0) return;
+
+        if (below) index++;
+
+        // InsertArrayElementAtIndex duplicates the neighbouring element, so the slot is
+        // overwritten immediately afterwards rather than left as an accidental copy.
+        list.InsertArrayElementAtIndex(index);
+        list.GetArrayElementAtIndex(index).boxedValue = value;
+
+        if (isAnimation) MakeNameUnique(list, index);
+
+        list.serializedObject.ApplyModifiedProperties();
+    }
+
     private static void AddToEnd(SerializedProperty list, object value, bool isAnimation)
     {
         int index = list.arraySize;
@@ -207,6 +260,25 @@ internal static class UIAnimationContextMenu
         if (cut < 0) return null;
 
         return element.serializedObject.FindProperty(element.propertyPath.Substring(0, cut));
+    }
+
+    /// <summary>
+    /// A list element's own index, read back out of the "...Array.data[n]" tail of its path.
+    /// -1 when the property is not a list element.
+    /// </summary>
+    private static int ElementIndex(SerializedProperty element)
+    {
+        string path = element.propertyPath;
+
+        int open = path.LastIndexOf(ElementSuffix);
+        if (open < 0) return -1;
+
+        open += ElementSuffix.Length;
+        int close = path.IndexOf(']', open);
+        if (close < 0) return -1;
+
+        int index;
+        return int.TryParse(path.Substring(open, close - open), out index) ? index : -1;
     }
 
     /// <summary>

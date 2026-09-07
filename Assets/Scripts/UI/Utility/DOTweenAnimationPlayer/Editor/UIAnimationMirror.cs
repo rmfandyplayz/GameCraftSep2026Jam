@@ -8,7 +8,6 @@
 
 using System.Collections.Generic;
 using System.Text;
-using DG.Tweening;
 using UnityEngine;
 
 /// <summary>
@@ -17,13 +16,15 @@ using UnityEngine;
 ///
 /// This is an authoring operation: it runs once, from the right-click menu, and what it
 /// produces is ordinary authored data you can then tune. Nothing at runtime knows about
-/// mirroring, which is why the ease and curve maths live here rather than on UIAnimationStep.
+/// mirroring, which is why it all lives here rather than on UIAnimationStep.
+///
+/// Easing is deliberately left alone - see MirrorStep.
 /// </summary>
 internal static class UIAnimationMirror
 {
     /// <summary>
     /// Mirrors an animation in place: groups run in the opposite order, staggers inside a
-    /// group run the other way, and every step's endpoints and easing invert.
+    /// group run the other way, and every step's endpoints swap. Easing is left as authored.
     /// Warns about any step whose forward start was undefined, since those cannot be
     /// mirrored exactly and are the ones worth looking at afterwards.
     /// </summary>
@@ -75,9 +76,11 @@ internal static class UIAnimationMirror
     }
 
     /// <summary>
-    /// Mirrors one step's endpoints and easing. Returns false when the step had no authored
-    /// FROM, because then its forward starting value was whatever the property happened to
-    /// hold and there is nothing exact to mirror it onto.
+    /// Mirrors one step's endpoints. Returns false when the step had no authored FROM, because
+    /// then its forward starting value was whatever the property happened to hold and there is
+    /// nothing exact to mirror it onto.
+    ///
+    /// The Ease preset and any custom Curve are passed through untouched, on purpose.
     /// </summary>
     public static bool MirrorStep(UIAnimationStep step)
     {
@@ -92,14 +95,14 @@ internal static class UIAnimationMirror
         // A clip has no reverse, and the sound still belongs at this point in the timeline.
         if (step.Type == UIAnimationStepType.PlaySound) return true;
 
-        // Punch and shake return to where they started and carry their own internal easing,
-        // so there is nothing to invert.
+        // Punch and shake return to where they started, so there is nothing to invert.
         if (UIAnimationStep.IsImpulse(step.Type)) return true;
 
-        // An ease that decelerates into its end value should accelerate out of it going
-        // the other way.
-        if (step.UseCustomCurve) step.Curve = MirrorCurve(step.Curve);
-        else step.EaseType = MirrorEase(step.EaseType);
+        // Easing is deliberately NOT mirrored - neither the Ease preset nor a custom curve.
+        // A strict time-reversal would turn OutQuad into InQuad, but the house style here is
+        // that things decelerate into place in both directions, so a mirrored Hide should keep
+        // the Out ease its Show was authored with. Endpoints and timing are what mirror; the
+        // feel of the motion is a separate authored choice and stays put.
 
         if (step.UseFrom)
         {
@@ -197,73 +200,6 @@ internal static class UIAnimationMirror
         }
 
         Debug.LogWarning(text.ToString(), context);
-    }
-
-    /// <summary>
-    /// The time-mirror of an easing preset: an ease that decelerates into its end value should
-    /// accelerate out of it going the other way.
-    /// Linear and the InOut / OutIn families are already symmetric, so they map to themselves.
-    /// </summary>
-    private static Ease MirrorEase(Ease ease)
-    {
-        switch (ease)
-        {
-            case Ease.InSine: return Ease.OutSine;
-            case Ease.OutSine: return Ease.InSine;
-            case Ease.InQuad: return Ease.OutQuad;
-            case Ease.OutQuad: return Ease.InQuad;
-            case Ease.InCubic: return Ease.OutCubic;
-            case Ease.OutCubic: return Ease.InCubic;
-            case Ease.InQuart: return Ease.OutQuart;
-            case Ease.OutQuart: return Ease.InQuart;
-            case Ease.InQuint: return Ease.OutQuint;
-            case Ease.OutQuint: return Ease.InQuint;
-            case Ease.InExpo: return Ease.OutExpo;
-            case Ease.OutExpo: return Ease.InExpo;
-            case Ease.InCirc: return Ease.OutCirc;
-            case Ease.OutCirc: return Ease.InCirc;
-            case Ease.InElastic: return Ease.OutElastic;
-            case Ease.OutElastic: return Ease.InElastic;
-            case Ease.InBack: return Ease.OutBack;
-            case Ease.OutBack: return Ease.InBack;
-            case Ease.InBounce: return Ease.OutBounce;
-            case Ease.OutBounce: return Ease.InBounce;
-            case Ease.InFlash: return Ease.OutFlash;
-            case Ease.OutFlash: return Ease.InFlash;
-
-            default: return ease;
-        }
-    }
-
-    /// <summary>
-    /// A custom easing curve flipped through both axes: g(t) = 1 - f(1 - t). The slope at a
-    /// mirrored key is unchanged but time runs the other way, so in and out tangents swap.
-    /// Assumes the curve spans 0..1, which is the range DOTween evaluates an ease curve over.
-    /// </summary>
-    private static AnimationCurve MirrorCurve(AnimationCurve curve)
-    {
-        if (curve == null || curve.length == 0) return curve;
-
-        Keyframe[] source = curve.keys;
-        var keys = new Keyframe[source.Length];
-
-        for (int i = 0; i < source.Length; i++)
-        {
-            Keyframe k = source[source.Length - 1 - i];
-
-            keys[i] = new Keyframe(1f - k.time, 1f - k.value, k.outTangent, k.inTangent,
-                                   k.outWeight, k.inWeight);
-            keys[i].weightedMode = SwapWeightedMode(k.weightedMode);
-        }
-
-        return new AnimationCurve(keys);
-    }
-
-    private static WeightedMode SwapWeightedMode(WeightedMode mode)
-    {
-        if (mode == WeightedMode.In) return WeightedMode.Out;
-        if (mode == WeightedMode.Out) return WeightedMode.In;
-        return mode;
     }
 
     private static Color Negate(Color c)
