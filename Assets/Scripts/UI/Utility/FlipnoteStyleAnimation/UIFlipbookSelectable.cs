@@ -11,12 +11,29 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
+/// Which flipbook a <see cref="UIFlipbookSelectable"/> is showing.
+///
+/// Not serialized anywhere today, but the numbers are explicit anyway: the moment anything
+/// does serialize it, reordering these lines would silently repoint authored data.
+/// </summary>
+public enum UIFlipbookState
+{
+    Normal = 0,
+    Highlighted = 1,
+    Pressed = 2,
+    Selected = 3,
+    Disabled = 4,
+}
+
+/// <summary>
 /// Swaps a <see cref="UISpriteFlipbook"/> between per-state clips as a Selectable is hovered,
 /// pressed, selected or disabled.
 ///
 /// This sits BESIDE the Selectable, it does not replace it. The EventSystem dispatches pointer
 /// events to every component on the object that implements the handler interface, so the
 /// Selectable's own onClick, navigation and transition all keep working untouched.
+///
+/// It takes a Selectable rather than a Button, so a Toggle or a Slider handle works too.
 /// </summary>
 [DisallowMultipleComponent]
 public class UIFlipbookSelectable : MonoBehaviour,
@@ -59,10 +76,10 @@ public class UIFlipbookSelectable : MonoBehaviour,
     private bool hasSelection;
     private float submitTimer;
 
-    private UIFlipbookButtonState currentState = UIFlipbookButtonState.Normal;
+    private UIFlipbookState currentState = UIFlipbookState.Normal;
 
     /// <summary>The state currently being shown.</summary>
-    public UIFlipbookButtonState CurrentState
+    public UIFlipbookState CurrentState
     {
         get { return currentState; }
     }
@@ -105,21 +122,13 @@ public class UIFlipbookSelectable : MonoBehaviour,
     {
         if (Flipbook == null)
         {
-            Debug.LogWarning("[UIFlipbookButton] " + name + " has no UISpriteFlipbook to drive.", this);
+            Debug.LogWarning("[UIFlipbookSelectable] " + name + " has no UISpriteFlipbook to drive.", this);
             return;
         }
 
         if (Target == null)
         {
-            Debug.LogWarning("[UIFlipbookButton] " + name + " has no Selectable, so it will sit on Disabled.", this);
-            return;
-        }
-
-        if (Target.transition == Selectable.Transition.SpriteSwap)
-        {
-            Debug.LogWarning("[UIFlipbookButton] " + name + ": the Selectable Transition is Sprite Swap, " +
-                             "which writes Image.sprite itself and will fight the flipbook. " +
-                             "Set Transition to None (or Color Tint).", this);
+            Debug.LogWarning("[UIFlipbookSelectable] " + name + " has no Selectable, so it will sit on Disabled.", this);
         }
     }
 
@@ -136,7 +145,7 @@ public class UIFlipbookSelectable : MonoBehaviour,
         ApplyState(ResolveState(), false);
     }
 
-    // ---- EventSystem handlers. The Button on this object still receives all of these too. ----
+    // ---- EventSystem handlers. The Selectable on this object still receives all of these too. ----
 
     public void OnPointerEnter(PointerEventData eventData)
     {
@@ -190,32 +199,32 @@ public class UIFlipbookSelectable : MonoBehaviour,
     /// Same priority order as UnityEngine.UI.Selectable itself:
     /// Disabled beats Pressed beats Selected beats Highlighted beats Normal.
     /// </summary>
-    private UIFlipbookButtonState ResolveState()
+    private UIFlipbookState ResolveState()
     {
         if (Target == null || !Target.IsInteractable())
         {
-            return UIFlipbookButtonState.Disabled;
+            return UIFlipbookState.Disabled;
         }
 
         if (pointerDown || submitTimer > 0f)
         {
-            return UIFlipbookButtonState.Pressed;
+            return UIFlipbookState.Pressed;
         }
 
         if (hasSelection)
         {
-            return UIFlipbookButtonState.Selected;
+            return UIFlipbookState.Selected;
         }
 
         if (pointerInside)
         {
-            return UIFlipbookButtonState.Highlighted;
+            return UIFlipbookState.Highlighted;
         }
 
-        return UIFlipbookButtonState.Normal;
+        return UIFlipbookState.Normal;
     }
 
-    private void ApplyState(UIFlipbookButtonState state, bool force)
+    private void ApplyState(UIFlipbookState state, bool force)
     {
         if (!force && state == currentState)
         {
@@ -242,22 +251,22 @@ public class UIFlipbookSelectable : MonoBehaviour,
         Flipbook.Play(clip, true);
     }
 
-    private UIFlipbookClip ClipFor(UIFlipbookButtonState state)
+    private UIFlipbookClip ClipFor(UIFlipbookState state)
     {
         switch (state)
         {
-            case UIFlipbookButtonState.Disabled:
+            case UIFlipbookState.Disabled:
                 return FirstWithFrames(Disabled, Normal);
 
-            case UIFlipbookButtonState.Pressed:
+            case UIFlipbookState.Pressed:
                 return FirstWithFrames(Pressed, Highlighted, Normal);
 
             // Deliberately does NOT fall back to Highlighted: a button stays selected after a
             // click, and inheriting the hover look while the mouse is elsewhere reads as a bug.
-            case UIFlipbookButtonState.Selected:
+            case UIFlipbookState.Selected:
                 return FirstWithFrames(Selected, Normal);
 
-            case UIFlipbookButtonState.Highlighted:
+            case UIFlipbookState.Highlighted:
                 return FirstWithFrames(Highlighted, Normal);
 
             default:
@@ -265,15 +274,16 @@ public class UIFlipbookSelectable : MonoBehaviour,
         }
     }
 
-    // Explicit overloads rather than params, so a state change allocates no array.
+    // Explicit overloads rather than params, so a state change allocates no array. Each candidate
+    // is resolved first, so "has frames" asks the shared asset when there is one.
     private static UIFlipbookClip FirstWithFrames(UIFlipbookClip a, UIFlipbookClip b)
     {
-        if (a != null && a.HasFrames)
+        if (a != null && a.Resolved().HasFrames)
         {
             return a;
         }
 
-        return b != null && b.HasFrames ? b : null;
+        return b != null && b.Resolved().HasFrames ? b : null;
     }
 
     private static UIFlipbookClip FirstWithFrames(UIFlipbookClip a, UIFlipbookClip b, UIFlipbookClip c)
@@ -284,7 +294,7 @@ public class UIFlipbookSelectable : MonoBehaviour,
             return found;
         }
 
-        return c != null && c.HasFrames ? c : null;
+        return c != null && c.Resolved().HasFrames ? c : null;
     }
 
     private void ResolveReferences()
@@ -319,6 +329,17 @@ public class UIFlipbookSelectable : MonoBehaviour,
         {
             SubmitPressDuration = DefaultSubmitPressDuration;
         }
+
+        // Sprite Swap writes Image.sprite itself and fights the flipbook for it. This used to be
+        // checked in Start, which only runs in play mode - i.e. it warned you long after the
+        // point where you could see what it was talking about. OnValidate catches it while you
+        // are still looking at the component.
+        if (Target != null && Target.transition == Selectable.Transition.SpriteSwap)
+        {
+            Debug.LogWarning("[UIFlipbookSelectable] " + name + ": the Selectable Transition is " +
+                             "Sprite Swap, which writes Image.sprite itself and will fight the " +
+                             "flipbook. Set Transition to None (or Color Tint).", this);
+        }
     }
 
     private void FillClipDefaults()
@@ -348,4 +369,27 @@ public class UIFlipbookSelectable : MonoBehaviour,
             Disabled.FillUnsetDefaults();
         }
     }
+
+#if UNITY_EDITOR
+
+    /// <summary>The flipbook this drives, resolved the same way playback resolves it.</summary>
+    public UISpriteFlipbook EditorFlipbook
+    {
+        get
+        {
+            ResolveReferences();
+            return Flipbook;
+        }
+    }
+
+    /// <summary>
+    /// The clip a given state would actually play, fallback chain and all, so the inspector
+    /// preview shows what the button really does rather than what its slots literally contain.
+    /// </summary>
+    public UIFlipbookClip EditorClipFor(UIFlipbookState state)
+    {
+        return ClipFor(state);
+    }
+
+#endif
 }

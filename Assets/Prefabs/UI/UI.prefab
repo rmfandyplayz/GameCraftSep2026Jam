@@ -1768,13 +1768,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 6415545763864535889}
   Clip:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 6
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 0
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &2830547211688712773
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1790,6 +1800,7 @@ MonoBehaviour:
   Target: {fileID: 6960946346839311214}
   Flipbook: {fileID: 4772504860830320159}
   Normal:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -984108785, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 1712952920, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
@@ -1798,10 +1809,16 @@ MonoBehaviour:
     - {fileID: -1966659907, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -367244550, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 6
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Highlighted:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: 732798328, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -1583700211, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
@@ -1810,27 +1827,50 @@ MonoBehaviour:
     - {fileID: 1449683205, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -1959746021, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 10
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Pressed:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Selected:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Disabled:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   SubmitPressDuration: 0.1
   UseUnscaledTime: 1
 --- !u!114 &2932230341762800066
@@ -2192,16 +2232,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 3616864169188085954}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: 988868659, guid: e9b8c3ec0c445d74b9132e89e3b558bb, type: 3}
     - {fileID: -842518957, guid: e9b8c3ec0c445d74b9132e89e3b558bb, type: 3}
     - {fileID: -1730391873, guid: e9b8c3ec0c445d74b9132e89e3b558bb, type: 3}
     FPS: 4
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1880861526213718568
 GameObject:
   m_ObjectHideFlags: 0
@@ -2405,13 +2455,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 7758430029084052747}
   Clip:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 6
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 0
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &8646486310234444961
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2427,6 +2487,7 @@ MonoBehaviour:
   Target: {fileID: 4556601921641197349}
   Flipbook: {fileID: 8793883133397504833}
   Normal:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -2020579032, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -2037861902, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
@@ -2435,10 +2496,16 @@ MonoBehaviour:
     - {fileID: -1965260416, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 2033475541, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 6
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Highlighted:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: 982312914, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 464815037, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
@@ -2447,27 +2514,50 @@ MonoBehaviour:
     - {fileID: 1711371127, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 1903155456, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 10
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Pressed:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Selected:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Disabled:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   SubmitPressDuration: 0.1
   UseUnscaledTime: 1
 --- !u!114 &6907579479773759825
@@ -2752,17 +2842,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 4894501831939037346}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -600658459, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: 1927689678, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -1652652094, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -1520846894, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     FPS: 5
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &4985225737056988629
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2994,17 +3094,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 234323729354457370}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -1120054707, guid: 51607ae500038f8459f7857dd3252152, type: 3}
     - {fileID: 1173461615, guid: 51607ae500038f8459f7857dd3252152, type: 3}
     - {fileID: -1562704983, guid: 51607ae500038f8459f7857dd3252152, type: 3}
     - {fileID: 998088657, guid: 51607ae500038f8459f7857dd3252152, type: 3}
     FPS: 4
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &2856146989223416701
 GameObject:
   m_ObjectHideFlags: 0
@@ -3095,17 +3205,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 7693048211886158264}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -1066928807, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: 284966089, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -881364488, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -539999464, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     FPS: 5
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &3025634151047591566
 GameObject:
   m_ObjectHideFlags: 0
@@ -4545,13 +4665,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 3131694036683442920}
   Clip:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 6
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 0
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &4136269034072633177
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4567,6 +4697,7 @@ MonoBehaviour:
   Target: {fileID: 1298351367451415218}
   Flipbook: {fileID: 712128190923442575}
   Normal:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: 2133347375, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -1831951273, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
@@ -4575,10 +4706,16 @@ MonoBehaviour:
     - {fileID: -1812879294, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -848228398, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 6
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Highlighted:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: 1012660931, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -1825553950, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
@@ -4587,27 +4724,50 @@ MonoBehaviour:
     - {fileID: -1059141457, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -1920534844, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 10
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Pressed:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Selected:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Disabled:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   SubmitPressDuration: 0.1
   UseUnscaledTime: 1
 --- !u!114 &133291695660317010
@@ -4784,17 +4944,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 4811747996385408692}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -669415763, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 422862169, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 1823082413, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -1252763939, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 4
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &4813149441144505380
 GameObject:
   m_ObjectHideFlags: 0
@@ -4885,17 +5055,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 3269151052165029280}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -1066928807, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: 284966089, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -881364488, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -539999464, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     FPS: 5
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &4820275291670950477
 GameObject:
   m_ObjectHideFlags: 0
@@ -6925,17 +7105,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 656855624689293433}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -600658459, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: 1927689678, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -1652652094, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -1520846894, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     FPS: 5
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &2648748775719432384
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7086,17 +7276,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 8989584992576760289}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -990530722, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -1347051959, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -219514055, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 849122870, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 4
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &5809778712912903171
 GameObject:
   m_ObjectHideFlags: 0
@@ -7236,13 +7436,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 5276375826720582836}
   Clip:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 6
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 0
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &226915792334154937
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7258,6 +7468,7 @@ MonoBehaviour:
   Target: {fileID: 4594029185791866855}
   Flipbook: {fileID: 5207202182188446139}
   Normal:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -1526463578, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 401110408, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
@@ -7266,10 +7477,16 @@ MonoBehaviour:
     - {fileID: 281318810, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 1511260171, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 6
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Highlighted:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: 42951009, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -393358531, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
@@ -7278,27 +7495,50 @@ MonoBehaviour:
     - {fileID: 1506852500, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 887120412, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 10
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Pressed:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Selected:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   Disabled:
+    Shared: {fileID: 0}
     Frames: []
     FPS: 12
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   SubmitPressDuration: 0.1
   UseUnscaledTime: 1
 --- !u!114 &2990614559357224570
@@ -8151,17 +8391,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 7672871496603896463}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -584404863, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -1318909505, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -1236241847, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 1004290041, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 4
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &6953660944378775696
 GameObject:
   m_ObjectHideFlags: 0
@@ -8300,17 +8550,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 2087856721692322123}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -1066928807, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: 284966089, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -881364488, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -539999464, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     FPS: 4
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &7506185376571763661
 GameObject:
   m_ObjectHideFlags: 0
@@ -8401,17 +8661,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 1279296586201949905}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -1505883417, guid: d7eff6807a1cbed47a9db80d548d51fb, type: 3}
     - {fileID: -110604795, guid: d7eff6807a1cbed47a9db80d548d51fb, type: 3}
     - {fileID: 67764120, guid: d7eff6807a1cbed47a9db80d548d51fb, type: 3}
     - {fileID: -34277976, guid: d7eff6807a1cbed47a9db80d548d51fb, type: 3}
     FPS: 5
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &7706140601969459607
 GameObject:
   m_ObjectHideFlags: 0
@@ -8554,17 +8824,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 3870038221215230548}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -1066928807, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: 284966089, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -881364488, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -539999464, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     FPS: 5
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &7920838246498630030
 GameObject:
   m_ObjectHideFlags: 0
@@ -8813,17 +9093,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 5778391459066219016}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -600658459, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: 1927689678, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -1652652094, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     - {fileID: -1520846894, guid: f41b0243481cde24980fcbad301f084c, type: 3}
     FPS: 5
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &5636109066128414065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9423,16 +9713,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 7293802536841023231}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: 19372294, guid: 6bd95f0e7cc7163419721f7a18735c56, type: 3}
     - {fileID: -308658108, guid: 6bd95f0e7cc7163419721f7a18735c56, type: 3}
     - {fileID: 1971813465, guid: 6bd95f0e7cc7163419721f7a18735c56, type: 3}
     FPS: 4
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &8632501504401022433
 GameObject:
   m_ObjectHideFlags: 0
@@ -9660,17 +9960,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UISpriteFlipbook
   TargetImage: {fileID: 5388075277980196236}
   Clip:
+    Shared: {fileID: 0}
     Frames:
     - {fileID: -1628986961, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: -564488132, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 20446380, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     - {fileID: 1156253232, guid: 0215a5074aac4884eaab38e4397cf80b, type: 3}
     FPS: 4
-    Loop: 1
+    LoopMode: 1
+    Timing: 0
+    RandomOffsetMin: -0.03
+    RandomOffsetMax: 0.03
     FrameDurations: []
     defaultsFilled: 1
+    Loop: 1
+    loopMigrated: 1
   PlayOnEnable: 1
+  RandomStartFrame: 0
   UseUnscaledTime: 1
+  OnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &8960317199306568267
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,24 +7,29 @@
 // -----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 /// <summary>
 /// Cycles a UI Image through hand-drawn sprite frames. No Animator, no Animation Clips.
 ///
 ///     flipbook.Play();                // the clip authored on this component
-///     flipbook.Play(someOtherClip);   // any clip, e.g. from UIFlipbookButton
+///     flipbook.Play(someOtherClip);   // any clip, e.g. from UIFlipbookSelectable
 ///     flipbook.Stop();
 ///     flipbook.Restart();
 ///
 /// Only sprite frames are this component's business. Let DOTween (or anything else)
 /// animate the same object's position, scale and colour independently.
+///
+/// All playback state lives here rather than on the clip, which is what lets a single
+/// UIFlipbookClipAsset drive any number of objects without them marching in lockstep.
 /// </summary>
 [DisallowMultipleComponent]
 public class UISpriteFlipbook : MonoBehaviour
 {
-    // Never step more than this many frames in a single Update. Stops a huge frame hitch,
+    // Never step more than this many frames in a single tick. Stops a huge frame hitch,
     // or an absurd FPS value, from spinning the catch-up loop.
     private const int MaxCatchUpSteps = 64;
 
@@ -35,15 +40,25 @@ public class UISpriteFlipbook : MonoBehaviour
     [SerializeField] private UIFlipbookClip Clip = new UIFlipbookClip();
 
     [Tooltip("Start the clip above automatically. Turn this OFF when something else drives this " +
-             "flipbook, such as a UIFlipbookButton.")]
+             "flipbook, such as a UIFlipbookSelectable.")]
     [SerializeField] private bool PlayOnEnable = true;
+
+    [Tooltip("Begin on a random frame instead of frame 0. Put this on a shared idle so several " +
+             "copies of the same drawing do not flip in lockstep, which is what makes hand-drawn " +
+             "UI read as machine-made. Lives here rather than on the clip precisely so objects " +
+             "sharing one clip asset can still be scattered.")]
+    [SerializeField] private bool RandomStartFrame;
 
     [Tooltip("Advance on unscaled time so the drawing keeps flipping while Time.timeScale is 0 " +
              "(pause menus, hit-stop).")]
     [SerializeField] private bool UseUnscaledTime = true;
 
+    [Tooltip("Fires when a non-looping clip runs off its last frame. Same moment as the C# " +
+             "Completed event; this one is here so it can be wired up in the Inspector.")]
+    [SerializeField] private UnityEvent OnCompleted = new UnityEvent();
+
     /// <summary>
-    /// Fires when a non-looping clip runs off its last frame. Never fires for looping clips,
+    /// Fires when a non-looping clip runs off its last frame. Never fires for Loop or Ping Pong,
     /// and never fires when playback is replaced by another Play() or cut short by Stop().
     /// </summary>
     public event Action Completed;
@@ -52,6 +67,17 @@ public class UISpriteFlipbook : MonoBehaviour
     private int frameIndex = -1;
     private float frameTimer;
     private bool playing;
+    private int direction = 1;
+
+    // Set by Stop(), cleared by Play(). A clip that merely RAN OUT does not set it, which is
+    // what lets OnEnable tell "the user stopped this" from "it finished". See OnEnable.
+    private bool stoppedExplicitly;
+
+    // One pass worth of randomised frame times, re-rolled whenever the pass restarts. Rolling
+    // up front rather than per frame is what makes a pass reproducible enough to scrub in the
+    // editor preview, and keeping the buffer here is what stops objects sharing a clip asset
+    // from drawing identical numbers.
+    private readonly List<float> rolledDurations = new List<float>();
 
     /// <summary>True while frames are advancing.</summary>
     public bool IsPlaying
@@ -59,7 +85,10 @@ public class UISpriteFlipbook : MonoBehaviour
         get { return playing; }
     }
 
-    /// <summary>The clip currently playing, or the last one played. Null until something plays.</summary>
+    /// <summary>
+    /// The clip currently playing, or the last one played. Null until something plays.
+    /// This is the RESOLVED clip, so for a shared clip it is the asset's, not the local stub.
+    /// </summary>
     public UIFlipbookClip CurrentClip
     {
         get { return current; }
@@ -84,42 +113,66 @@ public class UISpriteFlipbook : MonoBehaviour
     }
 
     /// <summary>
-    /// Play a clip, always from frame 0 when <paramref name="restartIfAlreadyPlaying"/> is true.
+    /// Play a clip, always from the start when <paramref name="restartIfAlreadyPlaying"/> is true.
     /// A null or empty clip is the same as <see cref="Stop"/>.
     /// </summary>
     public void Play(UIFlipbookClip clip, bool restartIfAlreadyPlaying)
     {
-        if (clip == null || !clip.HasFrames)
+        // Resolve up front, so a shared clip and the stub pointing at it are the same thing
+        // as far as everything below is concerned.
+        var resolved = clip != null ? clip.Resolved() : null;
+
+        if (resolved == null || !resolved.HasFrames)
         {
-            Stop();
+            // Nothing to show is not the same as the user asking for a stop, so this must not
+            // arm stoppedExplicitly - otherwise filling the clip in later would never start.
+            StopInternal(false);
             return;
         }
 
-        if (!restartIfAlreadyPlaying && playing && ReferenceEquals(clip, current))
+        if (!restartIfAlreadyPlaying && playing && ReferenceEquals(resolved, current))
         {
             return;
         }
 
-        // Full reset, so switching clips can never leave a stale timer or index behind.
-        current = clip;
+        // Full reset, so switching clips can never leave a stale timer, index or direction behind.
+        current = resolved;
         frameTimer = 0f;
         frameIndex = -1;
+        direction = 1;
         playing = true;
+        stoppedExplicitly = false;
 
-        ShowFrame(0);
+        RollPass();
+
+        var start = RandomStartFrame && resolved.FrameCount > 1
+            ? UnityEngine.Random.Range(0, resolved.FrameCount)
+            : 0;
+
+        ShowFrame(start);
     }
 
     /// <summary>Stop advancing and leave the current drawing on screen.</summary>
     public void Stop()
     {
-        playing = false;
-        frameTimer = 0f;
+        StopInternal(true);
     }
 
-    /// <summary>Restart the current clip - or the authored one, if nothing has played yet - from frame 0.</summary>
+    /// <summary>Restart the current clip - or the authored one, if nothing has played yet - from the start.</summary>
     public void Restart()
     {
         Play(current != null ? current : Clip, true);
+    }
+
+    private void StopInternal(bool explicitStop)
+    {
+        playing = false;
+        frameTimer = 0f;
+
+        if (explicitStop)
+        {
+            stoppedExplicitly = true;
+        }
     }
 
     private void Awake()
@@ -131,7 +184,7 @@ public class UISpriteFlipbook : MonoBehaviour
     {
         ResolveTarget();
 
-        // Something was playing when we were switched off: restart it rather than resuming
+        // Something was mid-play when we were switched off: restart it rather than resuming
         // mid-frame, so re-enabling is always predictable.
         if (playing && current != null)
         {
@@ -139,17 +192,31 @@ public class UISpriteFlipbook : MonoBehaviour
             return;
         }
 
-        // First enable only. After an explicit Stop(), current is set, so we stay stopped.
-        if (PlayOnEnable && current == null)
-        {
-            Play(Clip, true);
-        }
+        if (!PlayOnEnable) return;
+
+        // An explicit Stop() is a decision and it survives being switched off and on again.
+        // A clip that simply RAN OUT is not: re-enabling replays it, which is what a one-shot
+        // flourish on a panel you show, hide, and show again has to do. The old code tested
+        // "current == null" here, which cannot tell those two apart, so a finished one-shot
+        // played exactly once per scene load and then sat on its last frame forever.
+        if (stoppedExplicitly) return;
+
+        Play(current != null ? current : Clip, true);
     }
 
     // OnDisable needs no work: Unity stops calling Update, and `playing` staying true is
     // exactly the flag OnEnable reads to decide whether to resume.
 
     private void Update()
+    {
+        Tick(UseUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime);
+    }
+
+    /// <summary>
+    /// One step of playback. Split out from Update so the editor preview drives the exact same
+    /// code off EditorApplication.update and cannot drift from what the game does.
+    /// </summary>
+    private void Tick(float delta)
     {
         if (!playing)
         {
@@ -159,13 +226,13 @@ public class UISpriteFlipbook : MonoBehaviour
         if (current == null || !current.HasFrames || TargetImage == null)
         {
             // Clip emptied in the inspector, or the Image was destroyed out from under us.
-            playing = false;
+            StopInternal(false);
             return;
         }
 
-        frameTimer += UseUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+        frameTimer += delta;
 
-        var duration = current.DurationOf(frameIndex);
+        var duration = DurationOfCurrentFrame();
         var steps = 0;
 
         while (playing && frameTimer >= duration && steps++ < MaxCatchUpSteps)
@@ -178,35 +245,96 @@ public class UISpriteFlipbook : MonoBehaviour
                 break;
             }
 
-            duration = current.DurationOf(frameIndex);
+            duration = DurationOfCurrentFrame();
         }
     }
 
     private void Advance()
     {
-        var next = frameIndex + 1;
+        var count = current.FrameCount;
+        var next = frameIndex + direction;
 
-        if (next >= current.FrameCount)
+        if (next >= count)
         {
-            if (!current.Loop)
+            switch (current.LoopMode)
             {
-                // Hold the last frame. Clear state before the callback, which is free to Play() again.
-                playing = false;
-                frameTimer = 0f;
+                case UIFlipbookLoopMode.Once:
+                    Complete();
+                    return;
 
-                var completed = Completed;
-                if (completed != null)
-                {
-                    completed();
-                }
+                case UIFlipbookLoopMode.PingPong:
+                    // count - 2 rather than count - 1, so the last drawing is not held for two
+                    // frame times at the turn. Max() keeps a one-frame clip from going negative.
+                    direction = -1;
+                    next = Mathf.Max(0, count - 2);
+                    RollPass();
+                    break;
 
-                return;
+                default:
+                    next = 0;
+                    RollPass();
+                    break;
             }
-
-            next = 0;
+        }
+        else if (next < 0)
+        {
+            // Only reachable while ping-ponging back down. Same no-double-hold reasoning.
+            direction = 1;
+            next = count > 1 ? 1 : 0;
+            RollPass();
         }
 
         ShowFrame(next);
+    }
+
+    private void Complete()
+    {
+        // Hold the last frame. Clear state BEFORE the callbacks, which are free to Play() again.
+        StopInternal(false);
+
+#if UNITY_EDITOR
+        // An OnCompleted UnityEvent is wired to arbitrary game code. Running that from an
+        // edit-mode preview is not something a preview should ever do.
+        if (EditorSuppressEvents) return;
+#endif
+
+        if (OnCompleted != null)
+        {
+            OnCompleted.Invoke();
+        }
+
+        var completed = Completed;
+        if (completed != null)
+        {
+            completed();
+        }
+    }
+
+    /// <summary>
+    /// Fills <see cref="rolledDurations"/> with one pass of random frame times, or empties it
+    /// when this clip is not randomly timed. Called on Play and at every wrap or bounce, so
+    /// each pass through the drawing is timed differently.
+    /// </summary>
+    private void RollPass()
+    {
+        rolledDurations.Clear();
+
+        if (current == null || current.Timing != UIFlipbookTiming.RandomOffset) return;
+
+        for (int i = 0; i < current.FrameCount; i++)
+        {
+            rolledDurations.Add(current.RollDuration());
+        }
+    }
+
+    private float DurationOfCurrentFrame()
+    {
+        if (frameIndex >= 0 && frameIndex < rolledDurations.Count)
+        {
+            return rolledDurations[frameIndex];
+        }
+
+        return current.DurationOf(frameIndex);
     }
 
     private void ShowFrame(int index)
@@ -253,4 +381,83 @@ public class UISpriteFlipbook : MonoBehaviour
             Clip.FillUnsetDefaults();
         }
     }
+
+#if UNITY_EDITOR
+
+    /// <summary>Set while an edit-mode preview is running. See UIFlipbookPreview.</summary>
+    public static bool EditorSuppressEvents;
+
+    /// <summary>The clip authored on this component, for the inspector to preview.</summary>
+    public UIFlipbookClip EditorClip
+    {
+        get { return Clip; }
+    }
+
+    /// <summary>The Image a preview writes to, resolved the same way playback resolves it.</summary>
+    public Image EditorImage
+    {
+        get
+        {
+            ResolveTarget();
+            return TargetImage;
+        }
+    }
+
+    public int EditorFrameCount
+    {
+        get { return current != null ? current.FrameCount : 0; }
+    }
+
+    public int EditorCurrentFrame
+    {
+        get { return frameIndex; }
+    }
+
+    public bool EditorIsPlaying
+    {
+        get { return playing; }
+    }
+
+    public void EditorBeginPreview(UIFlipbookClip clip)
+    {
+        ResolveTarget();
+        Play(clip, true);
+    }
+
+    public void EditorTick(float delta)
+    {
+        Tick(delta);
+    }
+
+    /// <summary>Jump to one frame and hold there. Used by the inspector scrubber.</summary>
+    public void EditorSetFrame(int index)
+    {
+        if (current == null || !current.HasFrames) return;
+
+        playing = false;
+        frameTimer = 0f;
+        ShowFrame(Mathf.Clamp(index, 0, current.FrameCount - 1));
+    }
+
+    /// <summary>Resume auto-advance from wherever the scrubber left off.</summary>
+    public void EditorResume()
+    {
+        if (current == null || !current.HasFrames) return;
+
+        playing = true;
+        frameTimer = 0f;
+    }
+
+    /// <summary>Drop all preview playback state. The sprite itself is restored by the caller.</summary>
+    public void EditorEndPreview()
+    {
+        StopInternal(false);
+
+        current = null;
+        frameIndex = -1;
+        direction = 1;
+        rolledDurations.Clear();
+    }
+
+#endif
 }
