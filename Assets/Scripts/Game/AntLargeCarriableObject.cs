@@ -51,17 +51,10 @@ public abstract class AntLargeCarriableObject : AntInteractable
         return places.Count(p => !p.Value);
     }
 
-    private void SetAntCollisions(Ant ant, bool collideEnabled)
-    {
-        Rigidbody antRB = ant.rb;
-        antRB.isKinematic = !collideEnabled;
-        antRB.detectCollisions = collideEnabled;
-    }
-
     public override void AntBeginInteract(Ant ant)
     {
         antsCarrying.Add(ant);
-        SetAntCollisions(ant, false);
+        ant.SetLockAnt(true);
         ant.transform.SetParent(transform);
     }
     public override bool CanAntInteract(Ant ant){
@@ -77,7 +70,7 @@ public abstract class AntLargeCarriableObject : AntInteractable
     {
         antsCarrying.Remove(ant);
         ant.transform.SetParent(null);
-        SetAntCollisions(ant, true);
+        ant.SetLockAnt(false);
         UnassignFromPoint(places, ant);
     }
     
@@ -114,7 +107,8 @@ public abstract class AntLargeCarriableObject : AntInteractable
 
     private void Start()
     {
-        places = GetRadialPlaces(MaxAntsForCarry, GetBestRadius() / 2, true);
+        float rad = GetBestRadius(out Vector3 center);
+        places = GetRadialPlaces(MaxAntsForCarry, rad, center, true);
         rb = GetComponent<Rigidbody>();
         navMeshQueryFilter = new NavMeshQueryFilter()
         {

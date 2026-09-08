@@ -51,9 +51,7 @@ public class Ant : MonoBehaviour
     
     public EAntState State { get; private set; }
     public EAntPathState PathState { get; private set; }
-
-    private bool idleStationary;
-
+    
     public AntInteractable currentInteractable { get; private set; }
     public AntCarriableObject carriedObject { get; private set; }
 
@@ -137,7 +135,6 @@ public class Ant : MonoBehaviour
             }
         }
         
-        idleStationary = false;
         State = EAntState.Idle;
         stuckCount = 0;
         stuckTimer = 0;
@@ -240,7 +237,10 @@ public class Ant : MonoBehaviour
             horizVel = horizVel.normalized * MoveSpeed;
         }
         rb.linearVelocity = new Vector3(horizVel.x, rb.linearVelocity.y, horizVel.z);
-        SetAntAngle(rb.linearVelocity);
+        if (rb.linearVelocity.sqrMagnitude > 0.1)
+        {
+            SetAntAngle(rb.linearVelocity);
+        }
 
         // Hunger loss
         if(!IsActing() && !returningToNest)
@@ -352,8 +352,7 @@ public class Ant : MonoBehaviour
     {
         HungerCheck();
 
-        if (!idleStationary)
-        {
+
             Vector3 decel = -rb.linearVelocity;
             decel.y = 0;
             decel.Normalize();
@@ -362,12 +361,15 @@ public class Ant : MonoBehaviour
             if (decel.sqrMagnitude <= .05)
             {
                 rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
-                idleStationary = true;
             }
             else
             {
                 rb.AddForce(decel);
             }
+
+        if (rb.linearVelocity.sqrMagnitude > (4*4))
+        {
+            rb.linearVelocity = rb.linearVelocity.normalized * 4;
         }
         
         
@@ -391,24 +393,30 @@ public class Ant : MonoBehaviour
             InteractWith(first);
     }
 
+    public void SetLockAnt(bool locked)
+    {
+        rb.isKinematic = locked;
+        rb.detectCollisions = !locked;
+    }
+
     private void Update()
     {
         switch (State)
         {
             case EAntState.Idle:
-                scuttleSound.loop = false;
+                scuttleSound.volume = 0;
                 IdleTick();
                 break;
             case EAntState.DirectMove:
-                scuttleSound.loop = true;
+                scuttleSound.volume = 0.1f;
                 DirectTick();
                 break;
             case EAntState.PathMove:
-                scuttleSound.loop = true;
+                scuttleSound.volume = 0.1f;
                 PathFind();
                 break;
             case EAntState.Acting:
-                scuttleSound.loop = false;
+                scuttleSound.volume = 0;
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -419,7 +427,7 @@ public class Ant : MonoBehaviour
             ReleaseInteract(currentInteractable);
         }
 
-        if (Vector3.Distance(transform.position, myNest.transform.position) < 3)
+        if ((transform.position - myNest.transform.position).sqrMagnitude < (3*3))
         {
             NearNest();
         }
@@ -442,6 +450,11 @@ public class Ant : MonoBehaviour
             
             rb.AddForce(offset.normalized * (force * Time.deltaTime));
         }
+
+        if (transform.position.y < -20)
+        {
+            transform.position = myNest.transform.position + Vector3.up;
+        }
         
         _renderer.GetPropertyBlock(matPropBlock);
         matPropBlock.SetColor(BaseColorPropID, Color.Lerp(hungryColor, defaultColor, hunger / myNest.GetMaxHunger()));
@@ -459,7 +472,7 @@ public class Ant : MonoBehaviour
     private void NearNest()
     {
         hunger = myNest.GetMaxHunger();
-        if (carriedObject)
+        if (carriedObject )
         {
             DepositObject(myNest);
         }

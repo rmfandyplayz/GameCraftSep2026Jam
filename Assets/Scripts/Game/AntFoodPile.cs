@@ -58,7 +58,8 @@ public class AntFoodPile : AntInteractable
             children.Add(model);
         }
         children.RemoveAt(0);
-        places = GetRadialPlaces(FoodLeft, GetBestRadius());
+        float rad = GetBestRadius(out Vector3 center);
+        places = GetRadialPlaces(FoodLeft, rad, center);
     }
 
     private void Update()

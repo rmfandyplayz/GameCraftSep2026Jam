@@ -368,6 +368,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AntUIHandler
   uiAPI: {fileID: 507824040}
+  PauseOnStart: 0
 --- !u!1 &530333128
 GameObject:
   m_ObjectHideFlags: 0
@@ -490,7 +491,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 202529018454451222, guid: 90a19157a0d566e499c69a0e5354afa0, type: 3}
       propertyPath: antsNeeded
-      value: 5
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 5008259371302678800, guid: 90a19157a0d566e499c69a0e5354afa0, type: 3}
       propertyPath: m_Name
@@ -1060,7 +1061,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5152558236852440335, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 74e26e54fdfe25b4f81d1624eba91c23, type: 3}
 --- !u!1 &1040612315
 GameObject:
@@ -1714,6 +1718,7 @@ MonoBehaviour:
   BaseCarrySpeed: 1
   MaxCarrySpeed: 1
   Acceleration: 1000
+  text: {fileID: 0}
   FoodGiven: 2
 --- !u!54 &7970416438442923415
 Rigidbody:

@@ -13,18 +13,20 @@ public class BreakableWall : AntInteractable
     private List<Ant> antsInteracting = new();
     [SerializeField] private int antsNeeded;
     private bool destroying = false;
-
-    private Dictionary<Vector3, Ant> frontPlaces = new(); 
-    private Dictionary<Vector3, Ant> backPlaces = new();
+    
     private AudioSource jingle;
 
     [SerializeField] private TextMeshPro wallText;
+
+    private float wallDepth;
     
     void Start()
     {
         jingle = GetComponent<AudioSource>();
-        GeneratePlaces();
         wallText.text = antsNeeded.ToString();
+        
+        BoxCollider wallCollider = GetComponents<BoxCollider>().First(p => !p.isTrigger);
+        wallDepth = wallCollider.size.z * transform.lossyScale.z;
     }
 
     private void Update()
@@ -42,35 +44,17 @@ public class BreakableWall : AntInteractable
         }
     }
 
-    private void GeneratePlaces()
+    private Vector3 FindPointAlongWallLine(Vector3 srcPoint, Vector3 offset)
     {
-        frontPlaces.Clear();
-        backPlaces.Clear();
+        Vector3 dirVec = transform.forward;
+        Vector3 planePos = transform.position;
+        planePos += transform.rotation * offset;
         
-        BoxCollider wallCollider = GetComponents<BoxCollider>().First(p => !p.isTrigger);
-        float wallWidth = wallCollider.size.x * transform.lossyScale.x;
-        float wallDepth = wallCollider.size.z * transform.lossyScale.z;
+        Vector3 pOffset = srcPoint - planePos;
 
-        float minPos = -wallWidth * 0.5f + wallWidth / antsNeeded;
-        float maxPos = wallWidth * 0.5f - wallWidth / antsNeeded;
-
-        float wallOffset = wallDepth + Ant.RadBuffer;
-        float yOffset = wallCollider.size.y * -0.5f * transform.lossyScale.y;
-        for (int i = 0; i < antsNeeded; i++)
-        {
-            float fac = i / (float)(antsNeeded-1);
-
-            var frontPos = new Vector3(Mathf.Lerp(minPos, maxPos, fac), yOffset, wallOffset);
-            frontPos = transform.rotation * frontPos;
-            frontPos += transform.position;
-            
-            var backPos = new Vector3(Mathf.Lerp(minPos, maxPos, fac), yOffset, -wallOffset);
-            backPos = transform.rotation * backPos;
-            backPos += transform.position;
-            
-            frontPlaces.Add(frontPos, null);
-            backPlaces.Add(backPos, null);
-        }
+        float dist = Vector3.Dot(pOffset, dirVec);
+        Vector3 point = srcPoint - (dist * dirVec);
+        return point;
     }
 
     private bool IsPointInFront(Vector3 point)
@@ -79,12 +63,18 @@ public class BreakableWall : AntInteractable
         float dotProduct = Vector3.Dot(transform.forward, offset.normalized);
         return dotProduct > 0;
     }
+
+    private float FrontFactor(Vector3 point)
+    {
+        return IsPointInFront(point) ? 1 : -1;
+    }
     
     public override void AntBeginInteract(Ant ant)
     { 
         if (!antsInteracting.Contains(ant))
         {
             antsInteracting.Add(ant);
+            ant.SetLockAnt(true);
             if (antsInteracting.Count >= antsNeeded)
             {
                 destroying = true;
@@ -102,26 +92,24 @@ public class BreakableWall : AntInteractable
 
     public override bool CanAntInteract(Ant ant)
     {
-        if (destroying)
-            return false;
-
-        return IsPointInFront(ant.transform.position) ? frontPlaces.ContainsValue(null) : backPlaces.ContainsValue(null);
+        return !destroying;
     }
 
     public override Vector3 GetAntInteractPos(Ant ant)
     {
-        return AssignToPoint(IsPointInFront(ant.transform.position) ? frontPlaces : backPlaces, ant);
+        Vector3 antPos = ant.transform.position;
+        return FindPointAlongWallLine(antPos, Vector3.forward * (FrontFactor(antPos) * (Ant.RadBuffer + wallDepth)));
     }
 
     public override void AntEndInteract(Ant ant)
     {
         antsInteracting.Remove(ant);
-        UnassignFromPoint(IsPointInFront(ant.transform.position) ? frontPlaces : backPlaces, ant);
+        ant.SetLockAnt(false);
     }
     
     public override void CancelAntInteract(Ant ant)
     {
-        UnassignFromPoint(IsPointInFront(ant.transform.position) ? frontPlaces : backPlaces, ant);
+        ant.SetLockAnt(false);
     }
 #if UNITY_EDITOR
     private void OnDrawGizmos()
@@ -132,23 +120,6 @@ public class BreakableWall : AntInteractable
 
     private void OnDrawGizmosSelected()
     {
-        if (frontPlaces.Count != antsNeeded)
-        {
-            GeneratePlaces();
-        }
-        
-        Gizmos.color = Color.red;
-        foreach (Vector3 place in frontPlaces.Keys)
-        {
-            Gizmos.DrawSphere(place, 0.1f);
-        }
-        
-        Gizmos.color = Color.blue;
-        foreach (Vector3 place in backPlaces.Keys)
-        {
-            Gizmos.DrawSphere(place, 0.1f);
-        }
-
         Gizmos.color = Color.purple;
         foreach (Ant ant in antsInteracting)
         {

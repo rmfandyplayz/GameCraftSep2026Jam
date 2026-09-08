@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class AntUIHandler : MonoBehaviour
 {
     [SerializeField] private API_UI uiAPI;
+    [SerializeField] private bool PauseOnStart = true;
 
     private AntNest nest;
     private Camera playerCam;
@@ -14,7 +16,8 @@ public class AntUIHandler : MonoBehaviour
         // the title screen is up at scene load, so boot paused -- this is what actually locks
         // player input on the menu, since every AntManager input path is Time.deltaTime driven.
         // also normalises a timeScale inherited across a scene reload.
-        Time.timeScale = 0;
+        if(PauseOnStart)
+            Time.timeScale = 0;
     }
 
     private void Start()

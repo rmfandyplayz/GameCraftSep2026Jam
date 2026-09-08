@@ -46,7 +46,7 @@ public abstract class AntInteractable : MonoBehaviour
         }
     }
 
-    protected Dictionary<Vector3, Ant> GetRadialPlaces(float count, float radius, bool relative = false)
+    protected Dictionary<Vector3, Ant> GetRadialPlaces(float count, float radius, Vector3 center, bool relative = false)
     {
         Dictionary<Vector3, Ant> places = new();
         for (int i = 0; i < count; i++)
@@ -59,7 +59,7 @@ public abstract class AntInteractable : MonoBehaviour
             pos *= radius;
 
             if(!relative)
-                pos += transform.position;
+                pos += center;
             places.Add(pos, null);
         }
 
@@ -98,21 +98,25 @@ public abstract class AntInteractable : MonoBehaviour
         Vector3 place = places.First(p => p.Value == ant).Key;
         places[place] = null;
     }
-    
-    
-    protected float GetBestRadius()
+
+
+    protected float GetBestRadius(out Vector3 centerRad)
     {
-        float scaleFactor = Mathf.Max(transform.lossyScale.x, Mathf.Max(transform.lossyScale.y, transform.lossyScale.z));
         
+        float scaleFactor =
+            Mathf.Max(transform.lossyScale.x, Mathf.Max(transform.lossyScale.y, transform.lossyScale.z));
+
         var sphere = GetComponents<SphereCollider>().FirstOrDefault(s => !s.isTrigger);
         if (sphere)
         {
+            centerRad = transform.TransformPoint(sphere.center);
             return sphere.radius * scaleFactor + Ant.RadBuffer;
         }
 
         var capsule = GetComponents<CapsuleCollider>().FirstOrDefault(s => !s.isTrigger);
         if (capsule)
         {
+            centerRad = transform.TransformPoint(capsule.center);
             return Mathf.Max(capsule.radius, capsule.height) * scaleFactor + Ant.RadBuffer;
         }
 
@@ -121,10 +125,12 @@ public abstract class AntInteractable : MonoBehaviour
         {
             float w = box.size.x;
             float h = box.size.z;
+            centerRad = transform.TransformPoint(box.center);
             return Mathf.Sqrt(w * w + h * h) * 0.5f * scaleFactor + Ant.RadBuffer;
         }
 
         MysticLog.LogWarning("GetBestRadiusFailed!");
+        centerRad = transform.position;
         return 0;
     }
 }
