@@ -36,6 +36,14 @@ public class MusicMan : MonoBehaviour
     public AudioSource Trombone;
     public AudioSource Tuba;
 
+
+    public AudioSource GlobalSFX;
+
+    public void PlaySFX(AudioClip audioClip)
+    {
+    GlobalSFX.PlayOneShot(audioClip);
+    }
+
     public class MusicTrackSettings
     {
         public MusicTrackSettings(AudioSource audioSource, int percussionLevel, bool percussion = true)

@@ -13,8 +13,9 @@ public class BreakableWall : AntInteractable
     private List<Ant> antsInteracting = new();
     [SerializeField] private int antsNeeded;
     private bool destroying = false;
-    
-    private AudioSource jingle;
+
+    [SerializeField]
+    private AudioClip jingle;
 
     [SerializeField] private TextMeshPro wallText;
 
@@ -22,7 +23,6 @@ public class BreakableWall : AntInteractable
     
     void Start()
     {
-        jingle = GetComponent<AudioSource>();
         wallText.text = antsNeeded.ToString();
         
         BoxCollider wallCollider = GetComponents<BoxCollider>().First(p => !p.isTrigger);
@@ -83,9 +83,13 @@ public class BreakableWall : AntInteractable
                     inAnt.ReleaseInteract(this);
                 }
 
-                jingle.Play();
+                var musicMan = FindAnyObjectByType<MusicMan>();
+                if (musicMan != null)
+                {
+                    musicMan.PlaySFX(jingle);
+                }
+
                 Destroy(this.gameObject);
-                
             }
         }
     }

@@ -2,15 +2,17 @@ using UnityEngine;
 
 public class LockedDoor : MonoBehaviour
 {
-    private AudioSource jingle;
+    [SerializeField]
+    private AudioClip jingle;
 
-    void Start()
-    {
-        jingle = GetComponent<AudioSource>();
-    }
     public void Unlock()
     {
-        jingle.Play();
+        var musicMan = FindAnyObjectByType<MusicMan>();
+        if (musicMan != null)
+        {
+            musicMan.PlaySFX(jingle);
+        }
+
         Destroy(this.gameObject);
     }
 }
