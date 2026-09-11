@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class MusicMan : MonoBehaviour
 {
@@ -10,6 +9,8 @@ public class MusicMan : MonoBehaviour
 
     [Range(0, 13)]
     public int targetLayerCount;
+
+    public bool needsResync;
 
     private int layerCount;
 
@@ -176,7 +177,7 @@ public class MusicMan : MonoBehaviour
         foreach (var a in activeLayers)
         {
             if (a.volume < volume)
-                a.volume += 0.0025f;
+                a.volume += 0.0015f;
             if (a.volume > volume)
                 a.volume = volume;
         }
@@ -187,6 +188,28 @@ public class MusicMan : MonoBehaviour
                 a.volume -= 0.0025f;
             if (a.volume < 0f)
                 a.volume = 0f;
+        }
+
+        if (needsResync) //for debug purposes
+        {
+            ResyncMusic();
+            needsResync = false;
+        }
+    }
+
+    private void ResyncMusic()
+    {
+        int currentSamplePoint = -1;
+        foreach (var layer in activeLayers)
+        {
+            if (currentSamplePoint == -1)
+            {
+                currentSamplePoint = layer.timeSamples;
+            }
+            else if(Mathf.Abs(layer.timeSamples - currentSamplePoint) > 5)
+            {
+                layer.timeSamples = currentSamplePoint;
+            }
         }
     }
 
@@ -203,6 +226,8 @@ public class MusicMan : MonoBehaviour
         AudioSource source = potentialAudios[Random.Range(0, potentialAudios.Count)];
         activeLayers.Add(source);
         inactiveLayers.Remove(source);
+
+        ResyncMusic(); //idk why but sometimes the muted layers get desynced. so if we just sync 'em every time they're added it seems to be fine?
     }
 
     private void RemoveLayer(bool percussion)
