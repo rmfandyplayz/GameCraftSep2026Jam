@@ -14,7 +14,7 @@ public class AntFoodCrumb : AntCarriableObject
     public override void OnDeposit(AntNest nest)
     {
         nest.foodCount += FoodAmount;
-        nest.SpawnAnts(AntAmount);
+        nest.CueAntsToSpawn(AntAmount);
         Destroy(gameObject);
     }
 }

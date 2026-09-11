@@ -17,17 +17,24 @@ public class AntNest : MonoBehaviour
 
     [SerializeField] private Animator Animator;
     [SerializeField] private MusicMan music;
-    private AudioSource birthClip;
     
     void Awake()
     {
         music = FindAnyObjectByType<MusicMan>();
-        birthClip = GetComponent<AudioSource>();
     }
 
-    public void SpawnAnts(int count)
+    private int pendingAntSpawnCount = 0;
+
+    public void CueAntsToSpawn(int count)
     {
-        for (int i = 0; i < count; i++)
+        pendingAntSpawnCount += count;
+        Animator.SetTrigger(BirthAnim);
+    }
+
+    public void SpawnAnts()
+    {
+
+        for (; pendingAntSpawnCount > 0; pendingAntSpawnCount--)
         {
             Vector3 pos = transform.position;
             pos.x += Random.Range(-SpawnArea.x, SpawnArea.x);
@@ -37,9 +44,6 @@ public class AntNest : MonoBehaviour
             rot.y = Random.Range(0, 360);
             Instantiate(antPrefab, pos, Quaternion.Euler(rot));
         }
-
-        Animator.SetTrigger(BirthAnim);
-        birthClip.Play();
     }
 
     public void AddAnt(Ant ant)
