@@ -703,7 +703,7 @@ MonoBehaviour:
       ToColor: {r: 0, g: 0, b: 0, a: 0}
       ShaderProperty: _Progress
       ActiveValue: 0
-      Clip: {fileID: 8300000, guid: efb71d67cb2b42c4c9cd09e808ec8ef3, type: 3}
+      Clip: {fileID: 8300000, guid: 49715b513bcc8ee49a4e595f1f5b5e57, type: 3}
       Volume: 1
       Pitch: 1
       PitchVariation: 0
@@ -6722,7 +6722,7 @@ MonoBehaviour:
       ToColor: {r: 0, g: 0, b: 0, a: 0}
       ShaderProperty: _Progress
       ActiveValue: 0
-      Clip: {fileID: 8300000, guid: efb71d67cb2b42c4c9cd09e808ec8ef3, type: 3}
+      Clip: {fileID: 8300000, guid: 49715b513bcc8ee49a4e595f1f5b5e57, type: 3}
       Volume: 1
       Pitch: 1
       PitchVariation: 0
