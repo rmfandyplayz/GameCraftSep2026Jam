@@ -86,6 +86,7 @@ public class BreakableWall : AntInteractable
                 var musicMan = FindAnyObjectByType<MusicMan>();
                 if (musicMan != null)
                 {
+                    musicMan.AddTargetLayer();
                     musicMan.PlaySFX(jingle);
                 }
 

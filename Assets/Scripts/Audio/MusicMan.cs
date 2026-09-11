@@ -10,7 +10,20 @@ public class MusicMan : MonoBehaviour
     [Range(0, 13)]
     public int targetLayerCount;
 
+    private int targetLayerBonus;
+
     public bool needsResync;
+
+    public void UpdateTargetLayerCount(int antCount)
+    {
+        targetLayerCount = targetLayerBonus + Mathf.Clamp(antCount / 5 + 1, 1, 13);
+    }
+
+    public void AddTargetLayer()
+    {
+        targetLayerBonus++;
+        targetLayerCount++;
+    }
 
     private int layerCount;
 

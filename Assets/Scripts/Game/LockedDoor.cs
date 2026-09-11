@@ -10,6 +10,7 @@ public class LockedDoor : MonoBehaviour
         var musicMan = FindAnyObjectByType<MusicMan>();
         if (musicMan != null)
         {
+            musicMan.AddTargetLayer();
             musicMan.PlaySFX(jingle);
         }
 
