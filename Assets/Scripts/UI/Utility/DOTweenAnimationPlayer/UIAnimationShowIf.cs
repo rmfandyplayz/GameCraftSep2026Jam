@@ -9,21 +9,25 @@
 using System;
 using UnityEngine;
 
-/// <summary>
-/// Hides a field in the Inspector unless a sibling bool on the same object is true, so an
-/// option and the value it configures read as one control instead of two.
-///
-/// Lives here rather than in a shared utilities folder because it exists for this framework's
-/// inspector; the drawer is Editor/UIAnimationShowIfDrawer.cs.
-/// </summary>
-[AttributeUsage(AttributeTargets.Field)]
-public class UIAnimationShowIfAttribute : PropertyAttribute
+namespace rmf_claude.DOTweenUI
 {
-    /// <summary>Name of the bool field, on the same object, that gates this one.</summary>
-    public readonly string Condition;
 
-    public UIAnimationShowIfAttribute(string conditionFieldName)
+    /// <summary>
+    /// Hides a field in the Inspector unless a sibling bool on the same object is true, so an
+    /// option and the value it configures read as one control instead of two.
+    ///
+    /// Lives here rather than in a shared utilities folder because it exists for this framework's
+    /// inspector; the drawer is Editor/UIAnimationShowIfDrawer.cs.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field)]
+    public class UIAnimationShowIfAttribute : PropertyAttribute
     {
-        Condition = conditionFieldName;
+        /// <summary>Name of the bool field, on the same object, that gates this one.</summary>
+        public readonly string Condition;
+
+        public UIAnimationShowIfAttribute(string conditionFieldName)
+        {
+            Condition = conditionFieldName;
+        }
     }
 }
