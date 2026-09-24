@@ -98,7 +98,8 @@ namespace rmf_claude.DOTweenUI
             if (layout.Draw)
             {
                 property.isExpanded = EditorGUI.Foldout(header, property.isExpanded,
-                    Summary(property, stepType, startMode), true, BoldFoldout);
+                    FittedSummary(property, stepType, startMode, EditorGUI.IndentedRect(header).width),
+                    true, BoldFoldout);
             }
 
             if (!property.isExpanded) return;
@@ -152,20 +153,157 @@ namespace rmf_claude.DOTweenUI
                 return;
             }
 
+            // Use From is a FROM / TO button on the first endpoint row rather than a checkbox row of
+            // its own - the way DOTween's own animation component does it - so a step without a
+            // From is one row, not two. "Current" on the TO side means DOTween relative, which is
+            // contradictory with an explicit FROM value, so it is only offered when there is none.
             UIAnimationValueKind kind = UIAnimationStep.ValueKindOf(stepType);
             SerializedProperty useFrom = property.FindPropertyRelative("UseFrom");
-            Field(ref layout, useFrom);
 
             if (useFrom.boolValue)
             {
-                DrawEndpoint(ref layout, property, "From", "FromMode", kind, stepType, true);
+                DrawEndpoint(ref layout, property, "From", "FromMode", kind, stepType, true, useFrom);
+                DrawEndpoint(ref layout, property, "To", "ToMode", kind, stepType, false, null);
+            }
+            else
+            {
+                DrawEndpoint(ref layout, property, "To", "ToMode", kind, stepType, true, useFrom);
             }
 
-            // "Current" on the TO side means DOTween relative, which is contradictory with an
-            // explicit FROM value - so it is only offered when Use From is off.
-            DrawEndpoint(ref layout, property, "To", "ToMode", kind, stepType, !useFrom.boolValue);
+            if (UIAnimationStep.SupportsPath(stepType)) DrawPath(ref layout, property, stepType);
 
             if (UsesSnapping(stepType)) Field(ref layout, property.FindPropertyRelative("Snapping"));
+        }
+
+        /// <summary>
+        /// The movement path: one checkbox, and everything else only once it is ticked, because a
+        /// path is the exception rather than the rule and should cost nothing to read past.
+        ///
+        /// Points are drawn as rows of their own rather than as Unity's list control, so they line
+        /// up under From/To, show X/Y on the rect views, and can say which space they are in - the
+        /// mode column shows To's mode, since that is the mode the points follow.
+        /// </summary>
+        private void DrawPath(ref Layout layout, SerializedProperty property, UIAnimationStepType stepType)
+        {
+            SerializedProperty usePath = property.FindPropertyRelative("UseCustomPath");
+
+            // Checkbox on the left with the label running across the row: the label is too long
+            // for the label column at ordinary inspector widths, and a left toggle is the usual
+            // Unity idiom for "switch this section on".
+            Rect toggleRow = layout.Line();
+            if (layout.Draw)
+            {
+                var content = new GUIContent("Use Custom Movement Path", usePath.tooltip);
+
+                EditorGUI.BeginProperty(toggleRow, content, usePath);
+                EditorGUI.BeginChangeCheck();
+                bool value = EditorGUI.ToggleLeft(toggleRow, content, usePath.boolValue);
+                if (EditorGUI.EndChangeCheck()) usePath.boolValue = value;
+                EditorGUI.EndProperty();
+            }
+
+            if (!usePath.boolValue) return;
+
+            Field(ref layout, property.FindPropertyRelative("PathShape"), "Path Shape");
+
+            SerializedProperty points = property.FindPropertyRelative("Waypoints");
+            SerializedProperty toMode = property.FindPropertyRelative("ToMode");
+            bool twoD = UIAnimationStep.IsTwoDimensional(stepType);
+
+            if (points.arraySize == 0)
+            {
+                Rect empty = layout.Line();
+                if (layout.Draw)
+                {
+                    var noteRect = new Rect(empty.x + LabelWidth, empty.y, Mathf.Max(40f, empty.width - LabelWidth), empty.height);
+                    EditorGUI.LabelField(noteRect, "No points yet - the step still moves in a straight line.",
+                        EditorStyles.miniLabel);
+                }
+            }
+
+            for (int i = 0; i < points.arraySize; i++)
+            {
+                Rect r = layout.Line();
+                if (!layout.Draw) continue;
+
+                var labelRect = new Rect(r.x, r.y, LabelWidth, r.height);
+                var modeRect = new Rect(r.x + LabelWidth, r.y, ModeWidth, r.height);
+                var removeRect = new Rect(r.xMax - RemoveWidth, r.y, RemoveWidth, r.height);
+                var valueRect = new Rect(modeRect.xMax + 4f, r.y,
+                    Mathf.Max(40f, removeRect.x - 4f - (modeRect.xMax + 4f)), r.height);
+
+                EditorGUI.LabelField(labelRect, new GUIContent("Point " + (i + 1), points.tooltip));
+
+                string mode = toMode.enumValueIndex >= 0 ? toMode.enumDisplayNames[toMode.enumValueIndex] : "";
+                EditorGUI.LabelField(modeRect, new GUIContent(mode, "Points follow To's mode."), EditorStyles.miniLabel);
+
+                SerializedProperty point = points.GetArrayElementAtIndex(i);
+                DrawVector(valueRect, point, twoD);
+
+                if (GUI.Button(removeRect, new GUIContent("-", "Remove this point."), EditorStyles.miniButton))
+                {
+                    points.DeleteArrayElementAtIndex(i);
+                    break;
+                }
+            }
+
+            Rect buttons = layout.Line();
+            if (!layout.Draw) return;
+
+            float x = buttons.x + LabelWidth;
+            float width = buttons.xMax - x;
+            var addRect = new Rect(x, buttons.y, Mathf.Floor(width * 0.4f) - 2f, buttons.height);
+            var editRect = new Rect(addRect.xMax + 4f, buttons.y, buttons.xMax - addRect.xMax - 4f, buttons.height);
+
+            if (GUI.Button(addRect, new GUIContent("Add Point",
+                    "Adds a point halfway between the last one and To. Drag it into place in the Scene view, " +
+                    "or type it in."), EditorStyles.miniButton))
+            {
+                int index = points.arraySize;
+                Vector3 suggested = UIAnimationPathEditor.SuggestNewPoint(property, stepType);
+
+                points.arraySize = index + 1;
+                points.GetArrayElementAtIndex(index).vector3Value = suggested;
+            }
+
+            string reason;
+            bool canEdit = UIAnimationPathEditor.CanEdit(property, stepType, out reason);
+            bool editing = UIAnimationPathEditor.IsEditing(property);
+
+            using (new EditorGUI.DisabledScope(!canEdit))
+            {
+                var content = new GUIContent(editing ? "Done Editing" : "Edit Path in Scene",
+                    canEdit
+                        ? "Shows this path in the Scene view with handles you can drag. Click a + to add a point, " +
+                          "Ctrl+click a point to remove it, Esc to finish."
+                        : reason);
+
+                bool toggled = GUI.Toggle(editRect, editing, content, EditorStyles.miniButton);
+
+                if (toggled != editing)
+                {
+                    if (toggled) UIAnimationPathEditor.Begin(property);
+                    else UIAnimationPathEditor.Stop();
+                }
+            }
+        }
+
+        private const float RemoveWidth = 20f;
+
+        private static void DrawVector(Rect rect, SerializedProperty value, bool twoDimensional)
+        {
+            if (twoDimensional)
+            {
+                Vector3 current = value.vector3Value;
+
+                EditorGUI.BeginChangeCheck();
+                Vector2 edited = EditorGUI.Vector2Field(rect, GUIContent.none, current);
+                if (EditorGUI.EndChangeCheck()) value.vector3Value = new Vector3(edited.x, edited.y, current.z);
+            }
+            else
+            {
+                EditorGUI.PropertyField(rect, value, GUIContent.none);
+            }
         }
 
         /// <summary>
@@ -242,7 +380,24 @@ namespace rmf_claude.DOTweenUI
                 }
             }
 
-            Field(ref layout, property.FindPropertyRelative("TargetPath"), "Target Path");
+            // A filled slot wins outright and the path is not even looked up, so a path sitting
+            // under one is dead text. Greyed out, with the tooltip saying why, rather than left
+            // looking live - that is how it reads as "a direct reference beats a path".
+            SerializedProperty path = property.FindPropertyRelative("TargetPath");
+            bool overridden = !inAsset && target.objectReferenceValue != null;
+
+            Rect pathRow = layout.Line();
+            if (layout.Draw)
+            {
+                using (new EditorGUI.DisabledScope(overridden))
+                {
+                    EditorGUI.PropertyField(pathRow, path, new GUIContent("Target Path",
+                        overridden
+                            ? "Ignored while the slot above is filled - a direct reference always wins. " +
+                              "Clear the slot to use a path instead.\n\n" + path.tooltip
+                            : path.tooltip));
+                }
+            }
         }
 
         private void DrawImpulseFields(ref Layout layout, SerializedProperty property, UIAnimationStepType stepType)
@@ -263,8 +418,12 @@ namespace rmf_claude.DOTweenUI
             if (UsesSnapping(stepType)) Field(ref layout, property.FindPropertyRelative("Snapping"));
         }
 
+        /// <summary>
+        /// One endpoint row: label, mode, value. When fromToggle is passed, the label is the FROM / TO
+        /// button that switches Use From, and it reads as whichever endpoint the row is showing.
+        /// </summary>
         private void DrawEndpoint(ref Layout layout, SerializedProperty property, string label, string modeField,
-            UIAnimationValueKind kind, UIAnimationStepType stepType, bool allowCurrent)
+            UIAnimationValueKind kind, UIAnimationStepType stepType, bool allowCurrent, SerializedProperty fromToggle)
         {
             Rect r = layout.Line();
             if (!layout.Draw) return;
@@ -276,7 +435,15 @@ namespace rmf_claude.DOTweenUI
             var modeRect = new Rect(r.x + LabelWidth, r.y, ModeWidth, r.height);
             var valueRect = new Rect(modeRect.xMax + 4f, r.y, Mathf.Max(40f, r.xMax - modeRect.xMax - 4f), r.height);
 
-            EditorGUI.LabelField(labelRect, new GUIContent(label, mode.tooltip));
+            if (fromToggle != null)
+            {
+                DrawFromToButton(new Rect(labelRect.x, labelRect.y, labelRect.width - 6f, labelRect.height),
+                    fromToggle, mode.tooltip);
+            }
+            else
+            {
+                EditorGUI.LabelField(labelRect, new GUIContent(label, mode.tooltip));
+            }
 
             if (allowCurrent)
             {
@@ -289,16 +456,33 @@ namespace rmf_claude.DOTweenUI
                 mode.enumValueIndex = index;
             }
 
-            if (kind == UIAnimationValueKind.Vector && IsTwoDimensional(stepType))
+            if (kind == UIAnimationValueKind.Vector)
             {
-                Vector3 current = value.vector3Value;
-                Vector2 edited = EditorGUI.Vector2Field(valueRect, GUIContent.none, current);
-                value.vector3Value = new Vector3(edited.x, edited.y, current.z);
+                DrawVector(valueRect, value, UIAnimationStep.IsTwoDimensional(stepType));
             }
             else
             {
                 EditorGUI.PropertyField(valueRect, value, GUIContent.none);
             }
+        }
+
+        /// <summary>
+        /// The FROM / TO switch for Use From. Wrapped in BeginProperty so it still shows a prefab
+        /// override in bold and offers Revert on right-click, exactly as the checkbox did.
+        /// </summary>
+        private static void DrawFromToButton(Rect rect, SerializedProperty useFrom, string modeTooltip)
+        {
+            var content = new GUIContent(useFrom.boolValue ? "FROM" : "TO",
+                useFrom.tooltip + "\n\n" + modeTooltip);
+
+            EditorGUI.BeginProperty(rect, content, useFrom);
+
+            if (GUI.Button(rect, content, EditorStyles.miniButton))
+            {
+                useFrom.boolValue = !useFrom.boolValue;
+            }
+
+            EditorGUI.EndProperty();
         }
 
         private static string ValueFieldName(string label, UIAnimationValueKind kind)
@@ -311,15 +495,6 @@ namespace rmf_claude.DOTweenUI
                 case UIAnimationValueKind.Color: return prefix + "Color";
                 default: return prefix + "Vector";
             }
-        }
-
-        private static bool IsTwoDimensional(UIAnimationStepType type)
-        {
-            return type == UIAnimationStepType.AnchoredPosition
-                || type == UIAnimationStepType.PunchAnchoredPosition
-                || type == UIAnimationStepType.SizeDelta
-                || type == UIAnimationStepType.OffsetMin
-                || type == UIAnimationStepType.OffsetMax;
         }
 
         private static bool UsesSnapping(UIAnimationStepType type)
@@ -343,6 +518,95 @@ namespace rmf_claude.DOTweenUI
             else EditorGUI.PropertyField(r, property, new GUIContent(label, property.tooltip));
         }
 
+        private const string Ellipsis = "…";
+
+        /// <summary>
+        /// The header, shortened with an ellipsis to fit the row instead of running off the side of
+        /// the Inspector. The full text becomes the tooltip whenever anything was cut.
+        ///
+        /// A Target Path gives way first, from its START: a long header is nearly always a deep
+        /// path, and the end of a path is the part that names the object. It drops whole segments
+        /// while it can, then characters. Only when the path is down to a stub - or the target is
+        /// a plain name - does the end of the header get cut.
+        /// </summary>
+        private static GUIContent FittedSummary(SerializedProperty property, UIAnimationStepType type,
+            UIAnimationStartMode start, float width)
+        {
+            string target = TargetName(property, type);
+            string full = Summary(property, type, start, target);
+
+            if (Fits(full, width)) return new GUIContent(full);
+
+            // Whole path segments first, longest first, so a cut lands on a '/' where it can:
+            // "…/HoverHighlight" says far more than "…overHighlight".
+            for (int slash = target.IndexOf('/'); slash >= 0; slash = target.IndexOf('/', slash + 1))
+            {
+                string candidate = Summary(property, type, start, Ellipsis + target.Substring(slash));
+                if (Fits(candidate, width)) return new GUIContent(candidate, full);
+            }
+
+            const int MinTarget = 4;
+
+            // Only a path gives way from the front. A plain object name reads from its start like
+            // everything else, so it is left whole and the end of the header is cut instead.
+            if (target.IndexOf('/') >= 0 && target.Length > MinTarget)
+            {
+                // Longest tail of the target that fits. Fitting is monotonic in length, so a binary
+                // search keeps this to a handful of measurements per repaint.
+                int low = MinTarget;
+                int high = target.Length - 1;
+                string best = null;
+
+                while (low <= high)
+                {
+                    int keep = (low + high) / 2;
+                    string candidate = Summary(property, type, start, Ellipsis + target.Substring(target.Length - keep));
+
+                    if (Fits(candidate, width))
+                    {
+                        best = candidate;
+                        low = keep + 1;
+                    }
+                    else
+                    {
+                        high = keep - 1;
+                    }
+                }
+
+                if (best != null) return new GUIContent(best, full);
+
+                target = Ellipsis + target.Substring(target.Length - MinTarget);
+            }
+
+            string stubbed = Summary(property, type, start, target);
+
+            int lo = 1;
+            int hi = stubbed.Length - 1;
+            int length = 1;
+
+            while (lo <= hi)
+            {
+                int mid = (lo + hi) / 2;
+
+                if (Fits(stubbed.Substring(0, mid).TrimEnd() + Ellipsis, width))
+                {
+                    length = mid;
+                    lo = mid + 1;
+                }
+                else
+                {
+                    hi = mid - 1;
+                }
+            }
+
+            return new GUIContent(stubbed.Substring(0, length).TrimEnd() + Ellipsis, full);
+        }
+
+        private static bool Fits(string text, float width)
+        {
+            return BoldFoldout.CalcSize(new GUIContent(text)).x <= width;
+        }
+
         /// <summary>
         /// The one-line header shown when a step is collapsed, which is how the list is read most
         /// of the time. Reads: AFTER   ButtonContainer (Anchored Position)   0.6s   Out Quart
@@ -351,7 +615,8 @@ namespace rmf_claude.DOTweenUI
         /// this row move", and the property is named rather than the component type so that two
         /// Rect steps on the same object stay distinguishable while collapsed.
         /// </summary>
-        private static string Summary(SerializedProperty property, UIAnimationStepType type, UIAnimationStartMode start)
+        private static string Summary(SerializedProperty property, UIAnimationStepType type, UIAnimationStartMode start,
+            string target)
         {
             string prefix = start == UIAnimationStartMode.WithPrevious ? "WITH" : "AFTER";
             SerializedProperty typeProperty = property.FindPropertyRelative("Type");
@@ -360,8 +625,6 @@ namespace rmf_claude.DOTweenUI
             string typeName = typeProperty.enumValueIndex >= 0
                 ? typeProperty.enumDisplayNames[typeProperty.enumValueIndex]
                 : type.ToString();
-
-            string target = TargetName(property, type);
 
             if (type == UIAnimationStepType.SetActive)
             {
@@ -388,6 +651,20 @@ namespace rmf_claude.DOTweenUI
                 {
                     SerializedProperty ease = property.FindPropertyRelative("EaseType");
                     if (ease.enumValueIndex >= 0) tail += "   " + ease.enumDisplayNames[ease.enumValueIndex];
+                }
+            }
+
+            // Only when the path actually takes effect, so the header never claims a path the
+            // step is not following - an empty point list still moves in a straight line.
+            if (UIAnimationStep.SupportsPath(type) && property.FindPropertyRelative("UseCustomPath").boolValue)
+            {
+                int count = property.FindPropertyRelative("Waypoints").arraySize;
+
+                if (count > 0)
+                {
+                    SerializedProperty shape = property.FindPropertyRelative("PathShape");
+                    string shapeName = shape.enumValueIndex >= 0 ? shape.enumDisplayNames[shape.enumValueIndex] : "";
+                    tail += "   " + shapeName + " path, " + count + (count == 1 ? " point" : " points");
                 }
             }
 

@@ -8,7 +8,17 @@ You define **named** animations (`Show`, `Hide`, `Hover`, `Attention`, `Transiti
 
 ## Dropping this into a new project
 
+Copy the whole `DOTweenAnimationPlayer` folder anywhere under `Assets/`. **Keep the `.meta` files** — they carry the script GUIDs, which is what lets a prefab you authored with this tool in one project still find its components when you drag it into the next one.
+
 Needs **DOTween** (Pro for edit-mode preview), **uGUI** and **TextMeshPro**. Unity 2021.3+.
+
+Everything lives in the namespace **`rmf_claude.DOTweenUI`**, so any script that plays an animation needs:
+
+```csharp
+using rmf_claude.DOTweenUI;
+```
+
+Nothing in the folder is left in the global namespace, so it cannot collide with a `UIAnimation` the host project already has.
 
 **After importing DOTween, run its setup panel** — `Tools → Demigiant → DOTween Utility Panel → Setup DOTween…`. This is not optional and not the same as importing DOTween: `DOAnchorPos`, `DOFade`, `DOColor` and `DOSizeDelta` don't live in `DOTween.dll`, they're generated into `DOTween/Modules/DOTweenModuleUI.cs` by that panel. Skip it and this folder won't compile, with errors pointing at *this* code rather than at the real cause.
 
@@ -23,6 +33,12 @@ Needs **DOTween** (Pro for edit-mode preview), **uGUI** and **TextMeshPro**. Uni
 | **UI Animation Player** | any UI GameObject | Holds the named animations. This is the one you need. |
 | **UI Material Instance** | an Image / RawImage / TMP text | Only needed for shader property animation. Gives the element its own material so tweens can never write to the shared project asset. |
 
+And one asset, which is entirely optional:
+
+| Asset | Create with | Why |
+|---|---|---|
+| **UI Animation Set** | `Create → UI Animation → Animation Set` | One authored library of animations that many players share. See [Sharing animations](#sharing-animations-between-objects). |
+
 ---
 
 ## Creating an animation
@@ -31,13 +47,15 @@ Needs **DOTween** (Pro for edit-mode preview), **uGUI** and **TextMeshPro**. Uni
 2. `+` on **Animations**, set **Name** to `Show`.
 3. `+` on that animation's **Steps**, pick a **Type**. The inspector collapses to only the fields that type uses.
 
-Each step's collapsed header reads like a timeline line: `AFTER   Logo (Scale)   0.25s   Out Back` — start mode, the object it drives, the property in parentheses, duration, ease.
+Each step's collapsed header reads like a timeline line: `AFTER   Logo (Scale)   0.25s   Out Back` — start mode, the object it drives, the property in parentheses, duration, ease. When it doesn't fit, a Target Path gives way from its front (`…/HoverHighlight`), since the end of a path is what names the object; otherwise the end is cut. Hover a shortened header for the full text.
 
 ### Step types
 
 `AnchoredPosition` · `LocalPosition` · `Scale` · `Rotation` · `CanvasGroupAlpha` · `GraphicColor` · `GraphicAlpha` · `MaterialFloat` · `MaterialColor` · `PunchScale` · `PunchAnchoredPosition` · `ShakeAnchoredPosition` · `SetActive` · `PlaySound` · `SizeDelta` · `OffsetMin` · `OffsetMax`
 
 `SetActive` and `PlaySound` are **instant** — they happen at a point in the timeline rather than over one, so they show a `Delay` but no `Duration` and no easing.
+
+The position and size steps can also follow a curved or zig-zag route to `To` instead of a straight line — see [Movement paths](#movement-paths).
 
 ### Sizing a RectTransform
 
@@ -64,7 +82,32 @@ All three new types take X/Y (Z is unused) and offer **Snapping** for whole-pixe
 
 Each step shows exactly one target slot, chosen by its type.
 
-**Leave it empty to target the GameObject the player is on.** Drag in a child or sibling to target something else. That's the whole system — no reflection, no name lookups.
+**Leave it empty to target the GameObject the player is on.** Drag in a child or sibling to target something else.
+
+Below the slot is an optional **Target Path**, and between them that's the whole system:
+
+| Filled in | What the step drives |
+|---|---|
+| The target slot | Exactly that object. Wins over everything below — the path isn't even looked up, and it's greyed out in the Inspector while the slot is filled. |
+| **Target Path** only | The object at that path relative to the player, e.g. `Panel/Icon`. |
+| Neither | The GameObject the player is on. This is the ordinary case. |
+
+Target Path uses `transform.Find`, so names must match exactly, and — usefully — **inactive objects are found**, which is what lets a `SetActive` step switch a hidden child back on.
+
+**`..` works, and it is what makes the common layout portable.** A very ordinary way to author this is to put the player on a child object called something like `Animations` and point its steps at the *button above it*. That target is not a descendant, so it looks unshareable — but `..` is the player's parent and `../../Sibling` is a sibling of it, chained as deep as you like:
+
+| Target Path | Resolves to |
+|---|---|
+| *(empty)* | the player's own GameObject |
+| `Panel/Icon` | a descendant |
+| `..` | the player's parent — the `Animations`-child layout |
+| `../../Other` | a sibling of the parent |
+
+Verified against Unity 6000.3: `Find("..")` returns the parent and `Find("../../Name")` walks up twice and back down. Note that `..` is resolved one segment at a time like any other, so `../Self` means "a child of my parent named `Self`", not "me".
+
+Paths are resolved **once**, at `Awake`, not per frame. A path that matches nothing logs **one** warning naming the player and the path, and the step is skipped (a `Play Sound` step falls back to the shared source instead, since its slot is optional anyway). It is deliberately not treated as "fall back to the player" — a mistyped `Panel/Icon` that silently scaled the whole panel would be far harder to spot than a step that visibly does nothing.
+
+An animation whose steps use only empty slots and paths is **portable**: it works on any object with the right children, which is what makes it worth sharing.
 
 - `GraphicColor` / `GraphicAlpha` take a **Graphic**, which covers `Image`, `RawImage`, legacy `Text` **and TextMeshProUGUI**. There is no separate TMP step type.
 - `AnchoredPosition`, `PunchAnchoredPosition`, `SizeDelta`, `OffsetMin` and `OffsetMax` show an X/Y field — Z is not used.
@@ -137,13 +180,62 @@ Each endpoint has a **mode**:
 |---|---|
 | `Absolute` | Use the value exactly as typed. |
 | `Baseline` | The element's resting value, captured at `Awake`, **plus** the typed value as an offset. |
-| `Current` | Whatever the value is when the tween starts, plus the typed value (DOTween relative). Only available on **To**, and only when **Use From** is off. |
+| `Current` | Whatever the value is when the tween starts, plus the typed value (DOTween relative). Only available on **To**, and only when there is no From. |
 
 **Use `To: Baseline` for anything that should land on its authored resting state.** Ten `Show`s in a row all land on exactly the same value, and if you later change the resting scale/position in the scene the animation follows automatically. This is what stops repeated Show/Hide from drifting.
 
-**Use From** (unticked by default) enables the FROM endpoint. **Apply From Values Immediately** (on by default, per animation) snaps every FROM value the moment the animation starts rather than when each step begins — this is what prevents an element flashing at full opacity through a delayed step before jumping to 0.
+The **FROM / TO** button at the start of the first endpoint row switches the FROM endpoint on and off (the field is still called `UseFrom` in code). It reads `TO` by default: one row, and the step travels to it from wherever the property already is. Click it and it reads `FROM`: that row becomes the starting value and a `To` row appears under it. It's the same control DOTween's own animation component uses, and it saves a row per step. **Apply From Values Immediately** (on by default, per animation) snaps every FROM value the moment the animation starts rather than when each step begins — this is what prevents an element flashing at full opacity through a delayed step before jumping to 0.
 
 Punch and shake steps have no FROM/TO — they show `Punch` / `Strength` instead, and ignore Ease (they carry their own).
+
+---
+
+## Movement paths
+
+By default a step moves in a straight line from its start to `To`. Tick **Use Custom Movement Path** (under `To`) and it travels through a list of points on the way instead — an arc for a card flying into a hand, a swoop, a zig-zag.
+
+```
+To                    Absolute   X 250    Y 150
+☑ Use Custom Movement Path
+Path Shape            Curved
+Point 1               Absolute   X -50    Y 200    [-]
+Point 2               Absolute   X 150    Y -100   [-]
+                      [ Add Point ]  [ Edit Path in Scene ]
+```
+
+This is **not** the ease. The path is *where* the object goes; the ease is still *how fast* it gets there — it controls how far along the path the step is, so `Out Quad` still decelerates into `To`, just along the curve. Speed along the path is constant apart from the ease, so a long segment and a short one are covered at the same rate.
+
+| Setting | Meaning |
+|---|---|
+| `Curved` | A smooth curve through every point (DOTween's Catmull-Rom path). The default. |
+| `Linear` | Straight lines between the points, with a sharp corner at each. |
+
+**Points follow `To`'s mode**, and the mode column beside each point shows which one that is. `Absolute` = as typed, `Baseline` = an offset from the resting value, `Current` = an offset from wherever the step starts. That's what makes a `To: Current` path portable — the same swoop works from wherever the object happens to be. The start of the path is the `From` value when the step has one, and otherwise wherever the object is when the step begins, exactly as without a path.
+
+Available on `AnchoredPosition`, `LocalPosition`, `SizeDelta`, `OffsetMin`, `OffsetMax` and `Scale` — every vector step except `Rotation` (DOTween rotates through a quaternion, not through the Euler values a path would pass through) and punch/shake (no endpoint to travel to). A path through `SizeDelta` or `Scale` is real and works — grow wide, then tall — it just can't be drawn in the Scene view.
+
+With the box ticked but no points, the step still moves in a straight line. Unticking the box keeps the points, so you can switch the path off to compare without losing it.
+
+### Editing a path in the Scene view
+
+On a position step, **Edit Path in Scene** draws the path where the object will actually travel, with handles:
+
+| Do | Get |
+|---|---|
+| Drag a numbered point | Moves it |
+| Drag `To` (green ring) or `From` (grey ring, when the step has a From) | Moves that endpoint |
+| Click a small **+** on a segment | Adds a point there |
+| Ctrl+click (Cmd on Mac) a numbered point | Removes it — it turns red while Ctrl is held over it |
+| `Esc`, **Done**, or the button again | Stops editing |
+
+Points move in the canvas plane, so a drag can't push one off the canvas in depth even in a perspective Scene view. Every drag is an ordinary Undo step, and it marks prefab overrides exactly as typing into the Inspector would. While editing, the move tool is hidden and clicks on empty space are ignored — the same way Unity's own *Edit Collider* works — so a missed handle can't move the object or select something else.
+
+Things worth knowing:
+
+- **The path is drawn from where the object sits now.** A `Baseline` endpoint is the resting value, and in edit mode that's simply the current value. A step without a From starts wherever the object is when the step runs, which the editor can only take to be where it is now — so a path in the *second* step of an animation is drawn from the object's resting place, not from where step one leaves it.
+- Only position steps can be edited in the Scene view, only on a player (a Shared set has no object to draw on), and not in play mode. The button disables itself and says why.
+- Selecting something else, entering play mode or recompiling ends the edit.
+- The drawn curve reproduces DOTween's own path maths, including its end conventions, and was checked against a real path tween: the object stays on the line.
 
 ---
 
@@ -169,7 +261,7 @@ A **PlaySound** step fires a clip at its point in the timeline. Put one first in
 2. An `AudioSource` on the GameObject the player is on.
 3. A shared 2D source the framework creates on first use.
 
-Step 3 is the point of the whole thing — you can add a click sound to forty buttons without adding forty AudioSources. It appears in the hierarchy as **UI Animation Audio** under *DontDestroyOnLoad*, is 2D (so the AudioListener's position is irrelevant), and has `ignoreListenerPause` on.
+Step 3 is the point of the whole thing — you can add a click sound to forty buttons without adding forty AudioSources. It appears in the hierarchy as **UI Animation Audio** under *DontDestroyOnLoad*, is 2D (so the AudioListener's position is irrelevant), and has `ignoreListenerPause` on. It only exists in play mode: out of it `UIAnimationAudio.Shared` is null, because `DontDestroyOnLoad` throws there *after* the object already exists, which would leave one in your open scene per call.
 
 **Pitch Variation** is `± ` on top of Pitch, rolled fresh each play. `0.08` is enough to stop a repeated click sounding like a machine gun.
 
@@ -236,6 +328,7 @@ This rewrites the steps once, at author time — there is no runtime reverse mod
 | Ease preset | **Unchanged.** A mirrored `Hide` keeps the `Out Quart` its `Show` was authored with |
 | Custom curve | **Unchanged** |
 | `To: Current` relative offset | The same offset negated |
+| Movement path points | Reversed, so the mirror walks the same path backwards. On a `To: Current` step they're also re-based onto the new start. A `Linear` path retraces exactly; a `Curved` one lands within a pixel or two, because DOTween shapes the two ends of a curve slightly differently |
 | `SetActive` on | `SetActive` off |
 | Punch / shake | Unchanged — they already return to where they started |
 | `PlaySound` | Keeps its clip. If a hide needs a different sound, swap it afterwards |
@@ -246,33 +339,77 @@ Everything outside the steps — `Loops`, `Loop Type`, `Play At Custom FPS`, `In
 
 ### The one case it can't get right
 
-A step with **Use From** off has no authored start, so there is nothing exact to mirror onto — its forward starting value was whatever the property happened to hold at the time.
+A step with no From (its button reads `TO`) has no authored start, so there is nothing exact to mirror onto — its forward starting value was whatever the property happened to hold at the time.
 
-For those steps the mirror does the best it can: `Use From` is switched **on** and set to the forward `To` (which *is* known), and `To` becomes `Baseline + 0`, the resting value. Then it **logs a warning naming each affected step**, because that second half is a guess. Click the warning to ping the object.
+For those steps the mirror does the best it can: the step's button is switched to **`FROM`**, set to the forward `To` (which *is* known), and `To` becomes `Baseline + 0`, the resting value. Then it **logs a warning naming each affected step**, because that second half is a guess. Click the warning to ping the object.
 
 That guess is right for an animation authored away from rest, and a no-op for one that already ends at rest — if a mirrored step does nothing, this is why, and the fix is to type the `To` you actually want.
 
 A single step's delay is also left alone. Delays are flipped *within* a joined group; a lone step's delay is a gap between groups, which can't be expressed on the step itself.
 
+A movement path has a similar limit. Its points follow `To`'s mode, and two cases change that mode: swapping a `From` and `To` authored in *different* modes, and the no-From case above when the old `To` was `Absolute` (the new `To` is `Baseline`). Converting the points between the two needs the resting value, which only exists at runtime, so the points are reversed but **read in a different space** — and the mirror logs a second warning naming those steps.
+
+---
+
+## Sharing animations between objects
+
+Right-click copy/paste moves an animation between objects, but it makes a **copy** — retune the original and the forty copies stay as they were. When that stops being reasonable, put the animation in a **UI Animation Set** instead.
+
+`Create → UI Animation → Animation Set` makes one. It holds the same list of animations, authored in the same inspector. Assign it to a player's **Shared** slot and that player can play everything in it.
+
+```
+UI Animation Player
+  Use Unscaled Time                ✔
+  Kill On Disable                  ✔
+  Shared                           Menu Panels (UI Animation Set)   ← the library
+  Animations                       0                                ← plus anything local
+```
+
+**Local animations win.** A player plays its own list first and then everything from the set whose name it hasn't already used, so one panel can override just the `Show` out of a shared set while still getting the shared `Hide`, `Press` and `Attention`. That override is the point of the feature, and both sides say when it happens — the player's inspector lists the names it overrides, and the asset's inspector warns when its Preview On player shadows one — because otherwise you can spend ten minutes tuning a curve that never plays.
+
+This is opt-in and it is not the default. Authoring straight onto the player is fewer clicks and is right for anything only one object does.
+
+### What an asset can't hold
+
+**A ScriptableObject cannot reference a scene object.** So the direct target slots are disabled when you author inside a set, with the reason shown under them. Use **Target Path** for anything relative — a child, or `..` for the parent — or leave the slot empty for the player's own GameObject. Those are enough to write a genuinely reusable animation, and needing them is what keeps a shared animation honest about being shared.
+
+If a step arrives with a target anyway — pasting one copied off a player carries live references — the asset clears it and says so, rather than letting it serialize to null at the next save with nothing said.
+
+### Previewing a set
+
+An animation set has nothing of its own to animate, so its inspector borrows a scene player: drop one into **Preview On** and the Play / Reset / Stop buttons run the ordinary player preview, with the same capture, restore, Undo entry and one-at-a-time rule. The player has to actually have the set in its Shared slot — it plays what its own merge produced, not what any asset happens to contain. With the slot empty, or holding a player that doesn't use the set, no buttons are drawn and a message says why.
+
+The Preview On slot is not saved into the asset. It couldn't be: a scene reference is the one thing an asset cannot keep, which is what the whole feature is working around.
+
+### Things worth knowing
+
+- Each player takes its **own copy** of the set's animations at `Awake`. It has to: resolved targets and the live sequence are per-object state, so two players sharing one asset would otherwise animate each other's objects. The cost is that **editing the set at runtime does not reach players that have already started** — and that assigning `Shared` from code after `Awake` does nothing.
+- Right-click copy/paste and the mirror commands work on a set exactly as they do on a player, so an animation can move between the two in either direction.
+- Two animations with the same name inside one set: the first wins, the second is unreachable, and the asset warns.
+
 ---
 
 ## Previewing
 
-The Inspector has **Play / Start / Stop** buttons per animation, and they work **without entering play mode**.
+The Inspector has **Play / Reset** buttons per animation, and they work **without entering play mode**. The list includes animations from the Shared set as well as local ones. Every button has a tooltip.
 
 | Button | Does |
 |---|---|
-| `Play` | Runs the animation on the real scene objects |
-| `Start` | Snaps just the `From` values on, so you can check a starting pose |
-| `Stop and Restore` | Ends the preview and puts every value back |
+| `Play` | Runs the animation on the real scene objects, carrying on from wherever the last preview left them |
+| `Reset` | Jumps to the animation's first frame without playing it: steps with a From snap to it, the rest stay put |
+| `Stop and Restore` | Ends the preview and puts every value back as it was before the first `Play` |
+
+**A preview runs like play mode does.** Play `OpenCredits`, then `CloseCredits`, and the close starts from where the open left things — which is the only way to judge a close animation, since its whole job is to start from the open state. Pressing `Play` on the **same** animation again starts it over from where it started last time, so iterating on one animation still replays it from the top. `Stop and Restore` goes all the way back to rest.
 
 Edit-mode preview animates **real objects in your open scene**, so it takes some care:
 
-- Values are **captured before it starts and restored when it stops**, so a preview leaves nothing behind. Stop it before you save.
+- Values are **captured before the first `Play` and restored when the preview ends**, so a preview leaves nothing behind — including a punch or shake stopped half way through.
 - The whole preview is **one Undo step** — `Ctrl+Z` is the escape hatch if something looks wrong.
-- Starting a new preview restores the previous one first. That matters: it's what stops `To: Baseline` endpoints drifting a little further every time you press `Play`.
-- Selecting another object ends the preview and restores.
-- **`Play Sound` steps are skipped**, and **`On Complete` events do not fire** — an `On Complete` is a UnityEvent wired to arbitrary game code, and a preview has no business running that outside play mode.
+- `To: Baseline` endpoints are always measured from rest, however many animations you chain, so they never drift.
+- Edits made in the Inspector between two `Play`s are picked up by the second one.
+- Selecting another object, **entering play mode** and a script recompile each end the preview and restore first. Entering play mode matters most: Unity backs the scene up as it stands, so an unrestored preview would come back out of play mode looking authored.
+- Previewing a different player ends the current preview first; only one player previews at a time.
+- **`Play Sound` steps are skipped** for the whole preview, and **`On Complete` events do not fire** — an `On Complete` is a UnityEvent wired to arbitrary game code, and a preview has no business running that outside play mode.
 
 In play mode the buttons just call the ordinary runtime API, so sound and `On Complete` behave normally.
 
@@ -290,7 +427,7 @@ Each animation has a free-text **`Notes`** box. Nothing reads it — it's for yo
 [SerializeField] private UIAnimationPlayer anim;
 
 anim.Play("Show");
-anim.Play("Hide", () => gameObject.SetActive(false));   // onComplete callback
+anim.Play("Hide", () => gameObject.SetActive(false));   // fires on a natural finish only
 
 // Play returns the live Sequence, so coroutines work:
 yield return anim.Play("Show").WaitForCompletion();
@@ -301,6 +438,7 @@ Full API:
 ```csharp
 Sequence Play(string name);
 Sequence Play(string name, Action onComplete);
+Sequence Play(string name, Action<UIAnimationEndReason> onEnd);   // always fires, exactly once
 
 void Stop(string name, bool complete = false);
 void StopAll(bool complete = false);
@@ -315,6 +453,42 @@ bool Has(string name);
 void ApplyFromState(string name);   // snap to an animation's FROM values without playing
 void CaptureBaseline();             // re-capture resting values at runtime
 ```
+
+### Knowing how an animation ended
+
+`Play(name, Action)` fires **only on a natural finish**. That's the right rule for an authored `On Complete`, and the wrong one for code:
+
+```csharp
+anim.Play("Hide", () => Destroy(gameObject));   // leaks the object if anything interrupts the hide
+```
+
+The third overload closes that. Its callback fires **exactly once, whatever happens** — never zero times, never twice — and says how it ended:
+
+```csharp
+anim.Play("Hide", reason =>
+{
+    if (reason == UIAnimationEndReason.Completed) Destroy(gameObject);
+    else                                          gameObject.SetActive(false);
+});
+```
+
+| `UIAnimationEndReason` | When |
+|---|---|
+| `Completed` | Ran to its natural end — or `Stop(name, complete: true)`, or an animation with nothing to play. The only reason that also fires `On Complete`. |
+| `Interrupted` | Another `Play` cut it short: the same animation restarting, or a different one with **Interrupt Others**. |
+| `Stopped` | `Stop`, `StopAll`, or a kill issued from outside the player such as `DOTween.KillAll`. |
+| `Disabled` | The GameObject or the player component was disabled while it was running. |
+| `Destroyed` | The player was destroyed while an animation was still live. |
+| `NotFound` | No animation of that name exists, so nothing played. A typo is a runtime failure like any other, and a caller waiting on a callback that never comes is what this overload exists to prevent. |
+
+Two things to know about it:
+
+- **Destroying an *enabled* object reports `Disabled`, not `Destroyed`.** Unity runs `OnDisable` before `OnDestroy` and gives no way to know a destroy is coming, so that's reported honestly rather than guessed at. `Destroyed` is what you get when **Kill On Disable** is off, or the object was already inactive. If you only care whether the animation finished, compare against `Completed` and ignore the rest.
+- **A kill from outside the player counts too.** `DOTween.KillAll()` or `DOTween.Clear()` elsewhere in the project resolves every armed callback as `Stopped` rather than leaving callers waiting.
+
+The plain `Action` overload and the authored `On Complete` UnityEvent are **unchanged** by any of this — still a natural finish only, because that's what "finished" means to someone who wired up an event in the Inspector. When both are present, `On Complete` runs first and `onEnd` last, so an authored event still gets to run before a caller's `Destroy`.
+
+One source-level wrinkle: `Play(name, null)` is now ambiguous between two overloads and needs a cast. `Play(name)` is unaffected.
 
 ### From UnityEvents
 
@@ -343,7 +517,7 @@ Chaining is safe even though the next animation's **Interrupt Others** tries to 
 private void Awake() => anim.ApplyFromState("Show");
 ```
 
-In play mode the inspector shows **Play / Start / Stop** buttons per animation so you can tune timing without a test script. `Start` snaps to the FROM values without playing.
+In play mode the inspector shows **Play / Reset / Stop** buttons per animation so you can tune timing without a test script. `Reset` snaps to the FROM values without playing — it's `ApplyFromState`.
 
 ---
 
@@ -352,7 +526,7 @@ In play mode the inspector shows **Play / Start / Stop** buttons per animation s
 **Read this bit.**
 
 - `Play(name)` kills that animation's own running sequence, and — because **Interrupt Others** is on by default — every *other* animation on the same player too. So `Play("Show"); Play("Hide");` leaves only `Hide` running. Untick **Interrupt Others** for something that should layer on top, like a looping pulse.
-- **An interrupted animation never fires its callback.** Neither the `Action` nor the UnityEvent. If the callback fired, the animation genuinely finished.
+- **An interrupted animation never fires its callback.** Neither the `Action` nor the UnityEvent. If the callback fired, the animation genuinely finished. The `Action<UIAnimationEndReason>` overload is the exception and always fires — see [Knowing how an animation ended](#knowing-how-an-animation-ended).
 - **Disabling the GameObject kills running animations** (`Kill On Disable`, on by default) — loops stop and callbacks do *not* fire. The next `Play` re-snaps its FROM values, so nothing ends up visually corrupted. Untick it to let animations run through a disable.
 - Sequences are linked to the GameObject with `KillOnDestroy` and also killed in `OnDestroy`, so destroying objects or changing scenes leaves no orphaned tweens.
 - **Use Unscaled Time** is on by default, so UI still animates while `Time.timeScale == 0`. Leave it on for pause menus.
@@ -395,8 +569,7 @@ UI Animation Player
                 Delay              0
                 Use Custom Curve   ☐
                 Ease               Out Quad
-                Use From           ✔
-                From   [Absolute]  0
+                FROM   [Absolute]  0
                 To     [Absolute]  1
 
             ▼ with  Scale  0.25s  Out Back
@@ -407,8 +580,7 @@ UI Animation Player
                 Delay              0
                 Use Custom Curve   ☐
                 Ease               Out Back
-                Use From           ✔
-                From   [Absolute]  X 0.8  Y 0.8  Z 0.8
+                FROM   [Absolute]  X 0.8  Y 0.8  Z 0.8
                 To     [Baseline]  X 0    Y 0    Z 0    ← lands on the authored scale
         Loops                      1
         Loop Type                  Restart
@@ -449,8 +621,7 @@ UI Animation Player
                 Delay              0
                 Use Custom Curve   ☐
                 Ease               In Out Quad
-                Use From           ✔
-                From   [Absolute]  0
+                FROM   [Absolute]  0
                 To     [Absolute]  1
         Loops                      1
         Loop Type                  Restart
@@ -487,9 +658,11 @@ Tip: once one step exists, `+` **duplicates the last step** rather than creating
 
 ## Reuse
 
-There are no ScriptableObject presets — steps hold scene references, so an asset-based preset would need a whole target-binding layer. Instead:
+In rough order of how much you're sharing:
 
-- **Right-click copy/paste** of a single animation or step, across objects — see [Copying animations and steps](#copying-animations-and-steps).
-- Leave targets empty (= self) and an animation is fully portable.
+- **Right-click copy/paste** of a single animation or step, across objects — see [Copying animations and steps](#copying-animations-and-steps). Makes a copy; edits don't propagate.
 - **Copy Component / Paste Component Values** to move a whole configured player to another element.
-- Prefab variants for anything genuinely shared.
+- **A UI Animation Set** when the same animation is on enough objects that retuning them by hand stops being reasonable — one authored copy, many players, and per-object override by name. See [Sharing animations](#sharing-animations-between-objects).
+- Prefab variants for anything genuinely shared as a whole object.
+
+What makes any of these work is portable authoring: leave targets empty (= the player's own GameObject) and reach everything else by **Target Path** — `Panel/Icon` down, `..` up — and the animation stops caring which object it's on.
