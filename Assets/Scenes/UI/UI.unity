@@ -302,7 +302,7 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
-      UseFrom: 0
+      UseFrom: 1
       FromMode: 0
       ToMode: 0
       FromVector: {x: 0, y: 0, z: 0}
@@ -321,6 +321,9 @@ MonoBehaviour:
       Elasticity: 1
       Randomness: 90
       Snapping: 0
+      UseCustomPath: 0
+      PathShape: 0
+      Waypoints: []
     Loops: 1
     LoopType: 0
     PlayAtCustomFPS: 0
@@ -572,11 +575,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2273892301035901233, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 20
+      value: 19.999998
       objectReference: {fileID: 0}
     - target: {fileID: 2534998845199127518, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -432.21924
+      value: -432.2164
       objectReference: {fileID: 0}
     - target: {fileID: 3387773570877236943, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: m_AnchorMax.y
@@ -616,7 +619,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4521477970590039483, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 411.99908
+      value: 411.9959
       objectReference: {fileID: 0}
     - target: {fileID: 5015500146245027157, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: m_Alpha
@@ -624,19 +627,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6101430367529679562, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 100.000175
+      value: 100.00048
       objectReference: {fileID: 0}
     - target: {fileID: 6101430367529679562, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 100.00017
+      value: 100.00047
       objectReference: {fileID: 0}
     - target: {fileID: 6101430367529679562, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -227.00009
+      value: -227.00052
       objectReference: {fileID: 0}
     - target: {fileID: 6101430367529679562, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 28.999966
+      value: 28.999792
       objectReference: {fileID: 0}
     - target: {fileID: 6649420340354653865, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: m_AnchorMax.y
@@ -679,6 +682,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7302015334328364316, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
+      propertyPath: Animations.Array.data[4].LoopType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7302015334328364316, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: Animations.Array.data[4].InterruptOthers
       value: 1
       objectReference: {fileID: 0}
@@ -697,6 +704,10 @@ PrefabInstance:
     - target: {fileID: 7302015334328364316, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: Animations.Array.data[4].Steps.Array.data[3].Type
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7302015334328364316, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
+      propertyPath: Animations.Array.data[1].Steps.Array.data[0].Start
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7302015334328364316, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: Animations.Array.data[4].Steps.Array.data[0].Pitch
@@ -917,6 +928,10 @@ PrefabInstance:
     - target: {fileID: 7302015334328364316, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: Animations.Array.data[4].Steps.Array.data[3].FromVector.y
       value: -648
+      objectReference: {fileID: 0}
+    - target: {fileID: 7302015334328364316, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
+      propertyPath: Animations.Array.data[0].Steps.Array.data[3].UseCustomPath
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7302015334328364316, guid: aa1653fd1098dbc4d867dc42763d301f, type: 3}
       propertyPath: Animations.Array.data[4].Steps.Array.data[2].GraphicTarget
