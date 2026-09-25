@@ -46,26 +46,32 @@ namespace rmf_claude.DOTweenUI
                  "that move by an amount, and does nothing useful on one that fades to a fixed 1.")]
         public LoopType LoopType = LoopType.Restart;
 
+        // Drawn with FPS beside it on the same row, shown while this is ticked.
+        [UIAnimationInlineValue("FPS")]
         [Tooltip("Play in discrete frames instead of smoothly, for a stop-motion or flipbook look. " +
                  "Every step still starts and lands on exactly the same values - only the movement " +
-                 "in between is stepped.")]
+                 "in between is stepped. Tick it and type the frame rate in the box beside it.")]
         public bool PlayAtCustomFPS;
 
-        [UIAnimationShowIf("PlayAtCustomFPS")]
+        // Shown beside Play At Custom FPS rather than as a row of its own.
+        [HideInInspector]
         [Tooltip("Frames per second to step at. 12 is the classic hand-drawn look, 24 is film, " +
                  "6 to 8 is very chunky. Setting it above the display refresh rate does nothing.\n" +
                  "Every step shares one frame grid, so staggered steps tick together.\n" +
                  "Punch and shake steps are never stepped - they drive their own oscillation.")]
         public float FPS = 12f;
 
-        [UIAnimationShowIf("SnapPerStep", false)]
+        // Drawn together with SnapPerStep as one DISABLED / ALL STEPS / PER STEP button.
+        [UIAnimationSnapMode("SnapPerStep")]
         [Tooltip("Round positions and sizes to whole units every frame, on every step that moves or " +
                  "resizes something. Useful for pixel art; causes visible stepping on a slow move otherwise.\n\n" +
                  "Scale and rotation are never snapped - DOTween has no option for them.")]
         public bool Snapping;
 
+        // Shown through Snapping's button rather than as a box of its own.
+        [HideInInspector]
         [Tooltip("Choose snapping step by step instead. Each position or size step then shows its own " +
-                 "Snapping box, and the animation-wide one is hidden and ignored.\n\n" +
+                 "Snapping box, and the animation-wide Snapping is ignored.\n\n" +
                  "A step whose own box is ticked always snaps, so its box stays visible either way.")]
         public bool SnapPerStep;
 

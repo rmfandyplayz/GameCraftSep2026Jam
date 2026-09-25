@@ -54,6 +54,37 @@ namespace rmf_claude.DOTweenUI
             }
         }
 
+        private static GUIStyle dimFoldout;
+
+        /// <summary>
+        /// The bold header with its text faded, for a step that will do nothing as authored - so a
+        /// collapsed list shows which rows are dead before anything is opened. Only the text fades;
+        /// the arrow is a background image, and the warning icon beside it stays at full strength.
+        /// </summary>
+        private static GUIStyle DimFoldout
+        {
+            get
+            {
+                if (dimFoldout == null)
+                {
+                    dimFoldout = new GUIStyle(BoldFoldout);
+
+                    foreach (GUIStyleState state in new[]
+                             {
+                                 dimFoldout.normal, dimFoldout.onNormal, dimFoldout.hover, dimFoldout.onHover,
+                                 dimFoldout.focused, dimFoldout.onFocused, dimFoldout.active, dimFoldout.onActive,
+                             })
+                    {
+                        Color color = state.textColor;
+                        color.a *= 0.45f;
+                        state.textColor = color;
+                    }
+                }
+
+                return dimFoldout;
+            }
+        }
+
         /// <summary>Tracks vertical layout. Run once to measure, once to draw.</summary>
         private struct Layout
         {
@@ -63,21 +94,62 @@ namespace rmf_claude.DOTweenUI
 
             public Rect Line()
             {
-                Rect r = new Rect(Area.x, Area.y + Used, Area.width, EditorGUIUtility.singleLineHeight);
-                Used += EditorGUIUtility.singleLineHeight + Pad;
+                return Lines(EditorGUIUtility.singleLineHeight);
+            }
+
+            /// <summary>A row of any height, for text that wraps.</summary>
+            public Rect Lines(float height)
+            {
+                Rect r = new Rect(Area.x, Area.y + Used, Area.width, height);
+                Used += height + Pad;
                 return r;
             }
         }
 
+        /// <summary>
+        /// How much narrower than the whole view each step was last drawn, by property path.
+        ///
+        /// GetPropertyHeight is not told the width it will be drawn at, and the warning row wraps, so
+        /// its height depends on that width. EditorGUIUtility.currentViewWidth IS live there, though,
+        /// and everything between the view's edge and a step - the Inspector's margins, the lists'
+        /// drag handles and padding - is a fixed number of points. So the measuring pass lays out at
+        /// the view width minus the margin seen on the last draw, and matches the draw to the point,
+        /// including while the window is resized. The first measure of a new view guesses; the list
+        /// re-measures on its first repaint (a changed list rect invalidates its height cache), by
+        /// which time a draw has recorded the real margin.
+        /// </summary>
+        private static readonly Dictionary<string, float> viewMargins = new Dictionary<string, float>();
+
+        private const float GuessedViewMargin = 90f;
+
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            Layout layout = new Layout { Area = new Rect(0f, 0f, 100f, 0f), Draw = false };
+            float margin;
+            if (!viewMargins.TryGetValue(property.propertyPath, out margin)) margin = GuessedViewMargin;
+
+            float width = Mathf.Max(100f, EditorGUIUtility.currentViewWidth - margin);
+
+            Layout layout = new Layout { Area = new Rect(0f, 0f, width, 0f), Draw = false };
             Render(ref layout, property);
             return layout.Used;
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            // Layout events hand over a dummy rect; only a real one says how wide the step is. A margin
+            // that changed means this pass was measured against a stale one, so draw again.
+            if (Event.current.type != EventType.Layout)
+            {
+                float margin = EditorGUIUtility.currentViewWidth - position.width;
+                float known;
+
+                if (!viewMargins.TryGetValue(property.propertyPath, out known) || !Mathf.Approximately(known, margin))
+                {
+                    viewMargins[property.propertyPath] = margin;
+                    HandleUtility.Repaint();
+                }
+            }
+
             DrawBand(position, property);
 
             EditorGUI.BeginProperty(position, label, property);
@@ -89,8 +161,8 @@ namespace rmf_claude.DOTweenUI
         }
 
         // Faint enough to leave the list's own selection highlight readable through it.
-        private static readonly Color BandDark = new Color(1f, 1f, 1f, 0.04f);
-        private static readonly Color BandLight = new Color(0f, 0f, 0f, 0.05f);
+        private static readonly Color BandDark = new Color(1f, 1f, 1f, 0.06f);
+        private static readonly Color BandLight = new Color(0f, 0f, 0f, 0.06f);
 
         /// <summary>
         /// Shades every other step, like spreadsheet rows, so where one expanded step ends and the
@@ -108,12 +180,21 @@ namespace rmf_claude.DOTweenUI
             if (open < 0 || !int.TryParse(path.Substring(open + 1, path.Length - open - 2), out index)) return;
             if (index % 2 == 0) return;
 
-            EditorGUI.DrawRect(new Rect(position.x - BandBleed, position.y - 1f, position.width + BandBleed, position.height + 1f),
+            EditorGUI.DrawRect(
+                new Rect(position.x - BandLeft, position.y - BandTop, position.width + BandLeft + BandRight, position.height),
                 EditorGUIUtility.isProSkin ? BandDark : BandLight);
         }
 
-        // How far the band reaches left of the element rect, under the list's drag handle.
-        private const float BandBleed = 4f;
+        // How far the band reaches past the rect the list hands this drawer, so it fills exactly the
+        // row the list's own selection highlight does. From ReorderableList's source (Unity 6000.3):
+        // the list keeps its drag handle (20) and a foldout margin (8) to the left of the rect and its
+        // padding (6) to the right, and it hands over the row's FULL height - the step's own height
+        // plus its 2-point element padding - moved down by half that padding. So the band starts 1
+        // point above the rect and is exactly as tall as it; any taller runs into the next row, which
+        // an earlier guess of 2 above and 4 below visibly did.
+        private const float BandLeft = 28f;
+        private const float BandRight = 6f;
+        private const float BandTop = 1f;
 
         private void Render(ref Layout layout, SerializedProperty property)
         {
@@ -125,12 +206,34 @@ namespace rmf_claude.DOTweenUI
             var stepType = (UIAnimationStepType)type.intValue;
             var startMode = (UIAnimationStartMode)start.intValue;
 
+            // Only looked for when it will be shown: always on a drawn header, and on the measuring
+            // pass only when the step is open and the warning row takes up height.
+            string problem = layout.Draw || property.isExpanded
+                ? UIAnimationTargets.ProblemOf(property, stepType, UIAnimationTargets.OwnerOf(property.serializedObject))
+                : null;
+
+            // A step that will do nothing. Every problem is one, except a sound whose Target Path
+            // misses - that still plays, on the shared source, so it is warned about but left alone.
+            bool inert = problem != null
+                && (stepType != UIAnimationStepType.PlaySound || property.FindPropertyRelative("Clip").objectReferenceValue == null);
+
             Rect header = layout.Line();
             if (layout.Draw)
             {
-                property.isExpanded = EditorGUI.Foldout(header, property.isExpanded,
-                    FittedSummary(property, stepType, startMode, EditorGUI.IndentedRect(header).width),
-                    true, BoldFoldout);
+                float width = EditorGUI.IndentedRect(header).width - (problem != null ? IconWidth : 0f);
+                GUIContent summary = FittedSummary(property, stepType, startMode, width);
+
+                property.isExpanded = EditorGUI.Foldout(header, property.isExpanded, summary, true,
+                    inert ? DimFoldout : BoldFoldout);
+
+                // A collapsed step still says something is wrong with it: a warning icon at the end of
+                // the row, where it lines up down the list. Drawn separately because the foldout style
+                // does not draw a content image.
+                if (problem != null)
+                {
+                    var iconRect = new Rect(header.xMax - IconWidth + 2f, header.y + 1f, 16f, 16f);
+                    GUI.Label(iconRect, new GUIContent(WarningIcon, problem), GUIStyle.none);
+                }
             }
 
             if (!property.isExpanded) return;
@@ -140,26 +243,41 @@ namespace rmf_claude.DOTweenUI
             Rect typeRow = layout.Line();
             if (layout.Draw) DrawTypePopup(typeRow, type);
 
-            Field(ref layout, start);
+            Rect startRow = layout.Line();
+            if (layout.Draw) DrawStartButton(startRow, start);
 
             DrawTarget(ref layout, property, stepType);
 
-            bool impulse = UIAnimationStep.IsImpulse(stepType);
+            if (problem != null) DrawProblem(ref layout, problem);
 
+            // Everything that only matters once the step can reach what it drives is greyed out while
+            // it cannot, so a dead step reads as dead rather than as a normal one with a warning on it.
+            // What fixes it stays live: Type, Start, the target and Target Path above, and the Clip or
+            // Shader Property below, which are drawn before the greyed part starts. DisabledScopes
+            // nest by AND-ing, so nothing inside one could be switched back on.
             if (stepType == UIAnimationStepType.SetActive)
             {
-                Field(ref layout, property.FindPropertyRelative("ActiveValue"), "Set Active To");
-                Field(ref layout, property.FindPropertyRelative("Delay"));
+                using (new EditorGUI.DisabledScope(inert))
+                {
+                    Field(ref layout, property.FindPropertyRelative("ActiveValue"), "Set Active To");
+                    Field(ref layout, property.FindPropertyRelative("Delay"));
+                }
+
                 return;
             }
 
             if (stepType == UIAnimationStepType.PlaySound)
             {
                 Field(ref layout, property.FindPropertyRelative("Clip"));
-                Field(ref layout, property.FindPropertyRelative("Volume"));
-                Field(ref layout, property.FindPropertyRelative("Pitch"));
-                Field(ref layout, property.FindPropertyRelative("PitchVariation"), "Pitch Variation");
-                Field(ref layout, property.FindPropertyRelative("Delay"));
+
+                using (new EditorGUI.DisabledScope(inert))
+                {
+                    Field(ref layout, property.FindPropertyRelative("Volume"));
+                    Field(ref layout, property.FindPropertyRelative("Pitch"));
+                    Field(ref layout, property.FindPropertyRelative("PitchVariation"), "Pitch Variation");
+                    Field(ref layout, property.FindPropertyRelative("Delay"));
+                }
+
                 return;
             }
 
@@ -167,6 +285,17 @@ namespace rmf_claude.DOTweenUI
             {
                 Field(ref layout, property.FindPropertyRelative("ShaderProperty"));
             }
+
+            using (new EditorGUI.DisabledScope(inert))
+            {
+                RenderTween(ref layout, property, stepType);
+            }
+        }
+
+        /// <summary>Timing, ease, endpoints and the rest - everything a tweening step has below its target.</summary>
+        private void RenderTween(ref Layout layout, SerializedProperty property, UIAnimationStepType stepType)
+        {
+            bool impulse = UIAnimationStep.IsImpulse(stepType);
 
             Field(ref layout, property.FindPropertyRelative("Duration"));
             Field(ref layout, property.FindPropertyRelative("Delay"));
@@ -196,12 +325,13 @@ namespace rmf_claude.DOTweenUI
             // its own - the way DOTween's own animation component does it - so a step without a
             // From is one row, not two. "Current" on the TO side means DOTween relative, which is
             // contradictory with an explicit FROM value, so it is only offered when there is none.
+            // On the FROM side it never meant anything useful - see DrawEndpoint.
             UIAnimationValueKind kind = UIAnimationStep.ValueKindOf(stepType);
             SerializedProperty useFrom = property.FindPropertyRelative("UseFrom");
 
             if (useFrom.boolValue)
             {
-                DrawEndpoint(ref layout, property, "From", "FromMode", kind, stepType, true, useFrom);
+                DrawEndpoint(ref layout, property, "From", "FromMode", kind, stepType, false, useFrom);
                 DrawEndpoint(ref layout, property, "To", "ToMode", kind, stepType, false, null);
             }
             else
@@ -247,8 +377,8 @@ namespace rmf_claude.DOTweenUI
         }
 
         /// <summary>
-        /// The movement path: one checkbox, and everything else only once it is ticked, because a
-        /// path is the exception rather than the rule and should cost nothing to read past.
+        /// The movement path: one dropdown, and everything else only once it is on, because a path
+        /// is the exception rather than the rule and should cost nothing to read past.
         ///
         /// Points are drawn as rows of their own rather than as Unity's list control, so they line
         /// up under From/To, show X/Y on the rect views, and can say which space they are in - the
@@ -258,14 +388,10 @@ namespace rmf_claude.DOTweenUI
         {
             SerializedProperty usePath = property.FindPropertyRelative("UseCustomPath");
 
-            // An ordinary checkbox row, lined up with every other box on the step. "Custom Path" rather
-            // than anything longer because the label column is narrow this deep in the list, and
-            // "Use Custom Path" is already clipped in a narrow Inspector.
-            Field(ref layout, usePath, "Custom Path");
+            Rect pathRow = layout.Line();
+            if (layout.Draw) DrawPathPopup(pathRow, usePath, property.FindPropertyRelative("PathShape"));
 
             if (!usePath.boolValue) return;
-
-            Field(ref layout, property.FindPropertyRelative("PathShape"), "Path Shape");
 
             SerializedProperty points = property.FindPropertyRelative("Waypoints");
             SerializedProperty toMode = property.FindPropertyRelative("ToMode");
@@ -350,6 +476,49 @@ namespace rmf_claude.DOTweenUI
         }
 
         private const float RemoveWidth = 20f;
+
+        private static readonly GUIContent[] PathOptions =
+        {
+            new GUIContent("Disabled"), new GUIContent("Curved"), new GUIContent("Linear"),
+        };
+
+        private const string PathTooltip =
+            "Disabled = a straight line from where the step starts to To.\n" +
+            "Curved = a smooth curve through the points below, then To.\n" +
+            "Linear = straight lines between the points, with a sharp corner at each one.\n\n" +
+            "The ease still applies - it controls how far along the path the step is, so an Out ease " +
+            "decelerates into To along the curve.";
+
+        /// <summary>
+        /// The Custom Path row: Disabled, or the shape to follow. Two stored fields underneath, exactly
+        /// as before - UseCustomPath and PathShape - so choosing Disabled leaves the shape and the
+        /// points alone for when the path is turned back on.
+        ///
+        /// The row belongs to whichever field decides what it shows, the bool while the path is off or
+        /// when that is what a prefab instance overrides, so bold and Revert follow what you can see.
+        /// </summary>
+        private static void DrawPathPopup(Rect rect, SerializedProperty usePath, SerializedProperty shape)
+        {
+            SerializedProperty bound = !usePath.boolValue || usePath.prefabOverride ? usePath : shape;
+
+            GUIContent label = EditorGUI.BeginProperty(rect, new GUIContent("Custom Path", PathTooltip), bound);
+
+            bool mixed = usePath.hasMultipleDifferentValues || (usePath.boolValue && shape.hasMultipleDifferentValues);
+            int shown = usePath.boolValue ? 1 + Mathf.Clamp(shape.intValue, 0, PathOptions.Length - 2) : 0;
+
+            EditorGUI.showMixedValue = mixed;
+            EditorGUI.BeginChangeCheck();
+            int chosen = EditorGUI.Popup(rect, label, shown, PathOptions);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                usePath.boolValue = chosen > 0;
+                if (chosen > 0) shape.intValue = chosen - 1;
+            }
+
+            EditorGUI.showMixedValue = false;
+            EditorGUI.EndProperty();
+        }
 
         private static void DrawVector(Rect rect, SerializedProperty value, bool twoDimensional)
         {
@@ -461,6 +630,42 @@ namespace rmf_claude.DOTweenUI
             }
         }
 
+        private const float IconWidth = 18f;
+
+        private static readonly Color ProblemTint = new Color(1f, 0.72f, 0.1f, 0.13f);
+
+        private static GUIStyle problemStyle;
+
+        private static Texture WarningIcon
+        {
+            get { return EditorGUIUtility.FindTexture("console.warnicon.sml"); }
+        }
+
+        /// <summary>
+        /// The warning row under the target, for a step that will do nothing as authored - the Type
+        /// asks for a component the target does not have, a Target Path finds nothing, and so on. It
+        /// wraps onto as many lines as the text needs, measured at the width the step will be drawn
+        /// at (see viewMargins), so nothing is cut off.
+        /// </summary>
+        private static void DrawProblem(ref Layout layout, string problem)
+        {
+            if (problemStyle == null)
+            {
+                problemStyle = new GUIStyle(EditorStyles.label) { wordWrap = true };
+            }
+
+            var text = new GUIContent(problem);
+            float textWidth = Mathf.Max(1f, layout.Area.width - IconWidth - 2f);
+            Rect r = layout.Lines(Mathf.Max(EditorGUIUtility.singleLineHeight, problemStyle.CalcHeight(text, textWidth)));
+            if (!layout.Draw) return;
+
+            EditorGUI.DrawRect(r, ProblemTint);
+
+            // The icon gets a rect of its own, level with the first line.
+            GUI.Label(new Rect(r.x + 2f, r.y + 1f, 16f, 16f), WarningIcon, GUIStyle.none);
+            GUI.Label(new Rect(r.x + IconWidth + 2f, r.y, textWidth, r.height), text, problemStyle);
+        }
+
         private void DrawImpulseFields(ref Layout layout, SerializedProperty property, UIAnimationStepType stepType)
         {
             switch (stepType)
@@ -534,7 +739,9 @@ namespace rmf_claude.DOTweenUI
 
             var labelRect = new Rect(r.x, r.y, LabelWidth, r.height);
             var modeRect = new Rect(r.x + LabelWidth, r.y, ModeWidth, r.height);
-            var valueRect = new Rect(modeRect.xMax + 4f, r.y, Mathf.Max(40f, r.xMax - modeRect.xMax - 4f), r.height);
+            var useRect = new Rect(r.xMax - UseWidth, r.y, UseWidth, r.height);
+            var valueRect = new Rect(modeRect.xMax + 4f, r.y,
+                Mathf.Max(40f, useRect.x - 2f - (modeRect.xMax + 4f)), r.height);
 
             if (fromToggle != null)
             {
@@ -545,7 +752,14 @@ namespace rmf_claude.DOTweenUI
                 EditorGUI.LabelField(labelRect, new GUIContent(label, ToTooltip));
             }
 
-            DrawModePopup(modeRect, mode, allowCurrent);
+            // Current on a FROM row makes the step ignore its From value and start from wherever it
+            // already is - the same as the button reading TO, and not the offset the word promises. It
+            // is not offered, but a step that already stores it keeps seeing it, so nothing is rewritten.
+            bool isFrom = label == "From";
+            bool legacyCurrent = isFrom && !mode.hasMultipleDifferentValues
+                && mode.intValue == (int)UIAnimationEndpointMode.Current;
+
+            DrawModePopup(modeRect, mode, allowCurrent || legacyCurrent, ModeTooltip(isFrom, allowCurrent, legacyCurrent));
 
             if (kind == UIAnimationValueKind.Vector)
             {
@@ -555,25 +769,346 @@ namespace rmf_claude.DOTweenUI
             {
                 EditorGUI.PropertyField(valueRect, value, GUIContent.none);
             }
+
+            DrawUseCurrent(useRect, property, stepType, mode, value, isFrom);
+        }
+
+        // ---------------------------------------------------------------- Use Current
+
+        private const float UseWidth = 20f;
+
+        private static GUIStyle useStyle;
+
+        private const string UseTooltip =
+            "Use Current Value: copies what the target holds right now into this field.\n\n" +
+            "To pose it: press Reset (or Play) above, then move, resize or recolour the object and click " +
+            "this. Selecting the object to pose it keeps the preview running - come back here to click. " +
+            "Stop and Restore puts the object back afterwards, and the value you copied stays.";
+
+        private const string NeedsPreview =
+            "\n\nOutside a preview, wherever the object sits IS its resting value, so this would always " +
+            "store 0. Press Reset (or Play) above first, change the object - selecting it to do that keeps " +
+            "the preview running - then come back and click. Stop and Restore puts it back.";
+
+        /// <summary>
+        /// The record button at the end of a From or To row. It reads the step's target and writes what it
+        /// holds into the row, converted to the row's mode - as typed for Absolute, the difference from
+        /// the resting value for Baseline, the difference from where the step starts for Current - so
+        /// the step then lands exactly where the object was.
+        ///
+        /// Baseline and Current need to know the resting value, and out of a preview the resting value
+        /// is simply where the object is, which would make every reading 0. They are enabled only while
+        /// a preview runs, where the rest was captured before anything moved - which is also what lets
+        /// Stop and Restore undo the posing afterwards.
+        /// </summary>
+        private static void DrawUseCurrent(Rect rect, SerializedProperty step, UIAnimationStepType type,
+            SerializedProperty mode, SerializedProperty value, bool isFrom)
+        {
+            if (useStyle == null)
+            {
+                useStyle = new GUIStyle(EditorStyles.miniButton) { padding = new RectOffset(1, 1, 1, 1) };
+            }
+
+            Vector4 reading = Vector4.zero;
+            string reason;
+            bool available;
+
+            if (mode.hasMultipleDifferentValues)
+            {
+                available = false;
+                reason = "The selected steps use different modes.";
+            }
+            else
+            {
+                available = TryReadCurrent(step, type, (UIAnimationEndpointMode)mode.intValue, isFrom, out reading, out reason);
+            }
+
+            // Unity's own record dot: this captures a pose the way keying does in the Animation window,
+            // and it cannot be mistaken for the screen-colour eyedropper a colour field already has.
+            Texture icon = EditorGUIUtility.FindTexture(EditorGUIUtility.isProSkin ? "d_Animation.Record" : "Animation.Record");
+
+            using (new EditorGUI.DisabledScope(!available))
+            {
+                if (GUI.Button(rect, new GUIContent(icon), useStyle)) WriteReading(value, type, reading);
+            }
+
+            // Over the button rather than on it, so the reason still shows while it is disabled.
+            GUI.Label(rect, new GUIContent(string.Empty, available ? UseTooltip + ModeLine(mode) : reason), GUIStyle.none);
+        }
+
+        private static string ModeLine(SerializedProperty mode)
+        {
+            switch ((UIAnimationEndpointMode)mode.intValue)
+            {
+                case UIAnimationEndpointMode.Baseline: return "\n\nBaseline: stored as the difference from the resting value.";
+                case UIAnimationEndpointMode.Current: return "\n\nCurrent: stored as the difference from where the step starts.";
+                default: return "\n\nAbsolute: copied as it is.";
+            }
+        }
+
+        /// <summary>What the button would write into this row, or false and why not.</summary>
+        private static bool TryReadCurrent(SerializedProperty step, UIAnimationStepType type, UIAnimationEndpointMode mode,
+            bool isFrom, out Vector4 reading, out string reason)
+        {
+            reading = Vector4.zero;
+            SerializedObject serialized = step.serializedObject;
+
+            UIAnimationPlayer owner = UIAnimationTargets.OwnerOf(serialized);
+            if (owner == null)
+            {
+                reason = serialized.isEditingMultipleObjects
+                    ? "Select a single object to copy values from its scene."
+                    : "A shared animation set has no scene to read from. Set Preview On below, and this reads " +
+                      "from that player's objects.";
+                return false;
+            }
+
+            if (isFrom && mode == UIAnimationEndpointMode.Current)
+            {
+                reason = "This From is set to Current, which ignores the value here.";
+                return false;
+            }
+
+            string problem;
+            Object target = UIAnimationTargets.Resolve(type,
+                step.FindPropertyRelative(UIAnimationTargets.SlotField(type)).objectReferenceValue,
+                step.FindPropertyRelative("TargetPath").stringValue, owner.gameObject, out problem);
+
+            Vector4 live;
+            if (target == null || !ReadLive(type, target, step, out live))
+            {
+                reason = problem ?? "This step has nothing to read a value from.";
+                return false;
+            }
+
+            // A Current To only means "an offset from the start" on a step with no From; with one,
+            // playback reads it as the number typed, exactly like Absolute.
+            bool relative = mode == UIAnimationEndpointMode.Current && !step.FindPropertyRelative("UseFrom").boolValue;
+
+            if (mode == UIAnimationEndpointMode.Absolute || (mode == UIAnimationEndpointMode.Current && !relative))
+            {
+                reading = live;
+                reason = null;
+                return true;
+            }
+
+            if (!UIAnimationPreview.IsPreviewing(owner))
+            {
+                reason = (relative
+                    ? "Current stores the difference from where the step starts."
+                    : "Baseline stores the difference from the resting value.") + NeedsPreview;
+                return false;
+            }
+
+            Vector4 origin;
+            if (relative ? !TryReadStart(step, type, owner, out origin) : !TryReadRest(type, target, out origin))
+            {
+                reason = (relative ? "Current" : "Baseline") + " cannot be read back for this type of step. " +
+                         "Switch the dropdown to Absolute to copy the value as it is.";
+                return false;
+            }
+
+            reading = live - origin;
+            if (type == UIAnimationStepType.Rotation) reading = WrapAngles(reading);
+
+            reason = null;
+            return true;
+        }
+
+        /// <summary>The value the target holds right now, in the step's own terms.</summary>
+        private static bool ReadLive(UIAnimationStepType type, Object target, SerializedProperty step, out Vector4 value)
+        {
+            value = Vector4.zero;
+
+            var rect = target as RectTransform;
+            if (rect != null && UIAnimationRectState.Covers(type))
+            {
+                Vector3 read = UIAnimationRectState.Of(rect).Read(type);
+
+                // Rotation reads back as 0 to 360, so -10 would come out as 350 - and a Rotation step
+                // turns the long way round to 350. Nearest to zero is what was almost always meant.
+                value = type == UIAnimationStepType.Rotation ? WrapAngles(read) : (Vector4)read;
+                return true;
+            }
+
+            var group = target as CanvasGroup;
+            if (group != null && type == UIAnimationStepType.CanvasGroupAlpha)
+            {
+                value = new Vector4(group.alpha, 0f, 0f, 0f);
+                return true;
+            }
+
+            var graphic = target as UnityEngine.UI.Graphic;
+            if (graphic != null && type == UIAnimationStepType.GraphicColor)
+            {
+                value = graphic.color;
+                return true;
+            }
+
+            if (graphic != null && type == UIAnimationStepType.GraphicAlpha)
+            {
+                value = new Vector4(graphic.color.a, 0f, 0f, 0f);
+                return true;
+            }
+
+            var instance = target as UIMaterialInstance;
+            if (instance != null)
+            {
+                Material material = UIAnimationTargets.SourceMaterialOf(instance);
+                string property = step.FindPropertyRelative("ShaderProperty").stringValue;
+                if (material == null || string.IsNullOrEmpty(property) || !material.HasProperty(property)) return false;
+
+                if (type == UIAnimationStepType.MaterialFloat)
+                {
+                    value = new Vector4(material.GetFloat(property), 0f, 0f, 0f);
+                    return true;
+                }
+
+                if (type == UIAnimationStepType.MaterialColor)
+                {
+                    value = material.GetColor(property);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>The resting value a Baseline is measured from, as the preview captured it.</summary>
+        private static bool TryReadRest(UIAnimationStepType type, Object target, out Vector4 rest)
+        {
+            rest = Vector4.zero;
+
+            var rect = target as RectTransform;
+            if (rect != null && UIAnimationRectState.Covers(type))
+            {
+                rest = UIAnimationSimulation.RestOf(rect).Read(type);
+                return true;
+            }
+
+            var group = target as CanvasGroup;
+            if (group != null)
+            {
+                rest = new Vector4(UIAnimationSimulation.RestAlphaOf(group), 0f, 0f, 0f);
+                return true;
+            }
+
+            var graphic = target as UnityEngine.UI.Graphic;
+            if (graphic != null)
+            {
+                Color color = UIAnimationSimulation.RestColorOf(graphic);
+                rest = type == UIAnimationStepType.GraphicAlpha ? new Vector4(color.a, 0f, 0f, 0f) : (Vector4)color;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>Where the step starts, worked out by replaying its animation from rest.</summary>
+        private static bool TryReadStart(SerializedProperty step, UIAnimationStepType type, UIAnimationPlayer owner, out Vector4 start)
+        {
+            start = Vector4.zero;
+            if (!UIAnimationRectState.Covers(type)) return false;
+
+            int animationIndex;
+            int stepIndex;
+            List<UIAnimation> animations = UIAnimationTargets.AnimationsOf(step.serializedObject);
+
+            if (animations == null
+                || !UIAnimationTargets.TryParseStepPath(step.propertyPath, out animationIndex, out stepIndex)
+                || animationIndex >= animations.Count)
+            {
+                return false;
+            }
+
+            Vector3 value;
+            Vector3 rest;
+            if (!UIAnimationSimulation.TryStartOf(animations[animationIndex], owner.gameObject, stepIndex, out value, out rest)) return false;
+
+            start = value;
+            return true;
+        }
+
+        private static Vector4 WrapAngles(Vector4 angles)
+        {
+            return new Vector4(Mathf.DeltaAngle(0f, angles.x), Mathf.DeltaAngle(0f, angles.y), Mathf.DeltaAngle(0f, angles.z), 0f);
+        }
+
+        private static void WriteReading(SerializedProperty value, UIAnimationStepType type, Vector4 reading)
+        {
+            switch (value.propertyType)
+            {
+                case SerializedPropertyType.Vector3:
+                {
+                    // Z is never shown on the rect views, so it is left as it was rather than zeroed.
+                    Vector3 current = value.vector3Value;
+                    value.vector3Value = UIAnimationStep.IsTwoDimensional(type)
+                        ? new Vector3(reading.x, reading.y, current.z)
+                        : new Vector3(reading.x, reading.y, reading.z);
+                    break;
+                }
+
+                case SerializedPropertyType.Float:
+                    value.floatValue = reading.x;
+                    break;
+
+                case SerializedPropertyType.Color:
+                    value.colorValue = reading;
+                    break;
+            }
         }
 
         private static readonly string[] ModeNames = { "Absolute", "Baseline", "Current" };
 
+        private const string AbsoluteLine = "Absolute = the value as typed.";
+
+        private const string BaselineLine =
+            "Baseline = the resting value (captured at Awake), plus the value as an offset. Use this to " +
+            "land on the authored state.";
+
         /// <summary>
-        /// The Absolute / Baseline / Current dropdown. Its tooltip is the mode field's own, attached to
-        /// the dropdown itself - hovering the row's label says what the row is, hovering this says what
-        /// the options mean.
+        /// What the options in one mode dropdown mean - only the options that dropdown actually offers,
+        /// so the tooltip never describes a choice that is not in the list under it.
+        /// </summary>
+        private static string ModeTooltip(bool isFrom, bool offersCurrent, bool legacyCurrent)
+        {
+            string text = AbsoluteLine + "\n" + BaselineLine;
+
+            if (isFrom)
+            {
+                if (legacyCurrent)
+                {
+                    text += "\nCurrent = start from wherever the property already is. The value typed here is " +
+                            "IGNORED - the same as switching the button to TO. Shown only because this step " +
+                            "already uses it.";
+                }
+
+                return text;
+            }
+
+            if (offersCurrent)
+            {
+                return text + "\nCurrent = where the property is when the step starts, plus the value as an offset.";
+            }
+
+            return text + "\n\nCurrent is only offered while the button reads TO: an offset from wherever the " +
+                   "step starts cannot be combined with a From.";
+        }
+
+        /// <summary>
+        /// The Absolute / Baseline / Current dropdown. Its tooltip is attached to the dropdown itself -
+        /// hovering the row's label says what the row is, hovering this says what the options mean.
         ///
         /// A row that cannot be relative offers only the first two. A stored mode it does not offer
         /// shows as Baseline and is written back as Baseline, as it always has been; the write only
         /// happens when the value actually differs.
         /// </summary>
-        private static void DrawModePopup(Rect rect, SerializedProperty mode, bool allowCurrent)
+        private static void DrawModePopup(Rect rect, SerializedProperty mode, bool allowCurrent, string tooltip)
         {
             int count = allowCurrent ? ModeNames.Length : 2;
 
             var options = new GUIContent[count];
-            for (int i = 0; i < count; i++) options[i] = new GUIContent(ModeNames[i], mode.tooltip);
+            for (int i = 0; i < count; i++) options[i] = new GUIContent(ModeNames[i]);
 
             EditorGUI.BeginProperty(rect, GUIContent.none, mode);
 
@@ -592,7 +1127,7 @@ namespace rmf_claude.DOTweenUI
 
             // A label over the popup is what carries the tooltip: it takes no clicks, so the popup
             // underneath still opens.
-            GUI.Label(rect, new GUIContent(string.Empty, mode.tooltip), GUIStyle.none);
+            GUI.Label(rect, new GUIContent(string.Empty, tooltip), GUIStyle.none);
         }
 
         /// <summary>
@@ -612,6 +1147,43 @@ namespace rmf_claude.DOTweenUI
 
             EditorGUI.EndProperty();
         }
+
+        private static float startWidth;
+
+        /// <summary>
+        /// The Start row: one button that switches between AFTER PREVIOUS and WITH PREVIOUS, in the
+        /// style of the FROM / TO button - two choices do not need a dropdown. It writes the same enum
+        /// the dropdown did. Anything but AfterPrevious reads as WITH PREVIOUS, because that is how
+        /// playback treats it.
+        /// </summary>
+        private static void DrawStartButton(Rect rect, SerializedProperty start)
+        {
+            if (startWidth <= 0f)
+            {
+                startWidth = Mathf.Max(EditorStyles.miniButton.CalcSize(new GUIContent(StartAfter)).x,
+                    EditorStyles.miniButton.CalcSize(new GUIContent(StartWith)).x) + 8f;
+            }
+
+            string tooltip = start.tooltip + "\n\nClick to switch.";
+
+            GUIContent label = EditorGUI.BeginProperty(rect, new GUIContent("Start", tooltip), start);
+            Rect field = EditorGUI.PrefixLabel(rect, label);
+            field.width = Mathf.Min(field.width, startWidth);
+
+            bool mixed = start.hasMultipleDifferentValues;
+            bool with = start.intValue != (int)UIAnimationStartMode.AfterPrevious;
+
+            if (GUI.Button(field, new GUIContent(mixed ? MixedValue : with ? StartWith : StartAfter, tooltip),
+                    EditorStyles.miniButton))
+            {
+                start.intValue = (int)(mixed || with ? UIAnimationStartMode.AfterPrevious : UIAnimationStartMode.WithPrevious);
+            }
+
+            EditorGUI.EndProperty();
+        }
+
+        private const string StartAfter = "AFTER PREVIOUS";
+        private const string StartWith = "WITH PREVIOUS";
 
         private static string ValueFieldName(string label, UIAnimationValueKind kind)
         {
@@ -981,38 +1553,35 @@ namespace rmf_claude.DOTweenUI
             return prefix + "   " + target + " (" + typeName + ")   " + tail;
         }
 
+        private const string SelfName = "[self]";
+
         /// <summary>
-        /// Name of the object this step drives. An empty target slot means "the GameObject this
-        /// player is on", which is spelled out rather than left blank so a self-targeting row does
-        /// not read as a broken one.
+        /// Name of the object this step drives, or [self] when that is the GameObject the player is
+        /// on - an empty slot and path, or a slot pointing back at the player's own object. The
+        /// player's name would only repeat what the Inspector already shows at the top, and [self] is
+        /// spelled out rather than left blank so a self-targeting row does not read as a broken one.
+        /// In an asset an empty slot means the same thing for whichever player uses it.
         /// </summary>
         private static string TargetName(SerializedProperty property, UIAnimationStepType type)
         {
-            string field;
+            SerializedProperty target = property.FindPropertyRelative(UIAnimationTargets.SlotField(type));
+            Object referenced = target != null ? target.objectReferenceValue : null;
 
-            switch (UIAnimationStep.TargetKindOf(type))
+            if (referenced != null)
             {
-                case UIAnimationTargetKind.CanvasGroup: field = "CanvasGroupTarget"; break;
-                case UIAnimationTargetKind.Graphic: field = "GraphicTarget"; break;
-                case UIAnimationTargetKind.Material: field = "MaterialTarget"; break;
-                case UIAnimationTargetKind.GameObject: field = "ActiveTarget"; break;
-                case UIAnimationTargetKind.Audio: field = "AudioSourceTarget"; break;
-                default: field = "RectTarget"; break;
-            }
+                var owner = property.serializedObject.targetObject as Component;
+                var component = referenced as Component;
+                GameObject referencedObject = component != null ? component.gameObject : referenced as GameObject;
 
-            SerializedProperty target = property.FindPropertyRelative(field);
-            if (target != null && target.objectReferenceValue != null) return target.objectReferenceValue.name;
+                return owner != null && referencedObject == owner.gameObject ? SelfName : referenced.name;
+            }
 
             // A path names the object just as well as a reference does, and reads better in a
             // header than the owner would - the whole point of the row is which object moves.
             SerializedProperty path = property.FindPropertyRelative("TargetPath");
             if (path != null && !string.IsNullOrEmpty(path.stringValue)) return path.stringValue;
 
-            Object owner = property.serializedObject.targetObject;
-            var component = owner as Component;
-
-            // An asset has no owner to name, so it says what an empty slot means there instead.
-            return component != null ? component.gameObject.name + " (self)" : "(owner)";
+            return SelfName;
         }
     }
 }

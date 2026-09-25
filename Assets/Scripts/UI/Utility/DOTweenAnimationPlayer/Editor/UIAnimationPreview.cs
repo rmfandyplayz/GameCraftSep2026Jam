@@ -34,14 +34,17 @@ namespace rmf_claude.DOTweenUI
     /// Plus one player previewing at a time - which is what guarantees the captured state belongs
     /// to the objects being restored - a single Undo entry as a backstop, SetDirty on everything
     /// touched, since writing through plain property setters does not mark a scene or a prefab
-    /// instance's overrides on its own, and an unwind on selection change, entering play mode and
-    /// assembly reload.
+    /// instance's overrides on its own, and an unwind on entering play mode, assembly reload and
+    /// selection change. The last one waits until the selection leaves the preview altogether:
+    /// selecting one of the objects it animates keeps it running, because that is how an object gets
+    /// posed for Use Current Value.
     ///
     /// Within one player a preview chains: a second Play carries on from where the first ends, so
     /// a Close can be previewed straight after its Open. One still running is finished first, so
-    /// where the second starts never depends on when it was clicked. Play on the same animation
-    /// again starts it over from where it started last time, and Reset makes its first frame that
-    /// start. Stop and Restore - or any of the unwinds above - goes all the way back to rest.
+    /// where the second starts never depends on when it was clicked. Every Play starts from the
+    /// animation's first frame, the one Reset shows - each From applied at once, whatever Apply From
+    /// Values Immediately says - and Play on the same animation again starts over from that frame.
+    /// Stop and Restore - or any of the unwinds above - goes all the way back to rest.
     ///
     /// It lives here rather than in an Editor class because two inspectors drive it: a player's,
     /// and a shared asset's by way of a player. A second copy of the above is exactly the kind of
@@ -78,6 +81,7 @@ namespace rmf_claude.DOTweenUI
             // mid-animation values as if they had been authored.
             AssemblyReloadEvents.beforeAssemblyReload += End;
             EditorApplication.playModeStateChanged += OnPlayModeChanged;
+            Selection.selectionChanged += OnSelectionChanged;
         }
 
         public static bool IsPreviewing(UIAnimationPlayer player)
@@ -131,15 +135,16 @@ namespace rmf_claude.DOTweenUI
 
             lastPlayed = animationName;
 
+            // Every Play starts from the animation's first frame - exactly what Reset shows - and that
+            // frame is then where Play-again starts over from. Without it, an animation with Apply From
+            // Values Immediately off played from rest holds each delayed step at rest until the step
+            // begins, then jumps: correct play-mode behaviour, but it makes a Close previewed on its
+            // own unreadable. In play mode that animation still waits; the README says so.
+            player.ApplyFromState(animationName);
+            player.EditorMarkPreviewStart();
+
             if (fromStateOnly)
             {
-                player.ApplyFromState(animationName);
-
-                // Reset shows the animation's first frame, so that frame is where it now starts:
-                // Play straight after Reset runs from what Reset showed, and so does every Play
-                // again after that, until another animation is played.
-                player.EditorMarkPreviewStart();
-
                 SceneView.RepaintAll();
                 return;
             }
@@ -173,6 +178,10 @@ namespace rmf_claude.DOTweenUI
             previewTargets.Clear();
             player.EditorCollectTargets(previewTargets);
 
+            // The gizmos and Use Current measure against rest, which from here on is not what the
+            // objects hold.
+            UIAnimationSimulation.NoteRest(previewTargets);
+
             if (previewTargets.Count > 0)
             {
                 Undo.RecordObjects(previewTargets.ToArray(), "UI Animation Preview");
@@ -196,6 +205,8 @@ namespace rmf_claude.DOTweenUI
         {
             scratch.Clear();
             player.EditorCollectTargets(scratch);
+
+            UIAnimationSimulation.NoteRest(scratch);
 
             for (int i = 0; i < scratch.Count; i++)
             {
@@ -259,16 +270,78 @@ namespace rmf_claude.DOTweenUI
             owner = null;
             lastPlayed = null;
 
+            UIAnimationSimulation.ForgetRest();
+
             SceneView.RepaintAll();
         }
 
         /// <summary>
         /// Ends the preview only if this requester is the one that started it, so an inspector
         /// being closed cannot restore a scene out from under a preview someone else started since.
+        ///
+        /// Unless the selection is still on the preview: the player, its shared asset, or one of the
+        /// objects it animates. Selecting the ball to drag it into a pose, then coming back to click
+        /// Use Current Value, is the workflow, and ending the preview there restored the ball and left
+        /// Baseline and Current nothing to measure against. The preview then belongs to nobody, and
+        /// OnSelectionChanged ends it once the selection leaves.
         /// </summary>
         public static void EndIfOwnedBy(object requester)
         {
-            if (!ReferenceEquals(previewing, null) && ReferenceEquals(owner, requester)) End();
+            if (ReferenceEquals(previewing, null) || !ReferenceEquals(owner, requester)) return;
+
+            if (SelectionIsOnPreview())
+            {
+                owner = null;
+                return;
+            }
+
+            End();
+        }
+
+        /// <summary>
+        /// Ends a preview nobody owns once the selection leaves it. One with an owner is left to that
+        /// owner: an inspector that still exists - a locked one, say - still shows the player, and
+        /// ends the preview itself when it goes. A plain object as the owner (a test harness) is never
+        /// disabled, so it keeps its preview through any selection change, as it always did.
+        /// </summary>
+        private static void OnSelectionChanged()
+        {
+            if (ReferenceEquals(previewing, null) || owner != null) return;
+
+            if (!SelectionIsOnPreview()) End();
+        }
+
+        private static bool SelectionIsOnPreview()
+        {
+            if (previewing == null) return false;
+
+            Object[] selected = Selection.objects;
+
+            for (int i = 0; i < selected.Length; i++)
+            {
+                Object item = selected[i];
+                if (item == null) continue;
+
+                if (item == previewing.EditorShared) return true;
+
+                var component = item as Component;
+                GameObject selectedObject = component != null ? component.gameObject : item as GameObject;
+                if (selectedObject == null) continue;
+
+                if (selectedObject == previewing.gameObject) return true;
+
+                for (int t = 0; t < previewTargets.Count; t++)
+                {
+                    Object animated = previewTargets[t];
+                    if (animated == null) continue;
+
+                    var animatedComponent = animated as Component;
+                    GameObject animatedObject = animatedComponent != null ? animatedComponent.gameObject : animated as GameObject;
+                    if (animatedObject == selectedObject) return true;
+                }
+            }
+
+            return false;
         }
 
         // ---------------------------------------------------------------- shared inspector rows
@@ -276,10 +349,10 @@ namespace rmf_claude.DOTweenUI
         private const float ButtonWidth = 48f;
 
         private static readonly GUIContent PreviewPlayLabel = new GUIContent("Play",
-            "Plays this animation on the real scene objects.\n\n" +
+            "Plays this animation on the real scene objects, from its first frame - the one Reset shows.\n\n" +
             "Carries on from where the last animation ends - so a Close can be previewed straight after " +
             "its Open. One still playing is finished first. Play on the same animation again starts it " +
-            "over from where it started.");
+            "over.");
 
         private static readonly GUIContent PreviewResetLabel = new GUIContent("Reset",
             "Jumps to this animation's first frame without playing it: each step with a From snaps " +
@@ -349,11 +422,13 @@ namespace rmf_claude.DOTweenUI
         }
 
         public const string EditModeNote =
-            "Play carries on from where the last animation ends, finishing it first if it is still " +
-            "playing. Play on the same animation again starts it over. Stop and " +
+            "Play starts from the animation's first frame (what Reset shows) and otherwise carries on " +
+            "from where the last animation ends, finishing it first if it is still playing. Play on the " +
+            "same animation again starts it over. Stop and " +
             "Restore puts every value back as it was before the first Play, and the whole preview is " +
-            "one Undo step (Ctrl+Z) if it goes wrong. Selecting something else or entering play mode " +
-            "stops and restores it too.\n\n" +
+            "one Undo step (Ctrl+Z) if it goes wrong. Selecting something the preview does not animate, " +
+            "or entering play mode, stops and restores it too - selecting one of the objects it animates, " +
+            "to pose it for Use Current Value, keeps it running.\n\n" +
             "Sound steps are skipped, and On Complete events do not fire, so nothing in the " +
             "animation can run game code while you are not in play mode.";
 

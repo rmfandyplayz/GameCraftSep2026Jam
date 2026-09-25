@@ -47,7 +47,7 @@ namespace rmf_claude.DOTweenUI
             // which is the failure that would be impossible to diagnose from the Inspector.
             if (condition == null || condition.propertyType != SerializedPropertyType.Boolean) return true;
 
-            return condition.boolValue == showIf.ShowWhen;
+            return condition.boolValue;
         }
 
         /// <summary>

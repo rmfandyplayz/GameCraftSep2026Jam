@@ -31,6 +31,18 @@ namespace rmf_claude.DOTweenUI
     {
         private static readonly List<string> names = new List<string>();
 
+        // What OnSceneGUI needs, read outside it. Unity logs an error on every call if OnSceneGUI
+        // touches targets or serializedObject, since those span the whole selection while OnSceneGUI
+        // runs once per target - and it runs on every Scene view repaint. The gizmos only draw for a
+        // single selection, and they need THIS editor's serializedObject rather than a new one, because
+        // that is where the Inspector keeps which animations and steps are expanded.
+        private SerializedObject sceneSerialized;
+
+        private void OnEnable()
+        {
+            sceneSerialized = targets.Length == 1 ? serializedObject : null;
+        }
+
         private void OnDisable()
         {
             // Selecting something else abandons the preview, so put the scene back first.
@@ -43,24 +55,16 @@ namespace rmf_claude.DOTweenUI
 
             if (targets.Length > 1) return;
 
+            sceneSerialized = serializedObject;
+
             var player = (UIAnimationPlayer)target;
 
             NoteShadowedNames(player);
 
             EditorGUILayout.Space();
 
-            if (Application.isPlaying)
-            {
-                EditorGUILayout.LabelField("Preview", EditorStyles.boldLabel);
-            }
-            else
-            {
-                EditorGUILayout.LabelField("Preview (edit mode)", EditorStyles.boldLabel);
-
-                EditorGUILayout.HelpBox(
-                    "Edit-mode preview animates the real objects in your scene.\n\n" + UIAnimationPreview.EditModeNote,
-                    UIAnimationPreview.IsPreviewing(player) ? MessageType.Warning : MessageType.Info);
-            }
+            EditorGUILayout.LabelField(
+                Application.isPlaying ? "Preview" : "Preview (edit mode)", EditorStyles.boldLabel);
 
             CollectNames(player);
 
@@ -71,7 +75,25 @@ namespace rmf_claude.DOTweenUI
 
             UIAnimationPreview.DrawFooter(player);
 
+            // Under the buttons rather than between the heading and them: it is read once, and the
+            // buttons are used every time.
+            if (!Application.isPlaying)
+            {
+                EditorGUILayout.HelpBox(
+                    "Edit-mode preview animates the real objects in your scene.\n\n" + UIAnimationPreview.EditModeNote,
+                    UIAnimationPreview.IsPreviewing(player) ? MessageType.Warning : MessageType.Info);
+
+                UIAnimationGizmos.DrawButton();
+            }
+
             if (Application.isPlaying || UIAnimationPreview.IsPreviewing(player)) Repaint();
+        }
+
+        private void OnSceneGUI()
+        {
+            if (sceneSerialized == null) return;
+
+            UIAnimationGizmos.Draw(sceneSerialized, (UIAnimationPlayer)target);
         }
 
         /// <summary>

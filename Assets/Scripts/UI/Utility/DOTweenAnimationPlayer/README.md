@@ -49,7 +49,7 @@ And one asset, which is entirely optional:
 
 The **Type** dropdown is split into sections — Transform, Punch & Shake, Color & Fade, Material, Other — each alphabetical, so a new type always lands in a sensible place. Every other step in a list is shaded, like spreadsheet rows, so you can see where one expanded step ends and the next begins.
 
-Each step's collapsed header reads like a timeline line: `AFTER   Logo (Scale)   0.25s   Out Back` — start mode, the object it drives, the property in parentheses, duration, ease. When it doesn't fit, a Target Path gives way from its front (`…/HoverHighlight`), since the end of a path is what names the object; otherwise the end is cut. Hover a shortened header for the full text.
+Each step's collapsed header reads like a timeline line: `AFTER   Logo (Scale)   0.25s   Out Back` — start mode, the object it drives, the property in parentheses, duration, ease. A step that drives the player's own GameObject says `[self]` rather than repeating the name at the top of the Inspector. When it doesn't fit, a Target Path gives way from its front (`…/HoverHighlight`), since the end of a path is what names the object; otherwise the end is cut. Hover a shortened header for the full text. A ⚠ at the end of a header means the step will do nothing as authored — see [Type check](#type-check).
 
 ### Step types
 
@@ -134,14 +134,29 @@ An animation whose steps use only empty slots and paths is **portable**: it work
 - `PlaySound` takes an **AudioSource**, and empty means something slightly different — see [Sound](#sound).
 - If a target is missing at play time the step is skipped with a console warning naming the animation and step index. It won't throw.
 
+### Type check
+
+The Inspector checks every step against what it will actually drive, so a broken step shows up while you author it instead of as a Console warning after `Play`. A step that will do nothing gets a ⚠ at the end of its header, its header text fades, and a warning row appears under its target:
+
+| Warning | Meaning |
+|---|---|
+| `'Box' has no Canvas Group` (or Graphic, RectTransform, UI Material Instance) | The Type needs a component the target doesn't have |
+| `Target Path "Iconn" matches nothing` | A typo, or the object was renamed or moved |
+| `Shader 'UI/Default' has no property '_Nope'` | A material step's Shader Property isn't on that material |
+| `No Clip` | A Play Sound step with nothing to play |
+
+Everything under the warning is **greyed out** until the step is fixed — Duration, Ease, From / To and the rest only matter once the step can reach what it drives. What fixes it stays editable: Type, Start, the target slot and Target Path above the warning, and a sound step's Clip or a material step's Shader Property below it. The one warning that greys nothing is a sound whose Target Path misses, because that still plays, on the shared audio source.
+
+It follows playback's own rules exactly — the slot, then the Target Path, then the player's own object — so it checks the object at the end of a Target Path too, `..` included. In a shared set there's no scene to check against until you set **Preview On**; until then only the clip and shader-name checks run. A long warning wraps onto as many lines as it needs, so the whole message is always readable, at any Inspector width.
+
 ---
 
 ## Sequential vs parallel
 
-Every step has a **Start** field:
+Every step has a **Start** button — click it to switch between the two:
 
-- `AfterPrevious` → `Sequence.Append` — runs after everything before it.
-- `WithPrevious` → `Sequence.Join` — runs alongside the previous step.
+- `AFTER PREVIOUS` (`AfterPrevious`) → `Sequence.Append` — runs after everything before it.
+- `WITH PREVIOUS` (`WithPrevious`) → `Sequence.Join` — runs alongside the previous step.
 
 Per-step **Delay** works with both. Read the step list top to bottom and that's your timeline.
 
@@ -166,14 +181,15 @@ Neither is changed by the [mirror commands](#mirroring-an-animation) — a mirro
 
 ## Frame rate
 
-By default an animation moves smoothly, changing a little every rendered frame. Tick **Play At Custom FPS** on an animation and an **FPS** box appears below it — from then on that animation advances in discrete steps, for a stop-motion or flipbook look.
+By default an animation moves smoothly, changing a little every rendered frame. Tick **Play At Custom FPS** on an animation and a frame-rate box appears beside the tick — from then on that animation advances in discrete steps, for a stop-motion or flipbook look.
 
 ```
 Loops                      1
 Loop Type                  Restart
-Play At Custom FPS         ✔
-FPS                        12
+Play At Custom FPS         ✔ [ 12 ]
 ```
+
+In code the box is still the separate `FPS` field.
 
 `12` is the classic hand-drawn look, `24` is film, `6`–`8` is deliberately crunchy. Setting it above your display's refresh rate does nothing, because there's no frame in between to hold on.
 
@@ -194,17 +210,22 @@ The setting is carried across by the [mirror commands](#mirroring-an-animation).
 
 ## Snapping
 
-Tick **Snapping** on an animation and every step in it that moves or resizes something rounds to whole units each frame — pixel-perfect movement for pixel art. It causes visible stepping on a slow move otherwise, which is the point of it. Scale and rotation are never snapped; DOTween has no option for them.
+**Snapping** rounds positions and sizes to whole units each frame — pixel-perfect movement for pixel art. It causes visible stepping on a slow move otherwise, which is the point of it. Scale and rotation are never snapped; DOTween has no option for them.
+
+It's one button on the animation, like a step's FROM / TO button. Click it to cycle:
 
 ```
 Play At Custom FPS         ☐
-Snapping                   ✔
-Snap Per Step              ☐
+Snapping                   [ DISABLED ]   →   [ ALL STEPS ]   →   [ PER STEP ]
 ```
 
-To choose step by step instead, tick **Snap Per Step**: the animation-wide box disappears, and every position or size step shows its own **Snapping** box. Movement paths snap too.
+| Setting | What snaps |
+|---|---|
+| `DISABLED` | Nothing — except a step whose own Snapping box is ticked (see below) |
+| `ALL STEPS` | Every step that moves or resizes something. Movement paths too |
+| `PER STEP` | You choose: every position or size step shows its own **Snapping** box |
 
-A step whose own box is ticked **always** snaps, and its box stays visible even with Snap Per Step off, so a setting that changes playback is never hidden. That's also how animations authored before the animation-wide box existed keep working untouched: their steps still carry their own ticks.
+A step whose own box is ticked **always** snaps, and its box stays visible whatever the button says, so a setting that changes playback is never hidden. That's also how animations authored before the animation-wide setting existed keep working untouched: their steps still carry their own ticks. In code it's still two bools, `Snapping` and `SnapPerStep`.
 
 ---
 
@@ -218,7 +239,9 @@ Each endpoint has a **mode**:
 | `Baseline` | The element's resting value, captured at `Awake`, **plus** the typed value as an offset. |
 | `Current` | Whatever the value is when the tween starts, plus the typed value (DOTween relative). Only available on **To**, and only when there is no From. |
 
-Hover the mode dropdown itself for this table; hover the `To` label for what the row is.
+Hover a mode dropdown for what its options mean — each one describes only the options it offers. Hover the `To` label for what the row is.
+
+The **From** dropdown doesn't offer `Current`. Older data could set it there, where it never meant "an offset from the start": it makes the step ignore the From value entirely, the same as the button reading `TO`. A step that already has it keeps showing it, with a tooltip that says so, and nothing is rewritten.
 
 **Use `To: Baseline` for anything that should land on its authored resting state.** Ten `Show`s in a row all land on exactly the same value, and if you later change the resting scale/position in the scene the animation follows automatically. This is what stops repeated Show/Hide from drifting.
 
@@ -226,16 +249,36 @@ The **FROM / TO** button at the start of the first endpoint row switches the FRO
 
 Punch and shake steps have no FROM/TO — they show `Punch` / `Strength` instead, and ignore Ease (they carry their own). See [Punch and shake](#punch-and-shake).
 
+### Use Current Value
+
+The **record** button at the end of every From and To row copies what the step's target holds right now into that row — drag an object where you want it, click, and the step lands there. It works for positions, sizes, offsets, scale, rotation, alpha, colours and material values.
+
+What it stores depends on the row's mode, so the step always ends up exactly where the object was:
+
+| Mode | Stored |
+|---|---|
+| `Absolute` | The value as it is |
+| `Baseline` | The difference from the resting value |
+| `Current` | The difference from where the step starts |
+
+**Pose inside a preview.** Out of a preview, wherever the object sits *is* its resting value — so `Baseline` and `Current` would always store 0, and those buttons are greyed out until a preview is running. The workflow is the one Unity's Animation window uses for keys:
+
+1. Press **Reset** (or Play) on the animation.
+2. Drag, resize, recolour or rotate the object. Selecting it to do that is fine: the preview keeps running while the selection is on the player or one of the objects it animates.
+3. Select the player again and click the record button on the row.
+4. **Stop and Restore** puts the object back. The value you copied stays.
+
+`Absolute` works any time, but outside a preview the object stays wherever you dragged it. Rotation is read as the nearest angle to zero, so a turn to `-10` isn't copied as `350` and spun the long way round.
+
 ---
 
 ## Movement paths
 
-By default a step moves in a straight line from its start to `To`. Tick **Custom Path** (under `To`) and it travels through a list of points on the way instead — an arc for a card flying into a hand, a swoop, a zig-zag.
+By default a step moves in a straight line from its start to `To`. Set **Custom Path** (under `To`) to `Curved` or `Linear` and it travels through a list of points on the way instead — an arc for a card flying into a hand, a swoop, a zig-zag.
 
 ```
 To                    Absolute   X 250    Y 150
-Custom Path           ☑
-Path Shape            Curved
+Custom Path           Curved
 Point 1               Absolute   X -50    Y 200    [-]
 Point 2               Absolute   X 150    Y -100   [-]
                       [ Add Point ]  [ Edit Path in Scene ]
@@ -243,16 +286,17 @@ Point 2               Absolute   X 150    Y -100   [-]
 
 This is **not** the ease. The path is *where* the object goes; the ease is still *how fast* it gets there — it controls how far along the path the step is, so `Out Quad` still decelerates into `To`, just along the curve. Speed along the path is constant apart from the ease, so a long segment and a short one are covered at the same rate.
 
-| Setting | Meaning |
+| Custom Path | Meaning |
 |---|---|
-| `Curved` | A smooth curve through every point (DOTween's Catmull-Rom path). The default. |
+| `Disabled` | A straight line, as without a path. The default. |
+| `Curved` | A smooth curve through every point (DOTween's Catmull-Rom path). |
 | `Linear` | Straight lines between the points, with a sharp corner at each. |
 
 **Points follow `To`'s mode**, and the mode column beside each point shows which one that is. `Absolute` = as typed, `Baseline` = an offset from the resting value, `Current` = an offset from wherever the step starts. That's what makes a `To: Current` path portable — the same swoop works from wherever the object happens to be. The start of the path is the `From` value when the step has one, and otherwise wherever the object is when the step begins, exactly as without a path.
 
 Available on `AnchoredPosition`, `LocalPosition`, `SizeDelta`, `OffsetMin`, `OffsetMax` and `Scale` — every vector step except `Rotation` (DOTween rotates through a quaternion, not through the Euler values a path would pass through) and punch/shake (no endpoint to travel to). A path through `SizeDelta` or `Scale` is real and works — grow wide, then tall — it just can't be drawn in the Scene view.
 
-With the box ticked but no points, the step still moves in a straight line. Unticking the box keeps the points, so you can switch the path off to compare without losing it.
+With a shape chosen but no points, the step still moves in a straight line. Setting it back to `Disabled` keeps the points, so you can switch the path off to compare without losing it. In code it's still `UseCustomPath` and `PathShape`.
 
 ### Editing a path in the Scene view
 
@@ -270,7 +314,7 @@ Points move in the canvas plane, so a drag can't push one off the canvas in dept
 
 Things worth knowing:
 
-- **The path is drawn from where the object sits now.** A `Baseline` endpoint is the resting value, and in edit mode that's simply the current value. A step without a From starts wherever the object is when the step runs, which the editor can only take to be where it is now — so a path in the *second* step of an animation is drawn from the object's resting place, not from where step one leaves it.
+- **The path is drawn from where the step really starts.** A step without a From starts wherever the steps before it leave the object, and the editor works that out by replaying the animation from rest — so a path in the *second* step is drawn from where step one ends. It stays put while a preview plays, too: it's drawn from the resting state the preview captured, not from wherever the object has got to. What it can't know is where a *different* animation left things, so a step relying on that is drawn as if played from rest.
 - Only position steps can be edited in the Scene view, only on a player (a Shared set has no object to draw on), and not in play mode. The button disables itself and says why.
 - Selecting something else, entering play mode or recompiling ends the edit.
 - The drawn curve reproduces DOTween's own path maths, including its end conventions, and was checked against a real path tween: the object stays on the line.
@@ -284,7 +328,7 @@ A **PlaySound** step fires a clip at its point in the timeline. Put one first in
 ```
 ▼ AFTER  ui_click (Play Sound)
     Type               Play Sound
-    Start              After Previous
+    Start              [AFTER PREVIOUS]
     Audio Source       None            ← see below
     Clip               ui_click
     Volume             1
@@ -417,7 +461,7 @@ If a step arrives with a target anyway — pasting one copied off a player carri
 
 An animation set has nothing of its own to animate, so its inspector borrows a scene player: drop one into **Preview On** and the Play / Reset / Stop buttons run the ordinary player preview, with the same capture, restore, Undo entry and one-at-a-time rule. The player has to actually have the set in its Shared slot — it plays what its own merge produced, not what any asset happens to contain. With the slot empty, or holding a player that doesn't use the set, no buttons are drawn and a message says why.
 
-The Preview On slot is not saved into the asset. It couldn't be: a scene reference is the one thing an asset cannot keep, which is what the whole feature is working around.
+The Preview On slot is not saved into the asset. It couldn't be: a scene reference is the one thing an asset cannot keep, which is what the whole feature is working around. It is remembered per asset until Unity recompiles or restarts, so selecting something else and coming back finds it still set.
 
 ### Things worth knowing
 
@@ -433,13 +477,17 @@ The Inspector has **Play / Reset** buttons per animation, and they work **withou
 
 | Button | Does |
 |---|---|
-| `Play` | Runs the animation on the real scene objects, carrying on from where the last animation ends |
+| `Play` | Runs the animation on the real scene objects from its first frame — what `Reset` shows — carrying on from where the last animation ends |
 | `Reset` | Jumps to the animation's first frame without playing it: steps with a From snap to it, the rest stay put. `Play` straight after runs from that frame |
 | `Stop and Restore` | Ends the preview and puts every value back as it was before the first `Play` |
 
 **A preview chains.** Play `OpenCredits`, then `CloseCredits`, and the close starts from where the open ends — which is the only way to judge a close animation, since its whole job is to start from the open state. If the open is **still playing** when you press the close, it's finished first, so where the close starts never depends on when you clicked. Pressing `Play` on the **same** animation again starts it over from where it started last time, so iterating on one animation still replays it from the top — and after `Reset`, "where it started" is the frame `Reset` showed. `Stop and Restore` goes all the way back to rest.
 
-That's deliberately not how play mode handles an interruption: there, `Interrupt Others` stops the running animation where it stands and the next one starts from there. Check that case in play mode if it matters.
+**Every `Play` starts from the animation's first frame**, exactly as `Reset` then `Play` would: each step with a From jumps to it at once. That matters for an animation with **Apply From Values Immediately** off — in play mode each of its delayed steps waits at its current value until the step begins, which played from rest makes a Close look broken, when in the game it only ever plays after its Open.
+
+Two things here are deliberately not how play mode behaves: that first-frame rule, and interruptions — in play mode `Interrupt Others` stops the running animation where it stands and the next one starts from there. Check either case in play mode if it matters.
+
+The info box under the buttons repeats the rules, and **Scene Gizmos** under it controls the Scene-view drawings — see [Scene gizmos](#scene-gizmos).
 
 Edit-mode preview animates **real objects in your open scene**, so it takes some care:
 
@@ -447,11 +495,35 @@ Edit-mode preview animates **real objects in your open scene**, so it takes some
 - The whole preview is **one Undo step** — `Ctrl+Z` is the escape hatch if something looks wrong.
 - `To: Baseline` endpoints are always measured from rest, however many animations you chain, so they never drift.
 - Edits made in the Inspector between two `Play`s are picked up by the second one.
-- Selecting another object, **entering play mode** and a script recompile each end the preview and restore first. Entering play mode matters most: Unity backs the scene up as it stands, so an unrestored preview would come back out of play mode looking authored.
+- Selecting something the preview doesn't animate, **entering play mode** and a script recompile each end the preview and restore first. Entering play mode matters most: Unity backs the scene up as it stands, so an unrestored preview would come back out of play mode looking authored.
+- Selecting **one of the objects the preview animates** — or the player's shared set — keeps it running, so you can select the thing you're posing, drag it, and come back to click [Use Current Value](#use-current-value). The preview ends once the selection moves anywhere else.
 - Previewing a different player ends the current preview first; only one player previews at a time.
 - **`Play Sound` steps are skipped** for the whole preview, and **`On Complete` events do not fire** — an `On Complete` is a UnityEvent wired to arbitrary game code, and a preview has no business running that outside play mode.
 
 In play mode the buttons just call the ordinary runtime API, so sound and `On Complete` behave normally.
+
+---
+
+## Scene gizmos
+
+With a player selected, the Scene view draws what its animations do:
+
+- **Position steps** — `AnchoredPosition` and `LocalPosition`, paths included — as a line from start to end with arrows showing which way the object travels: a ring where it starts, a dot where it ends.
+- **Size steps** — `SizeDelta`, `OffsetMin`, `OffsetMax` and `Scale` — as the element's outline at evenly spaced moments of the step, fading in from the first to the last.
+
+Rotation, colour, fades, material values, punch/shake, SetActive and sound aren't drawn. A step that goes nowhere isn't drawn either.
+
+The **Scene Gizmos** button under the preview opens the settings:
+
+| Setting | Options |
+|---|---|
+| Show | `Disabled` · `All Animations` · `Expanded Animations` (the default) · `Expanded Steps` — "expanded" means open in the Inspector, so what you're editing is what you see |
+| Colors | `Distinct` — a different colour per drawing, spread as far apart as possible, with **Shuffle Colors** for a new set · `Rainbow` — red for the first drawing through to purple for the last, in timeline order. Rainbow is for `Expanded Steps` only: in the other modes the row is greyed out and `Distinct` is used, since across whole animations a gradient says nothing a distinct colour doesn't say better. Your choice is kept for when you switch back |
+| Outlines | How many outlines a size step is drawn with, 2 to 12 |
+
+The settings are your own editor preferences — they're never saved into a scene, prefab or asset. A shared set draws on its **Preview On** player. Gizmos are edit-mode only.
+
+Where each step starts comes from replaying the animation from rest, the way the preview plays it, so a step without a From is drawn from where the steps before it leave the object — and the drawings hold still while a preview moves the real objects around underneath them. It was checked against real playback: every drawn moment lands within 0.07 units of where the object really is at that moment, snapping and Play At Custom FPS included. Like the path editor, it can't know where a *different* animation left things: `All Animations` draws each one as if played from rest, so a Close that relies on its Open is drawn from rest.
 
 ---
 
@@ -601,9 +673,9 @@ UI Animation Player
     ▼ Show
         Name                       Show
         ▼ Steps                    2
-            ▼ AFTER  Panel (self) (Canvas Group Alpha)  0.25s  Out Quad
+            ▼ AFTER  [self] (Canvas Group Alpha)  0.25s  Out Quad
                 Type               Canvas Group Alpha
-                Start              After Previous
+                Start              [AFTER PREVIOUS]
                 Canvas Group       None            ← empty = this GameObject
                 Duration           0.25
                 Delay              0
@@ -613,7 +685,7 @@ UI Animation Player
 
             ▼ with  Scale  0.25s  Out Back
                 Type               Scale
-                Start              With Previous   ← parallel with the fade above
+                Start              [WITH PREVIOUS]   ← parallel with the fade above
                 Rect Transform     None
                 Duration           0.25
                 Delay              0
@@ -623,8 +695,7 @@ UI Animation Player
         Loops                      1
         Loop Type                  Restart
         Play At Custom FPS         ☐
-        Snapping                   ☐
-        Snap Per Step              ☐
+        Snapping                   [DISABLED]
         Apply From Values Immediately  ✔
         Interrupt Others           ✔
         On Complete                (UnityEvent)
@@ -652,9 +723,9 @@ UI Animation Player
     ▼ TransitionOut
         Name                       TransitionOut
         ▼ Steps                    1
-            ▼ AFTER  Overlay (self) (Material Float)  0.8s  In Out Quad
+            ▼ AFTER  [self] (Material Float)  0.8s  In Out Quad
                 Type               Material Float
-                Start              After Previous
+                Start              [AFTER PREVIOUS]
                 Material Inst.     None            ← empty = this GameObject
                 Shader Property    _Progress
                 Duration           0.8
@@ -665,8 +736,7 @@ UI Animation Player
         Loops                      1
         Loop Type                  Restart
         Play At Custom FPS         ☐
-        Snapping                   ☐
-        Snap Per Step              ☐
+        Snapping                   [DISABLED]
         Apply From Values Immediately  ✔
         Interrupt Others           ✔
         On Complete                (UnityEvent)
