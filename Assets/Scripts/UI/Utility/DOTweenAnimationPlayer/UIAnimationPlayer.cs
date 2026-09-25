@@ -520,7 +520,8 @@ namespace rmf_claude.DOTweenUI
                 else
                 {
                     string context = "UIAnimationPlayer on '" + name + "' animation '" + animation.Name + "' step " + i;
-                    Tween tween = step.BuildTween(animation.ApplyFromValuesImmediately, frameRate, at, context);
+                    Tween tween = step.BuildTween(animation.ApplyFromValuesImmediately, frameRate, at,
+                        animation.SnapsEveryStep, context);
                     if (tween == null) continue;
 
                     sequence.Insert(at, tween);
@@ -685,6 +686,16 @@ namespace rmf_claude.DOTweenUI
         }
 
         private readonly List<UIAnimation> previousRuntime = new List<UIAnimation>();
+
+        /// <summary>
+        /// Makes the state the targets are in right now the place the preview's next Play-again
+        /// starts over from. Editor-only: the preview calls it after Reset, so Play straight after
+        /// Reset runs from the frame Reset showed rather than from before it.
+        /// </summary>
+        public void EditorMarkPreviewStart()
+        {
+            EditorCaptureSnapshots(runtime);
+        }
 
         private static void EditorCaptureSnapshots(List<UIAnimation> animations)
         {

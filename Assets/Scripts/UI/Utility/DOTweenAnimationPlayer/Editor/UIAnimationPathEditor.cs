@@ -216,7 +216,7 @@ namespace rmf_claude.DOTweenUI
                 return;
             }
 
-            var type = (UIAnimationStepType)step.FindPropertyRelative("Type").enumValueIndex;
+            var type = (UIAnimationStepType)step.FindPropertyRelative("Type").intValue;
             bool positional = type == UIAnimationStepType.AnchoredPosition || type == UIAnimationStepType.LocalPosition;
 
             if (!positional || !step.FindPropertyRelative("UseCustomPath").boolValue)
@@ -287,10 +287,10 @@ namespace rmf_claude.DOTweenUI
             SerializedProperty from = step.FindPropertyRelative("FromVector");
             SerializedProperty to = step.FindPropertyRelative("ToVector");
 
-            var fromMode = (UIAnimationEndpointMode)step.FindPropertyRelative("FromMode").enumValueIndex;
-            var toMode = (UIAnimationEndpointMode)step.FindPropertyRelative("ToMode").enumValueIndex;
+            var fromMode = (UIAnimationEndpointMode)step.FindPropertyRelative("FromMode").intValue;
+            var toMode = (UIAnimationEndpointMode)step.FindPropertyRelative("ToMode").intValue;
             bool useFrom = HasAuthoredStart(step);
-            bool curved = step.FindPropertyRelative("PathShape").enumValueIndex == (int)UIAnimationPathShape.Curved;
+            bool curved = step.FindPropertyRelative("PathShape").intValue == (int)UIAnimationPathShape.Curved;
 
             Vector3 rest = plane.Flatten(ReadValue(rect, type));
             Vector3 fromOrigin = Origin(fromMode, rest);
@@ -626,7 +626,7 @@ namespace rmf_claude.DOTweenUI
         private static bool HasAuthoredStart(SerializedProperty step)
         {
             return step.FindPropertyRelative("UseFrom").boolValue
-                && step.FindPropertyRelative("FromMode").enumValueIndex != (int)UIAnimationEndpointMode.Current;
+                && step.FindPropertyRelative("FromMode").intValue != (int)UIAnimationEndpointMode.Current;
         }
 
         /// <summary>
@@ -636,8 +636,8 @@ namespace rmf_claude.DOTweenUI
         /// </summary>
         private static bool TryStartInToSpace(SerializedProperty step, UIAnimationStepType type, out Vector3 start)
         {
-            var fromMode = (UIAnimationEndpointMode)step.FindPropertyRelative("FromMode").enumValueIndex;
-            var toMode = (UIAnimationEndpointMode)step.FindPropertyRelative("ToMode").enumValueIndex;
+            var fromMode = (UIAnimationEndpointMode)step.FindPropertyRelative("FromMode").intValue;
+            var toMode = (UIAnimationEndpointMode)step.FindPropertyRelative("ToMode").intValue;
             Vector3 from = step.FindPropertyRelative("FromVector").vector3Value;
             bool useFrom = HasAuthoredStart(step);
 

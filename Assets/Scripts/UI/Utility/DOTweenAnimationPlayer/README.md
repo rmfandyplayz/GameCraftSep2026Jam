@@ -47,15 +47,35 @@ And one asset, which is entirely optional:
 2. `+` on **Animations**, set **Name** to `Show`.
 3. `+` on that animation's **Steps**, pick a **Type**. The inspector collapses to only the fields that type uses.
 
+The **Type** dropdown is split into sections — Transform, Punch & Shake, Color & Fade, Material, Other — each alphabetical, so a new type always lands in a sensible place. Every other step in a list is shaded, like spreadsheet rows, so you can see where one expanded step ends and the next begins.
+
 Each step's collapsed header reads like a timeline line: `AFTER   Logo (Scale)   0.25s   Out Back` — start mode, the object it drives, the property in parentheses, duration, ease. When it doesn't fit, a Target Path gives way from its front (`…/HoverHighlight`), since the end of a path is what names the object; otherwise the end is cut. Hover a shortened header for the full text.
 
 ### Step types
 
-`AnchoredPosition` · `LocalPosition` · `Scale` · `Rotation` · `CanvasGroupAlpha` · `GraphicColor` · `GraphicAlpha` · `MaterialFloat` · `MaterialColor` · `PunchScale` · `PunchAnchoredPosition` · `ShakeAnchoredPosition` · `SetActive` · `PlaySound` · `SizeDelta` · `OffsetMin` · `OffsetMax`
+| Section | Types |
+|---|---|
+| Transform | `AnchoredPosition` · `LocalPosition` · `OffsetMax` · `OffsetMin` · `Rotation` · `Scale` · `SizeDelta` |
+| Punch & Shake | `PunchAnchoredPosition` · `PunchRotation` · `PunchScale` · `ShakeAnchoredPosition` · `ShakeRotation` · `ShakeScale` |
+| Color & Fade | `CanvasGroupAlpha` · `GraphicAlpha` · `GraphicColor` |
+| Material | `MaterialColor` · `MaterialFloat` |
+| Other | `PlaySound` · `SetActive` |
 
 `SetActive` and `PlaySound` are **instant** — they happen at a point in the timeline rather than over one, so they show a `Delay` but no `Duration` and no easing.
 
 The position and size steps can also follow a curved or zig-zag route to `To` instead of a straight line — see [Movement paths](#movement-paths).
+
+### Punch and shake
+
+These jolt a property and let it settle back to where it started, so they have no FROM/TO and no Ease — DOTween drives the oscillation itself. They show:
+
+| Field | Punch | Shake |
+|---|---|---|
+| `Punch` / `Strength` | How far it jolts, per axis | How far it shakes — one number for `ShakeAnchoredPosition`, per axis for `ShakeRotation` / `ShakeScale` |
+| `Vibrato` | How many times it oscillates over its Duration | same |
+| `Elasticity` / `Randomness` | How far it may overshoot past its start (0–1) | How random the direction is, in degrees |
+
+**On UI, rotate around Z only.** `PunchRotation` and `ShakeRotation` take a strength per axis so you can leave X and Y at `0` — turning around those tips a flat element over in 3D. `(0, 0, 15)` is a firm shake. `ShakeScale` takes one per axis for the same reason: `(0.25, 0.25, 0)` wobbles without distorting.
 
 ### Sizing a RectTransform
 
@@ -74,7 +94,7 @@ Four step types write the same two rect corners from different directions. That'
 
 `SizeDelta` is size **relative to the anchors**, so on a stretched rect it behaves as padding rather than as pixels. Un-stretch the anchors first if you want a literal pixel size.
 
-All three new types take X/Y (Z is unused) and offer **Snapping** for whole-pixel results.
+All three new types take X/Y (Z is unused) and support [Snapping](#snapping).
 
 ---
 
@@ -132,7 +152,7 @@ Per-step **Delay** works with both. Read the step list top to bottom and that's 
 Each step uses one of two easing sources:
 
 - **Ease** — a DOTween preset. `Out*` eases decelerate into the end value and suit most UI.
-- **Use Custom Curve** — tick it and the Ease dropdown is replaced by an `AnimationCurve` field.
+- **Custom Curve** — the first entry in the same Ease dropdown. Pick it and a **Curve** row appears under Ease for an `AnimationCurve`; pick a preset again to switch back. The preset you had is remembered underneath, and so is the curve.
 
 For the curve, time runs 0→1 left to right, and value `0` = the FROM value, `1` = the TO value. Going above 1 or below 0 overshoots, which is how you build a bounce or an anticipation dip.
 
@@ -172,6 +192,22 @@ The setting is carried across by the [mirror commands](#mirroring-an-animation).
 
 ---
 
+## Snapping
+
+Tick **Snapping** on an animation and every step in it that moves or resizes something rounds to whole units each frame — pixel-perfect movement for pixel art. It causes visible stepping on a slow move otherwise, which is the point of it. Scale and rotation are never snapped; DOTween has no option for them.
+
+```
+Play At Custom FPS         ☐
+Snapping                   ✔
+Snap Per Step              ☐
+```
+
+To choose step by step instead, tick **Snap Per Step**: the animation-wide box disappears, and every position or size step shows its own **Snapping** box. Movement paths snap too.
+
+A step whose own box is ticked **always** snaps, and its box stays visible even with Snap Per Step off, so a setting that changes playback is never hidden. That's also how animations authored before the animation-wide box existed keep working untouched: their steps still carry their own ticks.
+
+---
+
 ## FROM / TO
 
 Each endpoint has a **mode**:
@@ -182,21 +218,23 @@ Each endpoint has a **mode**:
 | `Baseline` | The element's resting value, captured at `Awake`, **plus** the typed value as an offset. |
 | `Current` | Whatever the value is when the tween starts, plus the typed value (DOTween relative). Only available on **To**, and only when there is no From. |
 
+Hover the mode dropdown itself for this table; hover the `To` label for what the row is.
+
 **Use `To: Baseline` for anything that should land on its authored resting state.** Ten `Show`s in a row all land on exactly the same value, and if you later change the resting scale/position in the scene the animation follows automatically. This is what stops repeated Show/Hide from drifting.
 
 The **FROM / TO** button at the start of the first endpoint row switches the FROM endpoint on and off (the field is still called `UseFrom` in code). It reads `TO` by default: one row, and the step travels to it from wherever the property already is. Click it and it reads `FROM`: that row becomes the starting value and a `To` row appears under it. It's the same control DOTween's own animation component uses, and it saves a row per step. **Apply From Values Immediately** (on by default, per animation) snaps every FROM value the moment the animation starts rather than when each step begins — this is what prevents an element flashing at full opacity through a delayed step before jumping to 0.
 
-Punch and shake steps have no FROM/TO — they show `Punch` / `Strength` instead, and ignore Ease (they carry their own).
+Punch and shake steps have no FROM/TO — they show `Punch` / `Strength` instead, and ignore Ease (they carry their own). See [Punch and shake](#punch-and-shake).
 
 ---
 
 ## Movement paths
 
-By default a step moves in a straight line from its start to `To`. Tick **Use Custom Movement Path** (under `To`) and it travels through a list of points on the way instead — an arc for a card flying into a hand, a swoop, a zig-zag.
+By default a step moves in a straight line from its start to `To`. Tick **Custom Path** (under `To`) and it travels through a list of points on the way instead — an arc for a card flying into a hand, a swoop, a zig-zag.
 
 ```
 To                    Absolute   X 250    Y 150
-☑ Use Custom Movement Path
+Custom Path           ☑
 Path Shape            Curved
 Point 1               Absolute   X -50    Y 200    [-]
 Point 2               Absolute   X 150    Y -100   [-]
@@ -395,11 +433,13 @@ The Inspector has **Play / Reset** buttons per animation, and they work **withou
 
 | Button | Does |
 |---|---|
-| `Play` | Runs the animation on the real scene objects, carrying on from wherever the last preview left them |
-| `Reset` | Jumps to the animation's first frame without playing it: steps with a From snap to it, the rest stay put |
+| `Play` | Runs the animation on the real scene objects, carrying on from where the last animation ends |
+| `Reset` | Jumps to the animation's first frame without playing it: steps with a From snap to it, the rest stay put. `Play` straight after runs from that frame |
 | `Stop and Restore` | Ends the preview and puts every value back as it was before the first `Play` |
 
-**A preview runs like play mode does.** Play `OpenCredits`, then `CloseCredits`, and the close starts from where the open left things — which is the only way to judge a close animation, since its whole job is to start from the open state. Pressing `Play` on the **same** animation again starts it over from where it started last time, so iterating on one animation still replays it from the top. `Stop and Restore` goes all the way back to rest.
+**A preview chains.** Play `OpenCredits`, then `CloseCredits`, and the close starts from where the open ends — which is the only way to judge a close animation, since its whole job is to start from the open state. If the open is **still playing** when you press the close, it's finished first, so where the close starts never depends on when you clicked. Pressing `Play` on the **same** animation again starts it over from where it started last time, so iterating on one animation still replays it from the top — and after `Reset`, "where it started" is the frame `Reset` showed. `Stop and Restore` goes all the way back to rest.
+
+That's deliberately not how play mode handles an interruption: there, `Interrupt Others` stops the running animation where it stands and the next one starts from there. Check that case in play mode if it matters.
 
 Edit-mode preview animates **real objects in your open scene**, so it takes some care:
 
@@ -567,7 +607,6 @@ UI Animation Player
                 Canvas Group       None            ← empty = this GameObject
                 Duration           0.25
                 Delay              0
-                Use Custom Curve   ☐
                 Ease               Out Quad
                 FROM   [Absolute]  0
                 To     [Absolute]  1
@@ -578,13 +617,14 @@ UI Animation Player
                 Rect Transform     None
                 Duration           0.25
                 Delay              0
-                Use Custom Curve   ☐
                 Ease               Out Back
                 FROM   [Absolute]  X 0.8  Y 0.8  Z 0.8
                 To     [Baseline]  X 0    Y 0    Z 0    ← lands on the authored scale
         Loops                      1
         Loop Type                  Restart
         Play At Custom FPS         ☐
+        Snapping                   ☐
+        Snap Per Step              ☐
         Apply From Values Immediately  ✔
         Interrupt Others           ✔
         On Complete                (UnityEvent)
@@ -619,13 +659,14 @@ UI Animation Player
                 Shader Property    _Progress
                 Duration           0.8
                 Delay              0
-                Use Custom Curve   ☐
                 Ease               In Out Quad
                 FROM   [Absolute]  0
                 To     [Absolute]  1
         Loops                      1
         Loop Type                  Restart
         Play At Custom FPS         ☐
+        Snapping                   ☐
+        Snap Per Step              ☐
         Apply From Values Immediately  ✔
         Interrupt Others           ✔
         On Complete                (UnityEvent)

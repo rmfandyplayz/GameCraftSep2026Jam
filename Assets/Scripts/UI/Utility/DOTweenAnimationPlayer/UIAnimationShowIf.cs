@@ -13,8 +13,9 @@ namespace rmf_claude.DOTweenUI
 {
 
     /// <summary>
-    /// Hides a field in the Inspector unless a sibling bool on the same object is true, so an
-    /// option and the value it configures read as one control instead of two.
+    /// Hides a field in the Inspector unless a sibling bool on the same object is true (or, with
+    /// showWhen false, unless it is false), so an option and the value it configures read as one
+    /// control instead of two.
     ///
     /// Lives here rather than in a shared utilities folder because it exists for this framework's
     /// inspector; the drawer is Editor/UIAnimationShowIfDrawer.cs.
@@ -25,9 +26,13 @@ namespace rmf_claude.DOTweenUI
         /// <summary>Name of the bool field, on the same object, that gates this one.</summary>
         public readonly string Condition;
 
-        public UIAnimationShowIfAttribute(string conditionFieldName)
+        /// <summary>The value the condition has to hold for this field to be shown.</summary>
+        public readonly bool ShowWhen;
+
+        public UIAnimationShowIfAttribute(string conditionFieldName, bool showWhen = true)
         {
             Condition = conditionFieldName;
+            ShowWhen = showWhen;
         }
     }
 }
