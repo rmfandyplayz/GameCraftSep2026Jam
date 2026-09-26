@@ -8034,9 +8034,9 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
-      UseFrom: 0
+      UseFrom: 1
       FromMode: 0
-      ToMode: 0
+      ToMode: 1
       FromVector: {x: 0, y: 0, z: 0}
       ToVector: {x: 0, y: 0, z: 0}
       FromFloat: 0

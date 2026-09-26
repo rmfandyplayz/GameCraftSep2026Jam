@@ -10,13 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6e3d3061ed95e8e43a8d65d833a434ac, type: 3}
-  m_Name: UITester2 Shared
+  m_Name: UITester Shared
   m_EditorClassIdentifier: Assembly-CSharp::rmf_claude.DOTweenUI.UIAnimationAsset
   Animations:
-  - Name: Hop
-    Notes: 
+  - Name: Count Up
+    Notes: 'In a shared asset: the Game Object slot is disabled, and the Property
+      dropdown is disabled (with a tooltip) until Preview On is set to V2''s station.'
     Steps:
-    - Type: 0
+    - Type: 20
       Start: 0
       RectTarget: {fileID: 0}
       CanvasGroupTarget: {fileID: 0}
@@ -24,128 +25,11 @@ MonoBehaviour:
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
-      TargetPath: Icon
-      Duration: 0.3
+      PropertyTarget: {fileID: 0}
+      TargetPath: Score
+      Duration: 1
       Delay: 0
       EaseType: 6
-      UseCustomCurve: 0
-      Curve:
-        serializedVersion: 2
-        m_Curve:
-        - serializedVersion: 3
-          time: 0
-          value: 0
-          inSlope: 0
-          outSlope: 0
-          tangentMode: 0
-          weightedMode: 0
-          inWeight: 0
-          outWeight: 0
-        - serializedVersion: 3
-          time: 1
-          value: 1
-          inSlope: 0
-          outSlope: 0
-          tangentMode: 0
-          weightedMode: 0
-          inWeight: 0
-          outWeight: 0
-        m_PreInfinity: 2
-        m_PostInfinity: 2
-        m_RotationOrder: 4
-      UseFrom: 0
-      FromMode: 0
-      ToMode: 2
-      FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 0, y: 30, z: 0}
-      FromFloat: 0
-      ToFloat: 1
-      FromColor: {r: 1, g: 1, b: 1, a: 1}
-      ToColor: {r: 1, g: 1, b: 1, a: 1}
-      ShaderProperty: _Progress
-      ActiveValue: 1
-      Clip: {fileID: 0}
-      Volume: 1
-      Pitch: 1
-      PitchVariation: 0
-      Vibrato: 10
-      Elasticity: 1
-      Randomness: 90
-      Snapping: 0
-      UseCustomPath: 0
-      PathShape: 0
-      Waypoints: []
-    - Type: 0
-      Start: 0
-      RectTarget: {fileID: 0}
-      CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
-      MaterialTarget: {fileID: 0}
-      ActiveTarget: {fileID: 0}
-      AudioSourceTarget: {fileID: 0}
-      TargetPath: Icon
-      Duration: 0.3
-      Delay: 0
-      EaseType: 5
-      UseCustomCurve: 0
-      Curve:
-        serializedVersion: 2
-        m_Curve:
-        - serializedVersion: 3
-          time: 0
-          value: 0
-          inSlope: 0
-          outSlope: 0
-          tangentMode: 0
-          weightedMode: 0
-          inWeight: 0
-          outWeight: 0
-        - serializedVersion: 3
-          time: 1
-          value: 1
-          inSlope: 0
-          outSlope: 0
-          tangentMode: 0
-          weightedMode: 0
-          inWeight: 0
-          outWeight: 0
-        m_PreInfinity: 2
-        m_PostInfinity: 2
-        m_RotationOrder: 4
-      UseFrom: 0
-      FromMode: 0
-      ToMode: 1
-      FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 19.5, y: -0.6000004, z: 0}
-      FromFloat: 0
-      ToFloat: 1
-      FromColor: {r: 1, g: 1, b: 1, a: 1}
-      ToColor: {r: 1, g: 1, b: 1, a: 1}
-      ShaderProperty: _Progress
-      ActiveValue: 1
-      Clip: {fileID: 0}
-      Volume: 1
-      Pitch: 1
-      PitchVariation: 0
-      Vibrato: 10
-      Elasticity: 1
-      Randomness: 90
-      Snapping: 0
-      UseCustomPath: 0
-      PathShape: 0
-      Waypoints: []
-    - Type: 12
-      Start: 1
-      RectTarget: {fileID: 0}
-      CanvasGroupTarget: {fileID: 0}
-      GraphicTarget: {fileID: 0}
-      MaterialTarget: {fileID: 0}
-      ActiveTarget: {fileID: 0}
-      AudioSourceTarget: {fileID: 0}
-      TargetPath: Icon
-      Duration: 0.3
-      Delay: 0
-      EaseType: 27
       UseCustomCurve: 0
       Curve:
         serializedVersion: 2
@@ -174,12 +58,14 @@ MonoBehaviour:
       UseFrom: 1
       FromMode: 0
       ToMode: 0
-      FromVector: {x: 0.7, y: 0.7, z: 1}
-      ToVector: {x: 1, y: 1, z: 1}
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 0, y: 0, z: 0}
       FromFloat: 0
-      ToFloat: 1
+      ToFloat: 999
       FromColor: {r: 1, g: 1, b: 1, a: 1}
       ToColor: {r: 1, g: 1, b: 1, a: 1}
+      FromText: 
+      ToText: 
       ShaderProperty: _Progress
       ActiveValue: 1
       Clip: {fileID: 0}
@@ -193,7 +79,25 @@ MonoBehaviour:
       UseCustomPath: 0
       PathShape: 0
       Waypoints: []
-    - Type: 2
+      PropertyComponent: TMPro.TextMeshProUGUI
+      PropertyMember: text
+      PropertyKind: 6
+      NumberFormat: 000
+    Loops: 1
+    LoopType: 0
+    PlayAtCustomFPS: 0
+    FPS: 12
+    Snapping: 0
+    SnapPerStep: 0
+    ApplyFromValuesImmediately: 1
+    InterruptOthers: 1
+    OnComplete:
+      m_PersistentCalls:
+        m_Calls: []
+  - Name: Fill
+    Notes: Target Path 'Ring' on whichever player plays it.
+    Steps:
+    - Type: 20
       Start: 0
       RectTarget: {fileID: 0}
       CanvasGroupTarget: {fileID: 0}
@@ -201,8 +105,9 @@ MonoBehaviour:
       MaterialTarget: {fileID: 0}
       ActiveTarget: {fileID: 0}
       AudioSourceTarget: {fileID: 0}
-      TargetPath: Missing
-      Duration: 0.3
+      PropertyTarget: {fileID: 0}
+      TargetPath: Ring
+      Duration: 0.8
       Delay: 0
       EaseType: 6
       UseCustomCurve: 0
@@ -230,7 +135,7 @@ MonoBehaviour:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
-      UseFrom: 0
+      UseFrom: 1
       FromMode: 0
       ToMode: 0
       FromVector: {x: 0, y: 0, z: 0}
@@ -239,6 +144,8 @@ MonoBehaviour:
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
       ToColor: {r: 1, g: 1, b: 1, a: 1}
+      FromText: 
+      ToText: 
       ShaderProperty: _Progress
       ActiveValue: 1
       Clip: {fileID: 0}
@@ -252,6 +159,10 @@ MonoBehaviour:
       UseCustomPath: 0
       PathShape: 0
       Waypoints: []
+      PropertyComponent: UnityEngine.UI.Image
+      PropertyMember: fillAmount
+      PropertyKind: 0
+      NumberFormat: 0
     Loops: 1
     LoopType: 0
     PlayAtCustomFPS: 0
