@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e3d3061ed95e8e43a8d65d833a434ac, type: 3}
+  m_Script: {fileID: 11500000, guid: 5e4c5aacc0f64360b69a7ce4bb881375, type: 3}
   m_Name: UITester Shared
   m_EditorClassIdentifier: Assembly-CSharp::rmf_claude.DOTweenUI.UIAnimationAsset
   Animations:

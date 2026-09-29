@@ -2,8 +2,8 @@
 // UI Animation Utility
 //
 // AI-GENERATED. Authored by Claude (Anthropic) via Claude Code, September 2026,
-// to a written design brief by the project author. Not hand-written by the
-// Twindrill Goose team. See the README.md beside this file for usage.
+// to a written design brief by the project author.
+// See the README.md beside this file for usage.
 // -----------------------------------------------------------------------------
 
 using TMPro;
@@ -103,10 +103,9 @@ namespace rmf_claude.DOTweenUI
                 Mask mask = current.GetComponent<Mask>();
                 if (mask != null && mask.enabled)
                 {
-                    Debug.LogWarning(
-                        "UIMaterialInstance on '" + name + "' is under a stencil Mask ('" + mask.name + "'). " +
-                        "UGUI caches a copy of the material for stencil rendering, so animated shader " +
-                        "properties will not be visible. Use a RectMask2D instead, or untick Maskable on this Graphic.",
+                    UIAnimationLog.Warn("UIMaterialInstance on '" + name + "'", "ANIMATED SHADER PROPERTIES WON'T SHOW.",
+                        "It is under a stencil Mask ('" + mask.name + "'), and UGUI caches a copy of the material " +
+                        "for stencil rendering. Use a RectMask2D instead, or untick Maskable on this Graphic.",
                         this);
                     return;
                 }
