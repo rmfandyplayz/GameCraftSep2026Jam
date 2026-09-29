@@ -245,7 +245,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
-    Id: 
+    Id: 868e4b4026694a87864a8ea7ca88012e
   - Name: Fade
     Notes: Box fades out and back. S1 overrides it with its own; on S2 it has no
       Graphic to fade.
@@ -395,7 +395,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
-    Id: 
+    Id: bcd8b22c354843da8ca44371085ca330
   - Name: Pop
     Notes: A punch on Box.
     Steps:
@@ -478,4 +478,4 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
-    Id: 
+    Id: 6f9edef86ab14363875291ef7bdbad55

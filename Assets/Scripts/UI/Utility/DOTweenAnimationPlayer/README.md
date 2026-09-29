@@ -29,10 +29,10 @@ What's where:
 | Folder | Holds |
 |---|---|
 | *(top level)* | `UIAnimationPlayer` and `UIMaterialInstance` — the two components you add |
-| `Data/` | What you author: an animation, a step and the shared Animation Set asset, plus Custom Property lookup and stepped easing |
-| `Helpers/` | Sound and warnings |
+| `Data/` | What you author: an animation, a step, and the shared Animation Set asset |
+| `Helpers/` | Sound, Custom Property lookup, stepped easing, warnings |
 | `Attributes/` | The attributes behind the Inspector's one-row controls |
-| `Editor/` | Editor only — `Inspectors/`, `Drawers/`, `SceneVIew/` (gizmos and the path editor) and `Menus/` (right-click commands) |
+| `Editor/` | Editor only — `Inspectors/`, `Drawers/`, `SceneView/` (gizmos and the path editor) and `Menus/` (right-click commands) |
 
 ---
 
