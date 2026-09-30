@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.rmfandyplayz.dotween-ui-animation": {
+      "version": "file:../../UnityAnimationTools/DOTweenAnimationPlayer",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0"
+      }
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
