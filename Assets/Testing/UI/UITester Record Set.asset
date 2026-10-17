@@ -61,7 +61,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 2
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 0, y: 30, z: 0}
+      ToVector: {x: -32.6, y: 43.7, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -164,4 +164,4 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
-    Id: 
+    Id: 4ef5294a08554ff2b7e44c369a995d03

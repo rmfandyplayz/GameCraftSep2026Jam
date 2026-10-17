@@ -381,6 +381,19 @@ namespace rmf_claude.DOTweenUI
         [NonSerialized] private bool snapshotActive;
         [NonSerialized] private string snapshotText;
         [NonSerialized] private UIAnimationMember snapshotMember;
+
+        // A third capture, for a scene saved mid-preview: where the property stands at the save, put back
+        // once the file has been written with the resting value. Apart from the snapshot, which Play-again
+        // still needs afterwards.
+        [NonSerialized] private bool hasParked;
+        [NonSerialized] private UnityEngine.Object parkedTarget;
+        [NonSerialized] private UIAnimationStepType parkedType;
+        [NonSerialized] private Vector3 parkedVector;
+        [NonSerialized] private float parkedFloat;
+        [NonSerialized] private Color parkedColor;
+        [NonSerialized] private bool parkedActive;
+        [NonSerialized] private string parkedText;
+        [NonSerialized] private UIAnimationMember parkedMember;
     #endif
 
         // Built on first use and reconfigured per build, so replaying a stepped animation does
@@ -952,6 +965,73 @@ namespace rmf_claude.DOTweenUI
             UIAnimationStepType type = baselineType;
             baselineType = snapshotType;
             snapshotType = type;
+        }
+
+        /// <summary>
+        /// Records where this step's property stands right now, for EditorUnpark - a scene being saved
+        /// mid-preview, which is written with the resting values in between. The snapshot is left alone.
+        /// </summary>
+        public void EditorPark()
+        {
+            SwapParked();
+            CaptureBaseline();
+            SwapParked();
+
+            parkedTarget = ResolvedObject(parkedType);
+            hasParked = true;
+        }
+
+        /// <summary>Writes back what EditorPark recorded, once. Skipped if the step now resolves elsewhere.</summary>
+        public void EditorUnpark()
+        {
+            if (!hasParked) return;
+            hasParked = false;
+
+            if (ResolvedObject(parkedType) != parkedTarget) return;
+
+            SwapParked();
+            RestoreBaseline();
+            SwapParked();
+        }
+
+        private void SwapParked()
+        {
+            Vector3 vector = baselineVector;
+            baselineVector = parkedVector;
+            parkedVector = vector;
+
+            float single = baselineFloat;
+            baselineFloat = parkedFloat;
+            parkedFloat = single;
+
+            Color color = baselineColor;
+            baselineColor = parkedColor;
+            parkedColor = color;
+
+            bool active = baselineActive;
+            baselineActive = parkedActive;
+            parkedActive = active;
+
+            string text = baselineText;
+            baselineText = parkedText;
+            parkedText = text;
+
+            UIAnimationMember read = baselineMember;
+            baselineMember = parkedMember;
+            parkedMember = read;
+
+            UIAnimationStepType type = baselineType;
+            baselineType = parkedType;
+            parkedType = type;
+        }
+
+        /// <summary>
+        /// A material step's Graphic shows the material it had before the preview (true) or the preview's
+        /// instance again (false) - for a scene saved mid-preview. See UIMaterialInstance.EditorShowSource.
+        /// </summary>
+        public void EditorShowSourceMaterial(bool source)
+        {
+            if (materialInstance != null) materialInstance.EditorShowSource(source);
         }
 
         /// <summary>

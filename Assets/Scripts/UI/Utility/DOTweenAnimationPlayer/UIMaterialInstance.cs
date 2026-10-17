@@ -34,9 +34,15 @@ namespace rmf_claude.DOTweenUI
         private bool initialized;
 
     #if UNITY_EDITOR
-        // What the Graphic's own material field held before the instance went in, for EditorRelease.
+        // What the Graphic's material fields held before the instance went in, for EditorRelease and for a
+        // scene saved mid-preview. TMP keeps its instance in a serialized field of its own as well,
+        // m_fontMaterial, beside m_sharedMaterial.
+        private bool editorNoted;
         private Material editorOriginal;
-        private string editorField;
+        private Material editorOriginalFont;
+
+        private static readonly System.Reflection.FieldInfo FontMaterialField = typeof(TMP_Text).GetField("m_fontMaterial",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
     #endif
 
         /// <summary>The per-element material. Safe to write to.</summary>
@@ -75,10 +81,10 @@ namespace rmf_claude.DOTweenUI
             // it one.
             if (!Application.isPlaying)
             {
-                editorField = graphic is TMP_Text ? "m_sharedMaterial" : "m_Material";
                 var serialized = new UnityEditor.SerializedObject(graphic);
-                UnityEditor.SerializedProperty field = serialized.FindProperty(editorField);
-                editorOriginal = field != null ? field.objectReferenceValue as Material : null;
+                editorOriginal = EditorRead(serialized, graphic is TMP_Text ? "m_sharedMaterial" : "m_Material");
+                editorOriginalFont = graphic is TMP_Text ? EditorRead(serialized, "m_fontMaterial") : null;
+                editorNoted = true;
             }
         #endif
 
@@ -117,16 +123,15 @@ namespace rmf_claude.DOTweenUI
         {
             if (!initialized) return;
 
-            if (graphic != null && editorField != null)
+            if (graphic != null && editorNoted)
             {
                 var serialized = new UnityEditor.SerializedObject(graphic);
-                UnityEditor.SerializedProperty field = serialized.FindProperty(editorField);
+                var text = graphic as TMP_Text;
 
-                if (field != null)
-                {
-                    field.objectReferenceValue = editorOriginal;
-                    serialized.ApplyModifiedPropertiesWithoutUndo();
-                }
+                EditorWrite(serialized, text != null ? "m_sharedMaterial" : "m_Material", editorOriginal);
+                if (text != null) EditorWrite(serialized, "m_fontMaterial", editorOriginalFont);
+
+                serialized.ApplyModifiedPropertiesWithoutUndo();
             }
 
             if (ownsInstance && instance != null) DestroyImmediate(instance);
@@ -134,8 +139,52 @@ namespace rmf_claude.DOTweenUI
             instance = null;
             ownsInstance = false;
             editorOriginal = null;
-            editorField = null;
+            editorOriginalFont = null;
+            editorNoted = false;
             initialized = false;
+        }
+
+        /// <summary>
+        /// The material the Graphic had before the edit-mode preview gave it the instance - the asset it was
+        /// copied from - or null when the preview has not. Editing this while the instance is on screen changes
+        /// nothing that shows, which is easy to do by accident.
+        /// </summary>
+        public Material EditorSource
+        {
+            get { return initialized && editorNoted ? editorOriginal : null; }
+        }
+
+        /// <summary>
+        /// For saving a scene mid-preview: true puts the Graphic's own material back in its fields for the save,
+        /// keeping the instance alive; false puts the instance back. Through the plain setters and TMP's field
+        /// itself, so the scene is not marked as changed again once it is saved.
+        /// </summary>
+        public void EditorShowSource(bool source)
+        {
+            if (!initialized || !editorNoted || graphic == null || instance == null) return;
+
+            var text = graphic as TMP_Text;
+            if (text == null)
+            {
+                graphic.material = source ? editorOriginal : instance;
+                return;
+            }
+
+            Material shared = source ? editorOriginal : instance;
+            if (shared != null) text.fontSharedMaterial = shared;
+            if (FontMaterialField != null) FontMaterialField.SetValue(text, source ? editorOriginalFont : instance);
+        }
+
+        private static Material EditorRead(UnityEditor.SerializedObject serialized, string field)
+        {
+            UnityEditor.SerializedProperty property = serialized.FindProperty(field);
+            return property != null ? property.objectReferenceValue as Material : null;
+        }
+
+        private static void EditorWrite(UnityEditor.SerializedObject serialized, string field, Material value)
+        {
+            UnityEditor.SerializedProperty property = serialized.FindProperty(field);
+            if (property != null) property.objectReferenceValue = value;
         }
     #endif
 

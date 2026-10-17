@@ -100,6 +100,13 @@ namespace rmf_claude.DOTweenUI
             EditorApplication.playModeStateChanged += OnPlayModeChanged;
             Selection.selectionChanged += OnSelectionChanged;
             EditorSceneManager.sceneClosing += OnSceneClosing;
+
+            // A scene saved mid-preview would otherwise keep whatever frame the preview was showing - or the
+            // pose being recorded - as if it had been authored, and a material instance with it.
+            EditorSceneManager.sceneSaving += OnSceneSaving;
+            EditorSceneManager.sceneSaved += OnSceneSaved;
+            PrefabStage.prefabSaving += OnPrefabSaving;
+            PrefabStage.prefabSaved += OnPrefabSaved;
         }
 
         public static bool IsPreviewing(UIAnimationPlayer player)
@@ -301,6 +308,8 @@ namespace rmf_claude.DOTweenUI
 
             previewing = player;
             owner = requester;
+
+            RebuildInspectorsShowingMaterials();
         }
 
         /// <summary>
@@ -367,6 +376,7 @@ namespace rmf_claude.DOTweenUI
             // Out of play mode a material instance sits on the scene object like any edit, and saving the
             // scene would keep a copy of it, cut off from the material asset.
             previewing.EditorReleaseMaterials();
+            RebuildInspectorsShowingMaterials();
 
             UIAnimationStep.EditorSuppressSound = false;
 
@@ -403,6 +413,15 @@ namespace rmf_claude.DOTweenUI
         /// </summary>
         public static void EndIfOwnedBy(object requester)
         {
+            EndIfOwnedBy(requester, false);
+        }
+
+        /// <summary>
+        /// As above, but evenIfSelected ends it wherever the selection is - for a pop-up animation window
+        /// being closed, which is a deliberate act, where a selection change is a side effect.
+        /// </summary>
+        public static void EndIfOwnedBy(object requester, bool evenIfSelected)
+        {
             if (ReferenceEquals(previewing, null) || !ReferenceEquals(owner, requester)) return;
 
             // Held open by someone else - a recording - which ends it itself.
@@ -412,7 +431,7 @@ namespace rmf_claude.DOTweenUI
                 return;
             }
 
-            if (SelectionIsOnPreview())
+            if (!evenIfSelected && SelectionIsOnPreview())
             {
                 owner = null;
                 return;
@@ -495,6 +514,16 @@ namespace rmf_claude.DOTweenUI
         private static readonly GUIContent StopAllLabel = new GUIContent("Stop All",
             "Stops every animation on this player where it stands. On Complete does not fire.");
 
+        private static readonly GUIContent PlayModeRestoreLabel = new GUIContent("Stop and Restore",
+            "Stops every animation on this player and puts back every value its steps animate as it was when the " +
+            "player started up - the values Baseline measures from. A play-mode testing aid: there is no code " +
+            "equivalent, and it is not undone when play mode ends, since nothing in play mode is kept anyway.");
+
+        private const string PlayModeNote =
+            "In play mode these buttons call the player itself, as your code would. An animation with no From plays " +
+            "from wherever things are, so once it has played, Play again has nowhere left to go, and Reset only " +
+            "moves steps that have a From. Stop and Restore puts everything back to replay it.";
+
         private static readonly GUIContent StopAndRestoreLabel = new GUIContent("Stop and Restore",
             "Ends the preview and puts every value it touched back exactly as it was before the first Play.");
 
@@ -538,7 +567,18 @@ namespace rmf_claude.DOTweenUI
         {
             if (Application.isPlaying)
             {
+                EditorGUILayout.BeginHorizontal();
+
                 if (GUILayout.Button(StopAllLabel)) player.StopAll();
+
+                if (GUILayout.Button(PlayModeRestoreLabel))
+                {
+                    player.StopAll();
+                    player.EditorRestoreBaselines();
+                }
+
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.HelpBox(PlayModeNote, MessageType.None);
                 return;
             }
 
@@ -566,7 +606,7 @@ namespace rmf_claude.DOTweenUI
             "Restore puts every value back as it was before the first Play, and the whole preview is " +
             "one Undo step (Ctrl+Z) if it goes wrong. Selecting something the preview does not animate, " +
             "or entering play mode, stops and restores it too - selecting one of the objects it animates " +
-            "keeps it running, and so does a pop-up animation window that started it.\n\n" +
+            "keeps it running, and so does a pop-up animation window that started it, until it is closed.\n\n" +
             "Sound steps are skipped, and On Complete events do not fire, so nothing in the " +
             "animation can run game code while you are not in play mode.";
 
@@ -577,6 +617,91 @@ namespace rmf_claude.DOTweenUI
         private static void OnSceneClosing(UnityEngine.SceneManagement.Scene scene, bool removingScene)
         {
             if (previewing != null && previewing.gameObject.scene == scene) End();
+        }
+
+        // The player parked for a save in progress, so the same one is put back afterwards.
+        private static UIAnimationPlayer parked;
+
+        /// <summary>
+        /// A scene being saved with the preview running in it is written with every animated value at rest and
+        /// every Graphic's own material, then put back exactly as it was (OnSceneSaved): the preview, and any
+        /// recording, carries on as if nothing happened. Through plain property setters, so nothing is recorded
+        /// for Undo and the scene is not marked as changed again once saved.
+        /// </summary>
+        private static void OnSceneSaving(UnityEngine.SceneManagement.Scene scene, string path)
+        {
+            if (previewing != null && previewing.gameObject.scene == scene) Park();
+        }
+
+        private static void OnSceneSaved(UnityEngine.SceneManagement.Scene scene)
+        {
+            Unpark();
+        }
+
+        private static void OnPrefabSaving(GameObject root)
+        {
+            if (previewing != null && root != null && previewing.gameObject.scene == root.scene) Park();
+        }
+
+        private static void OnPrefabSaved(GameObject root)
+        {
+            Unpark();
+        }
+
+        private static void Park()
+        {
+            if (parked != null) return;
+
+            parked = previewing;
+            parked.EditorPark();
+
+            // In case the save fails before saying it has saved.
+            EditorApplication.delayCall -= Unpark;
+            EditorApplication.delayCall += Unpark;
+        }
+
+        private static void Unpark()
+        {
+            if (parked == null) return;
+
+            UIAnimationPlayer player = parked;
+            parked = null;
+
+            if (player == previewing) player.EditorUnpark();
+        }
+
+        /// <summary>
+        /// The Inspector shows a Graphic's material at the bottom, built for whichever material it had when the
+        /// Inspector was built - so once the preview has given it an instance, or taken one back, an Inspector
+        /// showing it still edits the old one, and editing the asset there while the instance is on screen
+        /// looks like it does nothing. Rebuilt after the change, and only when a selected object is affected,
+        /// so the player's own Inspector is not rebuilt from under a click.
+        /// </summary>
+        private static void RebuildInspectorsShowingMaterials()
+        {
+            bool shown = false;
+            GameObject[] selected = Selection.gameObjects;
+
+            for (int i = 0; i < previewTargets.Count && !shown; i++)
+            {
+                var instance = previewTargets[i] as UIMaterialInstance;
+                if (instance == null) continue;
+
+                for (int s = 0; s < selected.Length; s++)
+                {
+                    if (selected[s] == instance.gameObject) shown = true;
+                }
+            }
+
+            if (!shown) return;
+
+            EditorApplication.delayCall -= RebuildInspectors;
+            EditorApplication.delayCall += RebuildInspectors;
+        }
+
+        private static void RebuildInspectors()
+        {
+            ActiveEditorTracker.sharedTracker.ForceRebuild();
         }
 
         private static void OnPlayModeChanged(PlayModeStateChange change)

@@ -222,9 +222,10 @@ namespace rmf_claude.DOTweenUI
             Undo.undoRedoPerformed -= Repaint;
 
             // Closing the window keeps what was recorded - it is the Finish button, not Cancel. A recompile or
-            // play mode has already ended the session by the time this runs.
+            // play mode has already ended the session by the time this runs. A preview it started is stopped and
+            // restored whatever is selected: closing it is a deliberate act, which a selection change is not.
             if (UIAnimationRecording.IsRecording(this)) UIAnimationRecording.Finish();
-            else UIAnimationPreview.EndIfOwnedBy(this);
+            else UIAnimationPreview.EndIfOwnedBy(this, true);
 
             open.Remove(this);
             ForgetSerialized();

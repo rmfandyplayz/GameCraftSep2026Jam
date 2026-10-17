@@ -227,7 +227,7 @@ MonoBehaviour:
       FromVector: {x: 0, y: 0, z: 0}
       ToVector: {x: 0, y: 0, z: 0}
       FromFloat: 0
-      ToFloat: 40
+      ToFloat: 90
       FromColor: {r: 1, g: 1, b: 1, a: 1}
       ToColor: {r: 1, g: 1, b: 1, a: 1}
       FromText: 
@@ -293,7 +293,7 @@ MonoBehaviour:
       FromVector: {x: 0, y: 0, z: 0}
       ToVector: {x: 0, y: 0, z: 0}
       FromFloat: 0
-      ToFloat: 30
+      ToFloat: -10
       FromColor: {r: 1, g: 1, b: 1, a: 1}
       ToColor: {r: 1, g: 1, b: 1, a: 1}
       FromText: 
@@ -377,7 +377,7 @@ MonoBehaviour:
       FromVector: {x: 0, y: 0, z: 0}
       ToVector: {x: 0, y: 0, z: 0}
       FromFloat: 0
-      ToFloat: 5
+      ToFloat: 28
       FromColor: {r: 1, g: 1, b: 1, a: 1}
       ToColor: {r: 1, g: 1, b: 1, a: 1}
       FromText: 
@@ -999,7 +999,7 @@ MonoBehaviour:
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
-      ToColor: {r: -0.6, g: 0, b: 0, a: 0}
+      ToColor: {r: 0, g: 0, b: 0, a: 0}
       FromText: 
       ToText: 
       ShaderProperty: _Color
@@ -1280,7 +1280,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: HP 75     12 coins
+  m_text: HP 70     12 coins
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1703,7 +1703,7 @@ MonoBehaviour:
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
-      ToColor: {r: 1, g: 0, b: 0, a: 1}
+      ToColor: {r: 0.5943396, g: 0.19344072, b: 0.19344072, a: 1}
       FromText: 
       ToText: 
       ShaderProperty: _Progress
@@ -2045,7 +2045,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 1
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 0, y: 20, z: 0}
+      ToVector: {x: -15.7, y: -5.8999996, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -2111,7 +2111,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 0
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 1.2, y: 1.2, z: 1}
+      ToVector: {x: 1.57, y: 1.57, z: 1.57}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -2179,7 +2179,7 @@ MonoBehaviour:
       FromVector: {x: 0, y: 0, z: 0}
       ToVector: {x: 0, y: 0, z: 0}
       FromFloat: 0
-      ToFloat: 0.6
+      ToFloat: 0.2
       FromColor: {r: 1, g: 1, b: 1, a: 1}
       ToColor: {r: 1, g: 1, b: 1, a: 1}
       FromText: 
@@ -3242,7 +3242,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 0
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 40, y: 10, z: 0}
+      ToVector: {x: 57.49626, y: -17.592712, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -3259,9 +3259,11 @@ MonoBehaviour:
       Elasticity: 1
       Randomness: 90
       Snapping: 0
-      UseCustomPath: 0
+      UseCustomPath: 1
       PathShape: 0
-      Waypoints: []
+      Waypoints:
+      - {x: -10.085968, y: -41.381927, z: 0}
+      - {x: 6.477661, y: 12.281067, z: 0}
       PropertyComponent: 
       PropertyMember: 
       PropertyKind: 0
@@ -3270,7 +3272,7 @@ MonoBehaviour:
     LoopType: 0
     PlayAtCustomFPS: 0
     FPS: 12
-    Snapping: 0
+    Snapping: 1
     SnapPerStep: 0
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -3327,7 +3329,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 1
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 90, y: 0, z: 0}
+      ToVector: {x: 35, y: 0, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -3355,7 +3357,7 @@ MonoBehaviour:
     LoopType: 0
     PlayAtCustomFPS: 0
     FPS: 12
-    Snapping: 0
+    Snapping: 1
     SnapPerStep: 0
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -3414,7 +3416,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 0
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: -20, y: 30, z: 0}
+      ToVector: {x: -42.2, y: 3.1, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -3480,7 +3482,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 2
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 40, y: -20, z: 0}
+      ToVector: {x: -16.2, y: 16.3, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -3983,7 +3985,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CustomPropertyTestGauge
   bar: {fileID: 1302454622}
   label: {fileID: 165432463}
-  health: 75
+  health: 70
   coins: 12
 --- !u!114 &571729675
 MonoBehaviour:
@@ -4129,7 +4131,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 807878667}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 213.273}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -4}
@@ -5012,7 +5014,7 @@ MonoBehaviour:
       PropertyTarget: {fileID: 0}
       TargetPath: Score
       Duration: 0.4
-      Delay: 0
+      Delay: 0.5
       EaseType: 6
       UseCustomCurve: 0
       Curve:
@@ -5045,7 +5047,7 @@ MonoBehaviour:
       FromVector: {x: 0, y: 0, z: 0}
       ToVector: {x: 0, y: 0, z: 0}
       FromFloat: 0
-      ToFloat: 50
+      ToFloat: -267
       FromColor: {r: 1, g: 1, b: 1, a: 1}
       ToColor: {r: 1, g: 1, b: 1, a: 1}
       FromText: 
@@ -5490,7 +5492,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 0
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 0, y: 0, z: 30}
+      ToVector: {x: 0, y: 0, z: 129.99187}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -5556,7 +5558,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 2
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 0, y: 0, z: 45}
+      ToVector: {x: 0, y: 0, z: 83.281006}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -5584,7 +5586,7 @@ MonoBehaviour:
     LoopType: 0
     PlayAtCustomFPS: 0
     FPS: 12
-    Snapping: 0
+    Snapping: 1
     SnapPerStep: 0
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -5836,7 +5838,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 0
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 0, y: 0, z: 20}
+      ToVector: {x: 0, y: 0, z: 67}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -5990,7 +5992,7 @@ MonoBehaviour:
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
-      ToColor: {r: 0, g: 0, b: 0.5, a: 0}
+      ToColor: {r: -0.1792453, g: -0.5631808, b: 0.3457089, a: 0}
       FromText: 
       ToText: 
       ShaderProperty: _Progress
@@ -6406,7 +6408,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 0
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 40, y: 20, z: 0}
+      ToVector: {x: 68.69478, y: 32.390934, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -6474,7 +6476,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 2
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: -30, y: -30, z: 0}
+      ToVector: {x: -128.69478, y: -52.390934, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -6491,9 +6493,10 @@ MonoBehaviour:
       Elasticity: 1
       Randomness: 90
       Snapping: 0
-      UseCustomPath: 0
+      UseCustomPath: 1
       PathShape: 0
-      Waypoints: []
+      Waypoints:
+      - {x: 18.259888, y: -54.78144, z: 0}
       PropertyComponent: 
       PropertyMember: 
       PropertyKind: 0
@@ -6670,7 +6673,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 1
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 30, y: 0, z: 0}
+      ToVector: {x: 80, y: -29, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -6824,7 +6827,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 2100000, guid: e786c4d22f5604defa8d96ae1e1bfdf9, type: 2}
-  m_Color: {r: 0.45, g: 1, b: 0.55, a: 1}
+  m_Color: {r: 0.09416164, g: 0.8679245, b: 0.2323336, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -7885,7 +7888,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 0.75
+  m_FillAmount: 0.7
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -8254,7 +8257,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -50, y: -4}
+  m_AnchoredPosition: {x: -50.000015, y: -4}
   m_SizeDelta: {x: 16, y: 16}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1550119888
@@ -8598,7 +8601,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 220896417}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -8715,7 +8718,12 @@ MonoBehaviour:
   KillOnDisable: 1
   Shared: {fileID: 11400000, guid: 58d91239e8955426691ddd7424c08877, type: 2}
   Animations: []
-  SharedOnComplete: []
+  SharedOnComplete:
+  - AnimationId: 4ef5294a08554ff2b7e44c369a995d03
+    AnimationName: Hop
+    OnComplete:
+      m_PersistentCalls:
+        m_Calls: []
 --- !u!114 &1772685054
 MonoBehaviour:
   m_ObjectHideFlags: 0

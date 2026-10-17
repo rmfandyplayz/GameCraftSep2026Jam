@@ -47,6 +47,11 @@ namespace rmf_claude.DOTweenUI
     /// Finish and Cancel fold everything since the preview captured the resting state - the posing, and
     /// what Finish wrote - into one Undo step. Undoing a single pose after the objects were put back would
     /// otherwise move that object back to where it was posed from, out of the preview, for good.
+    ///
+    /// Rows are read in the order the steps run, and a Current row is measured from where its step starts
+    /// once the rows before it have been written (ReadAll), so every row lands where the object was posed
+    /// even when an earlier row moves where it starts. Two rows reading the same value get the same pose,
+    /// which the panel warns about rather than refuses: a step starting where another ends wants exactly that.
     /// </summary>
     [InitializeOnLoad]
     internal static class UIAnimationRecording
@@ -57,11 +62,29 @@ namespace rmf_claude.DOTweenUI
             public int Step;
             public bool From;
             public string Fingerprint;
+
+            // A material row's asset and its value when the row was added, to catch the asset being edited
+            // instead of the copy the object shows while recording.
+            public Material Source;
+            public Vector4 SourceValue;
+        }
+
+        /// <summary>What one row would store, as ReadAll works it out.</summary>
+        private struct Result
+        {
+            public bool Ok;
+            public bool Deferred;
+            public UIAnimationReading Reading;
+            public string Reason;
         }
 
         private static UIAnimationWindow window;
         private static UIAnimationPlayer player;
         private static readonly List<Row> rows = new List<Row>();
+
+        // ReadAll's results for the rows, from the panel at the top of the window's last OnGUI, so each row's
+        // field further down shows the same thing without working it all out again.
+        private static readonly List<Result> shown = new List<Result>();
 
         // Set while Finish and Cancel end the preview themselves, so that is not taken for the preview
         // being ended from outside.
@@ -136,8 +159,7 @@ namespace rmf_claude.DOTweenUI
                 int armed = IndexOf(index, from);
                 if (armed >= 0)
                 {
-                    rows.RemoveAt(armed);
-                    owner.Repaint();
+                    Drop(armed);
                     return;
                 }
             }
@@ -168,7 +190,9 @@ namespace rmf_claude.DOTweenUI
                 UIAnimationPreview.Refresh(scene);
             }
 
-            rows.Add(new Row { Step = index, From = from, Fingerprint = FingerprintOf(data) });
+            var row = new Row { Step = index, From = from, Fingerprint = FingerprintOf(data) };
+            NoteSource(ref row, data, scene);
+            rows.Add(row);
 
             // Listed in the order the steps run, From before To, however they were clicked.
             rows.Sort((a, b) => a.Step != b.Step ? a.Step.CompareTo(b.Step) : b.From.CompareTo(a.From));
@@ -186,42 +210,40 @@ namespace rmf_claude.DOTweenUI
             UIAnimationPlayer scene = player;
             var failures = new List<string>();
 
-            SerializedObject serialized = owner.Serialized;
-            UIAnimation animation = owner.Animation;
-
-            if (serialized != null && serialized.targetObject != null && animation != null && scene != null)
+            // The objects go back whatever happens while reading - a getter can throw anything.
+            try
             {
-                serialized.Update();
+                SerializedObject serialized = owner.Serialized;
+                UIAnimation animation = owner.Animation;
 
-                for (int i = 0; i < rows.Count; i++)
+                if (serialized != null && serialized.targetObject != null && animation != null && scene != null)
                 {
-                    Row row = rows[i];
-                    string label = Describe(owner, row);
+                    serialized.Update();
 
-                    if (!StillThere(animation, row))
+                    var results = new List<Result>();
+                    ReadAll(animation, scene, true, results);
+
+                    for (int i = 0; i < rows.Count; i++)
                     {
-                        failures.Add(label + " changed while it was being recorded, so nothing was written to it.");
-                        continue;
+                        Row row = rows[i];
+
+                        if (!results[i].Ok)
+                        {
+                            failures.Add(Describe(owner, row) + ": " + results[i].Reason);
+                            continue;
+                        }
+
+                        SerializedProperty step = serialized.FindProperty(owner.StepPath(row.Step));
+                        if (step != null) Write(step, row.From, results[i].Reading);
                     }
 
-                    UIAnimationReading reading;
-                    bool deferred;
-                    string reason;
-
-                    if (!TryRead(animation, row.Step, row.From, scene, true, out reading, out deferred, out reason))
-                    {
-                        failures.Add(label + ": " + reason);
-                        continue;
-                    }
-
-                    SerializedProperty step = serialized.FindProperty(owner.StepPath(row.Step));
-                    if (step != null) Write(step, row.From, reading);
+                    serialized.ApplyModifiedProperties();
                 }
-
-                serialized.ApplyModifiedProperties();
             }
-
-            Close(owner, "Record Animation Values");
+            finally
+            {
+                Close(owner, "Record Animation Values");
+            }
 
             for (int i = 0; i < failures.Count; i++)
             {
@@ -245,6 +267,7 @@ namespace rmf_claude.DOTweenUI
             window = null;
             player = null;
             rows.Clear();
+            shown.Clear();
 
             try
             {
@@ -279,6 +302,7 @@ namespace rmf_claude.DOTweenUI
             window = null;
             player = null;
             rows.Clear();
+            shown.Clear();
 
             if (count > 0)
             {
@@ -288,6 +312,18 @@ namespace rmf_claude.DOTweenUI
             }
 
             if (owner != null) owner.Repaint();
+        }
+
+        /// <summary>Stops recording one row. The last one going is Cancel: a session recording nothing has nothing to do.</summary>
+        private static void Drop(int index)
+        {
+            UIAnimationWindow owner = window;
+
+            rows.RemoveAt(index);
+            if (index < shown.Count) shown.RemoveAt(index);
+
+            if (rows.Count == 0) Cancel();
+            else if (owner != null) owner.Repaint();
         }
 
         private static int IndexOf(int step, bool from)
@@ -530,6 +566,211 @@ namespace rmf_claude.DOTweenUI
             return true;
         }
 
+        /// <summary>
+        /// What every row would store, in order. A Current row measures from where its step starts, and the rows
+        /// before it may move that - an earlier step on the same object, recorded in the same go - so it is
+        /// measured on a copy of the animation with those rows already written in: what the animation will be
+        /// once Finish has written them. Without that, the later row is measured from where its step used to
+        /// start, and plays on from the new pose by the old difference. A Custom Property is left unread unless
+        /// allowGetters; no row after it reads the same member any differently.
+        /// </summary>
+        private static void ReadAll(UIAnimation animation, UIAnimationPlayer owner, bool allowGetters, List<Result> into)
+        {
+            into.Clear();
+
+            int lastFromStart = -1;
+            for (int i = 0; i < rows.Count; i++)
+            {
+                if (MeasuresFromStart(animation, rows[i])) lastFromStart = i;
+            }
+
+            UIAnimation working = null;
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                Row row = rows[i];
+                var result = new Result();
+
+                if (!StillThere(animation, row))
+                {
+                    result.Reason = "it changed while it was being recorded - moved, retyped or pointed at something " +
+                                    "else - so nothing was written to it.";
+                    into.Add(result);
+                    continue;
+                }
+
+                UIAnimation source = working != null && MeasuresFromStart(animation, row) ? working : animation;
+
+                result.Ok = TryRead(source, row.Step, row.From, owner, allowGetters, out result.Reading, out result.Deferred,
+                    out result.Reason);
+
+                if (result.Ok && !result.Deferred && i < lastFromStart)
+                {
+                    if (working == null) working = JsonUtility.FromJson<UIAnimation>(JsonUtility.ToJson(animation));
+                    Apply(working.Steps[row.Step], row.From, result.Reading);
+                }
+
+                into.Add(result);
+            }
+        }
+
+        /// <summary>Whether a row's value depends on where its step starts: a To on Current, with no From.</summary>
+        private static bool MeasuresFromStart(UIAnimation animation, Row row)
+        {
+            if (row.From || row.Step >= animation.Steps.Count || animation.Steps[row.Step] == null) return false;
+
+            UIAnimationStep step = animation.Steps[row.Step];
+            return step.ToMode == UIAnimationEndpointMode.Current && !step.UseFrom;
+        }
+
+        /// <summary>Write, into a step itself rather than through a SerializedObject - the working copy in ReadAll.</summary>
+        private static void Apply(UIAnimationStep step, bool from, UIAnimationReading reading)
+        {
+            switch (reading.Kind)
+            {
+                case UIAnimationValueKind.Vector:
+                {
+                    Vector3 current = from ? step.FromVector : step.ToVector;
+                    Vector3 value = reading.TwoDimensional
+                        ? new Vector3(reading.Number.x, reading.Number.y, current.z)
+                        : (Vector3)reading.Number;
+
+                    if (from) step.FromVector = value;
+                    else step.ToVector = value;
+                    break;
+                }
+
+                case UIAnimationValueKind.Color:
+                    if (from) step.FromColor = reading.Number;
+                    else step.ToColor = reading.Number;
+                    break;
+
+                case UIAnimationValueKind.Text:
+                    if (from) step.FromText = reading.Text ?? string.Empty;
+                    else step.ToText = reading.Text ?? string.Empty;
+                    break;
+
+                default:
+                    if (from) step.FromFloat = reading.Number.x;
+                    else step.ToFloat = reading.Number.x;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// What a row reads, as a key two rows reading the same value share, and how to name that value to the
+        /// user. Position covers both position types, which move one another; a Graphic's alpha is part of its
+        /// colour. False when there is nothing to read.
+        /// </summary>
+        private static bool TryValueOf(UIAnimationStep step, UIAnimationPlayer owner, out string key, out string label)
+        {
+            key = null;
+            label = null;
+            if (step == null || owner == null) return false;
+
+            if (UIAnimationRectState.Covers(step.Type))
+            {
+                RectTransform rect = UIAnimationTargets.RectOf(step, owner.gameObject);
+                if (rect == null) return false;
+
+                string what;
+                switch (step.Type)
+                {
+                    case UIAnimationStepType.AnchoredPosition:
+                    case UIAnimationStepType.LocalPosition: what = "position"; break;
+                    case UIAnimationStepType.SizeDelta: what = "size"; break;
+                    case UIAnimationStepType.Scale: what = "scale"; break;
+                    case UIAnimationStepType.Rotation: what = "rotation"; break;
+                    case UIAnimationStepType.OffsetMin: what = "Offset Min"; break;
+                    default: what = "Offset Max"; break;
+                }
+
+                key = rect.GetInstanceID() + "|" + what;
+                label = rect.name + "'s " + what;
+                return true;
+            }
+
+            UIAnimationChannel channel;
+            if (!UIAnimationSimulation.TryChannelOf(step, owner.gameObject, out channel) || channel.Target == null) return false;
+
+            string member;
+            switch (UIAnimationStep.TargetKindOf(step.Type))
+            {
+                case UIAnimationTargetKind.CanvasGroup: member = "alpha"; break;
+                case UIAnimationTargetKind.Graphic: member = "colour"; break;
+                case UIAnimationTargetKind.Material: member = "material " + channel.Member; break;
+                default: member = channel.Member; break;
+            }
+
+            key = channel.Target.GetInstanceID() + "|" + channel.Member;
+            label = channel.Target.name + "'s " + member;
+            return true;
+        }
+
+        /// <summary>
+        /// Where a row's value can be changed by hand: the component that holds it, or - for a material - the copy
+        /// the object shows while recording, since editing the material asset changes nothing on screen.
+        /// </summary>
+        private static Object EditableOf(UIAnimationStep step, UIAnimationPlayer owner)
+        {
+            if (step == null || owner == null) return null;
+
+            string problem;
+            Object target = UIAnimationTargets.Resolve(step.Type, UIAnimationTargets.SlotOf(step, step.Type), step.TargetPath,
+                owner.gameObject, out problem);
+
+            if (step.Type == UIAnimationStepType.CustomProperty)
+            {
+                Component component;
+                MemberInfo member;
+
+                return UIAnimationProperties.TryLocate(target as GameObject, step.PropertyComponent, step.PropertyMember,
+                    step.PropertyKind, out component, out member, out problem)
+                    ? component
+                    : target;
+            }
+
+            var instance = target as UIMaterialInstance;
+            if (instance != null)
+            {
+                Material shown = UIAnimationTargets.SourceMaterialOf(instance);
+                return shown != null ? (Object)shown : instance;
+            }
+
+            return target;
+        }
+
+        /// <summary>A material row's asset and its value now, if the preview has given the object a copy of it.</summary>
+        private static void NoteSource(ref Row row, UIAnimationStep step, UIAnimationPlayer owner)
+        {
+            row.Source = SourceOf(step, owner);
+            if (row.Source != null) row.SourceValue = ValueIn(row.Source, step);
+        }
+
+        private static Material SourceOf(UIAnimationStep step, UIAnimationPlayer owner)
+        {
+            if (UIAnimationStep.TargetKindOf(step.Type) != UIAnimationTargetKind.Material || owner == null) return null;
+
+            string problem;
+            var instance = UIAnimationTargets.Resolve(step.Type, UIAnimationTargets.SlotOf(step, step.Type), step.TargetPath,
+                owner.gameObject, out problem) as UIMaterialInstance;
+
+            Material source = instance != null ? instance.EditorSource : null;
+            return source != null && source != UIAnimationTargets.SourceMaterialOf(instance) ? source : null;
+        }
+
+        private static Vector4 ValueIn(Material material, UIAnimationStep step)
+        {
+            if (material == null || string.IsNullOrEmpty(step.ShaderProperty) || !material.HasProperty(step.ShaderProperty))
+            {
+                return Vector4.zero;
+            }
+
+            return step.Type == UIAnimationStepType.MaterialColor
+                ? (Vector4)material.GetColor(step.ShaderProperty)
+                : new Vector4(material.GetFloat(step.ShaderProperty), 0f, 0f, 0f);
+        }
+
         /// <summary>The value the target holds right now, in the step's own terms. Never a Custom Property.</summary>
         private static bool ReadLive(UIAnimationStep step, Object target, out Vector4 value)
         {
@@ -743,31 +984,39 @@ namespace rmf_claude.DOTweenUI
 
             if (window == null || player == null || !window.TryGetStep(step, out animation, out data, out index)) return;
 
-            DrawLive(rect, animation, index, from);
+            // What the panel at the top worked out this pass. Read again only if the panel has not run.
+            int armed = IndexOf(index, from);
+            if (armed < 0) return;
+
+            if (shown.Count != rows.Count) ReadAll(animation, player, false, shown);
+
+            DrawResult(rect, shown[armed], Offsets(data, from));
         }
 
-        private static void DrawLive(Rect rect, UIAnimation animation, int index, bool from)
+        private static void DrawResult(Rect rect, Result result, bool offset)
         {
-            UIAnimationReading reading;
-            bool deferred;
-            string reason;
-
-            if (!TryRead(animation, index, from, player, false, out reading, out deferred, out reason))
+            if (!result.Ok)
             {
-                GUI.Label(rect, new GUIContent(reason, reason), EditorStyles.miniLabel);
+                GUI.Label(rect, new GUIContent(result.Reason, result.Reason), EditorStyles.miniLabel);
                 return;
             }
 
-            if (deferred)
+            if (result.Deferred)
             {
                 GUI.Label(rect, new GUIContent("read on Finish", DeferredTooltip), EditorStyles.miniLabel);
                 return;
             }
 
-            DrawReading(rect, reading);
+            DrawReading(rect, result.Reading, offset);
         }
 
-        private static void DrawReading(Rect rect, UIAnimationReading reading)
+        /// <summary>Whether a row stores a difference rather than the value itself: Baseline, or Current.</summary>
+        private static bool Offsets(UIAnimationStep step, bool from)
+        {
+            return (from ? step.FromMode : step.ToMode) != UIAnimationEndpointMode.Absolute;
+        }
+
+        private static void DrawReading(Rect rect, UIAnimationReading reading, bool offset)
         {
             using (new EditorGUI.DisabledScope(true))
             {
@@ -795,6 +1044,50 @@ namespace rmf_claude.DOTweenUI
                         break;
                 }
             }
+
+            // A colour stored as a difference has negative parts a swatch cannot show, so the numbers are a hover away.
+            if (reading.Kind == UIAnimationValueKind.Color)
+            {
+                Vector4 c = reading.Number;
+                string numbers = "R " + c.x.ToString("0.###") + "   G " + c.y.ToString("0.###") + "   B " + c.z.ToString("0.###") +
+                                 "   A " + c.w.ToString("0.###");
+
+                GUI.Label(rect, new GUIContent(string.Empty, offset
+                    ? "Stored as a difference from where it starts or rests, which a swatch cannot show:\n" + numbers
+                    : numbers), GUIStyle.none);
+            }
+        }
+
+        private static GUIContent revealContent;
+
+        private static GUIContent RevealContent
+        {
+            get
+            {
+                if (revealContent == null)
+                {
+                    revealContent = new GUIContent(EditorGUIUtility.FindTexture(EditorGUIUtility.isProSkin
+                        ? "d_Animation.FilterBySelection"
+                        : "Animation.FilterBySelection"));
+                }
+
+                return revealContent;
+            }
+        }
+
+        private static GUIStyle iconButtonStyle;
+
+        private static GUIStyle IconButtonStyle
+        {
+            get
+            {
+                if (iconButtonStyle == null)
+                {
+                    iconButtonStyle = new GUIStyle(EditorStyles.miniButton) { padding = new RectOffset(2, 2, 2, 2) };
+                }
+
+                return iconButtonStyle;
+            }
         }
 
         /// <summary>
@@ -818,21 +1111,23 @@ namespace rmf_claude.DOTweenUI
                 return;
             }
 
-            // Deleted from under the recording: nothing is left to read or to put back.
-            if (player == null)
+            UIAnimation animation = owner.Animation;
+
+            // Deleted from under the recording: nothing is left to read or to put back. Rows whose step was moved,
+            // retyped or pointed elsewhere since are dropped, rather than kept to be written into whatever step is
+            // there now - and with none left there is nothing to record.
+            for (int i = rows.Count - 1; i >= 0; i--)
+            {
+                if (animation == null || !StillThere(animation, rows[i])) rows.RemoveAt(i);
+            }
+
+            if (player == null || rows.Count == 0)
             {
                 Cancel();
                 GUIUtility.ExitGUI();
             }
 
-            // Rows whose step was moved, retyped or pointed elsewhere since are dropped, rather than kept to be
-            // written into whatever step is there now.
-            UIAnimation animation = owner.Animation;
-
-            for (int i = rows.Count - 1; i >= 0; i--)
-            {
-                if (animation == null || !StillThere(animation, rows[i])) rows.RemoveAt(i);
-            }
+            ReadAll(animation, player, false, shown);
 
             Rect box = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             if (Event.current.type == EventType.Repaint) EditorGUI.DrawRect(box, ArmedTint);
@@ -845,31 +1140,63 @@ namespace rmf_claude.DOTweenUI
                 "until then, and Finish and Cancel both put every object back. Click record on more rows to add them.",
                 WrapStyle);
 
-            if (animation != null)
+            string shared = SharedValues(animation);
+            string edited = null;
+
+            for (int i = 0; i < rows.Count; i++)
             {
-                for (int i = 0; i < rows.Count; i++)
+                Row row = rows[i];
+                Rect line = EditorGUILayout.GetControlRect();
+
+                UIAnimationStep step = animation.Steps[row.Step];
+                UIAnimationEndpointMode mode = row.From ? step.FromMode : step.ToMode;
+                if (!row.From && mode == UIAnimationEndpointMode.Current && step.UseFrom) mode = UIAnimationEndpointMode.Baseline;
+
+                var labelRect = new Rect(line.x, line.y, Mathf.Min(150f, line.width * 0.42f), line.height);
+                var removeRect = new Rect(line.xMax - 20f, line.y, 20f, line.height);
+                var revealRect = new Rect(removeRect.x - 22f, line.y, 20f, line.height);
+                var valueRect = new Rect(labelRect.xMax + 4f, line.y,
+                    Mathf.Max(30f, revealRect.x - 4f - labelRect.xMax - 4f), line.height);
+
+                EditorGUI.LabelField(labelRect, "Step " + row.Step + " " + (row.From ? "From" : "To") + " (" + mode + ")");
+                DrawResult(valueRect, shown[i], mode != UIAnimationEndpointMode.Absolute);
+
+                Object editable = EditableOf(step, player);
+                bool material = UIAnimationStep.TargetKindOf(step.Type) == UIAnimationTargetKind.Material;
+
+                using (new EditorGUI.DisabledScope(editable == null))
                 {
-                    Row row = rows[i];
-                    Rect line = EditorGUILayout.GetControlRect();
+                    RevealContent.tooltip = material
+                        ? "Select the copy of the material this object shows while recording - change its values there. " +
+                          "Changing the material asset itself shows nothing until recording ends."
+                        : "Select the object that holds this value, and show it in the Inspector.";
 
-                    UIAnimationStep step = animation.Steps[row.Step];
-                    UIAnimationEndpointMode mode = row.From ? step.FromMode : step.ToMode;
-                    if (!row.From && mode == UIAnimationEndpointMode.Current && step.UseFrom) mode = UIAnimationEndpointMode.Baseline;
-
-                    var labelRect = new Rect(line.x, line.y, Mathf.Min(150f, line.width * 0.42f), line.height);
-                    var removeRect = new Rect(line.xMax - 20f, line.y, 20f, line.height);
-                    var valueRect = new Rect(labelRect.xMax + 4f, line.y, Mathf.Max(30f, removeRect.x - 4f - labelRect.xMax - 4f), line.height);
-
-                    EditorGUI.LabelField(labelRect, "Step " + row.Step + " " + (row.From ? "From" : "To") + " (" + mode + ")");
-                    DrawLive(valueRect, animation, row.Step, row.From);
-
-                    if (GUI.Button(removeRect, new GUIContent("×", "Stop recording this row."), EditorStyles.miniButton))
+                    if (GUI.Button(revealRect, RevealContent, IconButtonStyle))
                     {
-                        rows.RemoveAt(i);
+                        UIAnimationReveal.Show(editable);
                         GUIUtility.ExitGUI();
                     }
                 }
+
+                if (GUI.Button(removeRect, new GUIContent("×", rows.Count == 1
+                        ? "Stop recording this row. It is the only one, so this is the same as Cancel."
+                        : "Stop recording this row."), EditorStyles.miniButton))
+                {
+                    Drop(i);
+                    GUIUtility.ExitGUI();
+                }
+
+                if (edited == null && row.Source != null && ValueIn(row.Source, step) != row.SourceValue)
+                {
+                    edited = "The material asset '" + row.Source.name + "' was changed, but while recording, '" +
+                             TargetNameOf(step, player) + "' shows a copy of it, and the copy is what gets recorded. Press the " +
+                             "crosshair beside step " + row.Step + " to select the copy and change it there. The asset " +
+                             "keeps the change - undo it there if it was not meant.";
+                }
             }
+
+            if (shared != null) EditorGUILayout.HelpBox(shared, MessageType.Warning);
+            if (edited != null) EditorGUILayout.HelpBox(edited, MessageType.Warning);
 
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
@@ -889,6 +1216,179 @@ namespace rmf_claude.DOTweenUI
 
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndVertical();
+        }
+
+        private static string TargetNameOf(UIAnimationStep step, UIAnimationPlayer owner)
+        {
+            string problem;
+            Object target = UIAnimationTargets.Resolve(step.Type, UIAnimationTargets.SlotOf(step, step.Type), step.TargetPath,
+                owner.gameObject, out problem);
+
+            return target != null ? target.name : "the object";
+        }
+
+        /// <summary>
+        /// A warning naming the rows that read the same value, or null. They all get one pose - whatever it is on
+        /// Finish - which is right for a step that starts where another ends and a surprise otherwise.
+        /// </summary>
+        private static string SharedValues(UIAnimation animation)
+        {
+            var keys = new List<string>();
+            var labels = new List<string>();
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                string key;
+                string label;
+
+                if (!TryValueOf(animation.Steps[rows[i].Step], player, out key, out label)) key = null;
+
+                keys.Add(key);
+                labels.Add(label);
+            }
+
+            var text = new System.Text.StringBuilder();
+            var told = new HashSet<string>();
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                if (keys[i] == null || told.Contains(keys[i])) continue;
+
+                var names = new List<string>();
+                for (int j = i; j < rows.Count; j++)
+                {
+                    if (keys[j] == keys[i]) names.Add("step " + rows[j].Step + " " + (rows[j].From ? "From" : "To"));
+                }
+
+                if (names.Count < 2) continue;
+                told.Add(keys[i]);
+
+                if (text.Length > 0) text.Append("\n\n");
+
+                string list = names.Count == 2
+                    ? names[0] + " and " + names[1]
+                    : string.Join(", ", names.GetRange(0, names.Count - 1).ToArray()) + " and " + names[names.Count - 1];
+
+                text.Append(char.ToUpperInvariant(list[0])).Append(list.Substring(1)).Append(names.Count == 2 ? " both" : " all")
+                    .Append(" record ").Append(labels[i]).Append(", so they get the same value: whatever it is when you ")
+                    .Append("press Finish.");
+            }
+
+            if (text.Length == 0) return null;
+
+            text.Append(" That is right for a step that should start where another ends. To give them different values, " +
+                        "record them one at a time.");
+            return text.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Selects an object and brings it into view in the Inspector, for the recording panel's crosshair button. A
+    /// component's GameObject is selected, the component unfolded, and every Inspector showing it scrolled to it -
+    /// which Unity offers no call for, so it is done through the Inspector's own scroll view by reflection, and
+    /// simply skipped if that ever stops working. Anything else (a material) is selected as it is.
+    /// </summary>
+    internal static class UIAnimationReveal
+    {
+        private static Component pending;
+        private static double giveUpAt;
+
+        public static void Show(Object target)
+        {
+            if (target == null) return;
+
+            var component = target as Component;
+            if (component == null)
+            {
+                Selection.activeObject = target;
+                return;
+            }
+
+            Selection.activeGameObject = component.gameObject;
+            InternalEditorUtility.SetIsInspectorExpanded(component, true);
+            EditorGUIUtility.PingObject(component.gameObject);
+
+            // The Inspector rebuilds for the new selection on a later update, and only lays the result out after.
+            pending = component;
+            giveUpAt = EditorApplication.timeSinceStartup + 1.0;
+
+            EditorApplication.update -= Scroll;
+            EditorApplication.update += Scroll;
+        }
+
+        private static void Scroll()
+        {
+            if (pending == null || EditorApplication.timeSinceStartup > giveUpAt)
+            {
+                EditorApplication.update -= Scroll;
+                pending = null;
+                return;
+            }
+
+            try
+            {
+                if (TryScrollTo(pending))
+                {
+                    EditorApplication.update -= Scroll;
+                    pending = null;
+                }
+            }
+            catch (System.Exception)
+            {
+                // Unity's internals changed. Selecting and unfolding it still happened.
+                EditorApplication.update -= Scroll;
+                pending = null;
+            }
+        }
+
+        private const BindingFlags Hidden = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+
+        private static bool TryScrollTo(Component component)
+        {
+            System.Type inspectorType = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+            System.Type propertyEditorType = typeof(Editor).Assembly.GetType("UnityEditor.PropertyEditor");
+            if (inspectorType == null || propertyEditorType == null) return true;
+
+            FieldInfo scrollField = propertyEditorType.GetField("m_ScrollView", Hidden);
+            FieldInfo editorsField = propertyEditorType.GetField("m_EditorsElement", Hidden);
+            if (scrollField == null || editorsField == null) return true;
+
+            bool any = false;
+
+            foreach (Object found in Resources.FindObjectsOfTypeAll(inspectorType))
+            {
+                var scrollView = scrollField.GetValue(found) as UnityEngine.UIElements.ScrollView;
+                var editors = editorsField.GetValue(found) as UnityEngine.UIElements.VisualElement;
+                if (scrollView == null || editors == null) continue;
+
+                foreach (UnityEngine.UIElements.VisualElement element in editors.Children())
+                {
+                    if (!Shows(element, component)) continue;
+
+                    // Not laid out yet: try again next update.
+                    if (float.IsNaN(element.layout.height) || element.layout.height <= 0f) return false;
+
+                    Vector2 top = UnityEngine.UIElements.VisualElementExtensions.ChangeCoordinatesTo(element, scrollView.contentContainer, Vector2.zero);
+                    scrollView.scrollOffset = new Vector2(scrollView.scrollOffset.x, Mathf.Max(0f, top.y));
+                    any = true;
+                }
+            }
+
+            return any;
+        }
+
+        private static bool Shows(UnityEngine.UIElements.VisualElement element, Component component)
+        {
+            PropertyInfo editorsProperty = element.GetType().GetProperty("Editors", Hidden);
+            var editors = editorsProperty != null ? editorsProperty.GetValue(element) as Editor[] : null;
+            if (editors == null) return false;
+
+            for (int i = 0; i < editors.Length; i++)
+            {
+                if (editors[i] != null && editors[i].target == component) return true;
+            }
+
+            return false;
         }
     }
 }
