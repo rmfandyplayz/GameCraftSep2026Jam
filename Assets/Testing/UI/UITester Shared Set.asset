@@ -1,0 +1,481 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e4c5aacc0f64360b69a7ce4bb881375, type: 3}
+  m_Name: UITester Shared Set
+  m_EditorClassIdentifier: Assembly-CSharp::rmf_claude.DOTweenUI.UIAnimationAsset
+  Animations:
+  - Name: Slide
+    Notes: Moves Box right and back. Each player using this set has its own On Complete
+      for it.
+    Steps:
+    - Type: 0
+      Start: 0
+      RectTarget: {fileID: 0}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      PropertyTarget: {fileID: 0}
+      TargetPath: Box
+      Duration: 0.4
+      Delay: 0
+      EaseType: 6
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 0
+      FromMode: 0
+      ToMode: 1
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 45, y: 0, z: 0}
+      FromFloat: 0
+      ToFloat: 1
+      FromColor: {r: 1, g: 1, b: 1, a: 1}
+      ToColor: {r: 1, g: 1, b: 1, a: 1}
+      FromText: 
+      ToText: 
+      ShaderProperty: _Progress
+      ActiveValue: 1
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+      UseCustomPath: 0
+      PathShape: 0
+      Waypoints: []
+      PropertyComponent: 
+      PropertyMember: 
+      PropertyKind: 0
+      NumberFormat: 0
+    - Type: 0
+      Start: 0
+      RectTarget: {fileID: 0}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      PropertyTarget: {fileID: 0}
+      TargetPath: Box
+      Duration: 0.3
+      Delay: 0
+      EaseType: 7
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 0
+      FromMode: 0
+      ToMode: 1
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 0, y: 0, z: 0}
+      FromFloat: 0
+      ToFloat: 1
+      FromColor: {r: 1, g: 1, b: 1, a: 1}
+      ToColor: {r: 1, g: 1, b: 1, a: 1}
+      FromText: 
+      ToText: 
+      ShaderProperty: _Progress
+      ActiveValue: 1
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+      UseCustomPath: 0
+      PathShape: 0
+      Waypoints: []
+      PropertyComponent: 
+      PropertyMember: 
+      PropertyKind: 0
+      NumberFormat: 0
+    Loops: 1
+    LoopType: 0
+    PlayAtCustomFPS: 0
+    FPS: 12
+    Snapping: 0
+    SnapPerStep: 0
+    ApplyFromValuesImmediately: 1
+    InterruptOthers: 0
+    CompleteInterrupted: 0
+    CompleteSilently: 0
+    OnComplete:
+      m_PersistentCalls:
+        m_Calls: []
+    Id: 7451c9ff6f594502bfa6b09b66b63024
+  - Name: Spin
+    Notes: One turn of Box. Try Override on it.
+    Steps:
+    - Type: 11
+      Start: 0
+      RectTarget: {fileID: 0}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      PropertyTarget: {fileID: 0}
+      TargetPath: Box
+      Duration: 0.6
+      Delay: 0
+      EaseType: 10
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 0
+      FromMode: 0
+      ToMode: 1
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 0, y: 0, z: -360}
+      FromFloat: 0
+      ToFloat: 1
+      FromColor: {r: 1, g: 1, b: 1, a: 1}
+      ToColor: {r: 1, g: 1, b: 1, a: 1}
+      FromText: 
+      ToText: 
+      ShaderProperty: _Progress
+      ActiveValue: 1
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+      UseCustomPath: 0
+      PathShape: 0
+      Waypoints: []
+      PropertyComponent: 
+      PropertyMember: 
+      PropertyKind: 0
+      NumberFormat: 0
+    Loops: 1
+    LoopType: 0
+    PlayAtCustomFPS: 0
+    FPS: 12
+    Snapping: 0
+    SnapPerStep: 0
+    ApplyFromValuesImmediately: 1
+    InterruptOthers: 0
+    CompleteInterrupted: 0
+    CompleteSilently: 0
+    OnComplete:
+      m_PersistentCalls:
+        m_Calls: []
+    Id: 868e4b4026694a87864a8ea7ca88012e
+  - Name: Fade
+    Notes: Box fades out and back. S1 overrides it with its own; on S2 it has no
+      Graphic to fade.
+    Steps:
+    - Type: 2
+      Start: 0
+      RectTarget: {fileID: 0}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      PropertyTarget: {fileID: 0}
+      TargetPath: Box
+      Duration: 0.25
+      Delay: 0
+      EaseType: 6
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 0
+      FromMode: 0
+      ToMode: 0
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 0, y: 0, z: 0}
+      FromFloat: 0
+      ToFloat: 0.15
+      FromColor: {r: 1, g: 1, b: 1, a: 1}
+      ToColor: {r: 1, g: 1, b: 1, a: 1}
+      FromText: 
+      ToText: 
+      ShaderProperty: _Progress
+      ActiveValue: 1
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+      UseCustomPath: 0
+      PathShape: 0
+      Waypoints: []
+      PropertyComponent: 
+      PropertyMember: 
+      PropertyKind: 0
+      NumberFormat: 0
+    - Type: 2
+      Start: 0
+      RectTarget: {fileID: 0}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      PropertyTarget: {fileID: 0}
+      TargetPath: Box
+      Duration: 0.25
+      Delay: 0
+      EaseType: 6
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 0
+      FromMode: 0
+      ToMode: 0
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 0, y: 0, z: 0}
+      FromFloat: 0
+      ToFloat: 1
+      FromColor: {r: 1, g: 1, b: 1, a: 1}
+      ToColor: {r: 1, g: 1, b: 1, a: 1}
+      FromText: 
+      ToText: 
+      ShaderProperty: _Progress
+      ActiveValue: 1
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+      UseCustomPath: 0
+      PathShape: 0
+      Waypoints: []
+      PropertyComponent: 
+      PropertyMember: 
+      PropertyKind: 0
+      NumberFormat: 0
+    Loops: 1
+    LoopType: 0
+    PlayAtCustomFPS: 0
+    FPS: 12
+    Snapping: 0
+    SnapPerStep: 0
+    ApplyFromValuesImmediately: 1
+    InterruptOthers: 0
+    CompleteInterrupted: 0
+    CompleteSilently: 0
+    OnComplete:
+      m_PersistentCalls:
+        m_Calls: []
+    Id: bcd8b22c354843da8ca44371085ca330
+  - Name: Pop
+    Notes: A punch on Box.
+    Steps:
+    - Type: 10
+      Start: 0
+      RectTarget: {fileID: 0}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      PropertyTarget: {fileID: 0}
+      TargetPath: Box
+      Duration: 0.4
+      Delay: 0
+      EaseType: 6
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 0
+      FromMode: 0
+      ToMode: 0
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 0.35, y: 0.35, z: 0}
+      FromFloat: 0
+      ToFloat: 1
+      FromColor: {r: 1, g: 1, b: 1, a: 1}
+      ToColor: {r: 1, g: 1, b: 1, a: 1}
+      FromText: 
+      ToText: 
+      ShaderProperty: _Progress
+      ActiveValue: 1
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+      UseCustomPath: 0
+      PathShape: 0
+      Waypoints: []
+      PropertyComponent: 
+      PropertyMember: 
+      PropertyKind: 0
+      NumberFormat: 0
+    Loops: 1
+    LoopType: 0
+    PlayAtCustomFPS: 0
+    FPS: 12
+    Snapping: 0
+    SnapPerStep: 0
+    ApplyFromValuesImmediately: 1
+    InterruptOthers: 0
+    CompleteInterrupted: 0
+    CompleteSilently: 0
+    OnComplete:
+      m_PersistentCalls:
+        m_Calls: []
+    Id: 6f9edef86ab14363875291ef7bdbad55
