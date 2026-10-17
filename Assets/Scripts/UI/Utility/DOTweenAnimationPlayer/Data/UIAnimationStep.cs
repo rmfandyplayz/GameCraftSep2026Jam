@@ -197,11 +197,13 @@ namespace rmf_claude.DOTweenUI
                  "Click to switch.")]
         public bool UseFrom;
 
-        [Tooltip("Absolute = the value as typed.\nBaseline = resting value captured at Awake, plus the value as an offset.")]
+        [Tooltip("Absolute = the value as typed.\nBaseline = resting value captured at Awake, plus the value as an offset. " +
+                 "Leave it at 0 to use the value the object has when the game starts.")]
         public UIAnimationEndpointMode FromMode = UIAnimationEndpointMode.Absolute;
 
         [Tooltip("Absolute = the value as typed.\n" +
-                 "Baseline = resting value captured at Awake, plus the value as an offset. Use this to land on the authored state.\n" +
+                 "Baseline = resting value captured at Awake, plus the value as an offset. Leave it at 0 to use the value " +
+                 "the object has when the game starts. Use this to land on the authored state.\n" +
                  "Current = relative to the value when the tween starts. Only offered while the button reads TO (no From).")]
         public UIAnimationEndpointMode ToMode = UIAnimationEndpointMode.Absolute;
 
@@ -950,6 +952,69 @@ namespace rmf_claude.DOTweenUI
             UIAnimationStepType type = baselineType;
             baselineType = snapshotType;
             snapshotType = type;
+        }
+
+        /// <summary>
+        /// A material or Custom Property step's resting value, as CaptureBaseline last read it, and where it
+        /// was read from: the UIMaterialInstance and shader property, or the component and member. For the
+        /// editor's record session, whose Baseline and Current have to measure from exactly what playback
+        /// measures from - and which may not call a getter itself outside a click. Numbers come back in a
+        /// Vector4: a float in x, a vector in xyz, a colour as rgba. Text comes back as text. False for every
+        /// other type, and when nothing was captured.
+        /// </summary>
+        public bool EditorTryGetBaseline(out UnityEngine.Object target, out string channel, out Vector4 number, out string text)
+        {
+            target = null;
+            channel = null;
+            number = Vector4.zero;
+            text = null;
+
+            switch (baselineType)
+            {
+                case UIAnimationStepType.MaterialFloat:
+                case UIAnimationStepType.MaterialColor:
+                    if (!HasMaterial()) return false;
+
+                    target = materialInstance;
+                    channel = ShaderProperty;
+                    number = baselineType == UIAnimationStepType.MaterialFloat ? new Vector4(baselineFloat, 0f, 0f, 0f) : (Vector4)baselineColor;
+                    return true;
+
+                case UIAnimationStepType.CustomProperty:
+                    if (baselineMember == null || !baselineMember.IsAlive) return false;
+
+                    target = baselineMember.Component;
+                    channel = PropertyMember;
+                    text = baselineText;
+
+                    switch (baselineMember.Kind)
+                    {
+                        case UIAnimationPropertyKind.Vector2:
+                        case UIAnimationPropertyKind.Vector3:
+                            number = baselineVector;
+                            break;
+
+                        case UIAnimationPropertyKind.Color:
+                            number = baselineColor;
+                            break;
+
+                        // Float, Int and a counted number all keep theirs in baselineFloat.
+                        default:
+                            number = new Vector4(baselineFloat, 0f, 0f, 0f);
+                            break;
+                    }
+
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>Gives a material step's Graphic its own material back, for the end of the edit-mode preview.</summary>
+        public void EditorReleaseMaterial()
+        {
+            if (materialInstance != null) materialInstance.EditorRelease();
         }
 
         /// <summary>The resolved object a step of this type writes to, including a material's owner.</summary>

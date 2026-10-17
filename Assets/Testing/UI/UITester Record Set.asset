@@ -1,0 +1,167 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e4c5aacc0f64360b69a7ce4bb881375, type: 3}
+  m_Name: UITester Record Set
+  m_EditorClassIdentifier: Assembly-CSharp::rmf_claude.DOTweenUI.UIAnimationAsset
+  Animations:
+  - Name: Hop
+    Notes: 'Recording a set''s animation. Select this set (Assets/Testing/UI/UITester
+      Record Set), set Preview On to ''R9  Record: shared set'', Pop Out ''Hop'',
+      then record step 0''s To and drag the Icon. Finish writes into the set. In
+      the player''s own Inspector this animation has no Pop Out: Override it first.'
+    Steps:
+    - Type: 0
+      Start: 0
+      RectTarget: {fileID: 0}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      PropertyTarget: {fileID: 0}
+      TargetPath: Icon
+      Duration: 0.3
+      Delay: 0
+      EaseType: 6
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 0
+      FromMode: 0
+      ToMode: 2
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 0, y: 30, z: 0}
+      FromFloat: 0
+      ToFloat: 1
+      FromColor: {r: 1, g: 1, b: 1, a: 1}
+      ToColor: {r: 1, g: 1, b: 1, a: 1}
+      FromText: 
+      ToText: 
+      ShaderProperty: _Progress
+      ActiveValue: 1
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+      UseCustomPath: 0
+      PathShape: 0
+      Waypoints: []
+      PropertyComponent: 
+      PropertyMember: 
+      PropertyKind: 0
+      NumberFormat: 0
+    - Type: 0
+      Start: 0
+      RectTarget: {fileID: 0}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      PropertyTarget: {fileID: 0}
+      TargetPath: Icon
+      Duration: 0.3
+      Delay: 0
+      EaseType: 6
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 0
+      FromMode: 0
+      ToMode: 2
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 0, y: -30, z: 0}
+      FromFloat: 0
+      ToFloat: 1
+      FromColor: {r: 1, g: 1, b: 1, a: 1}
+      ToColor: {r: 1, g: 1, b: 1, a: 1}
+      FromText: 
+      ToText: 
+      ShaderProperty: _Progress
+      ActiveValue: 1
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+      UseCustomPath: 0
+      PathShape: 0
+      Waypoints: []
+      PropertyComponent: 
+      PropertyMember: 
+      PropertyKind: 0
+      NumberFormat: 0
+    Loops: 1
+    LoopType: 0
+    PlayAtCustomFPS: 0
+    FPS: 12
+    Snapping: 0
+    SnapPerStep: 0
+    ApplyFromValuesImmediately: 1
+    InterruptOthers: 1
+    CompleteInterrupted: 0
+    CompleteSilently: 0
+    OnComplete:
+      m_PersistentCalls:
+        m_Calls: []
+    Id: 

@@ -447,7 +447,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -584,7 +584,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -684,7 +684,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 3875536895
   m_fontColor: {r: 1, g: 1, b: 1, a: 0.9}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1845,6 +1845,7 @@ MonoBehaviour:
   KillOnDisable: 1
   Shared: {fileID: 11400000, guid: 3c92468f8d2e2ed4ebdd92097b7c8003, type: 2}
   Animations: []
+  SharedOnComplete: []
 --- !u!114 &233457076
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2137,7 +2138,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -2897,6 +2898,8 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
+  SharedOnComplete: []
 --- !u!114 &441768859
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3483,6 +3486,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
   - Name: Shrink
     Notes: 
     Steps:
@@ -3631,6 +3635,8 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
+  SharedOnComplete: []
 --- !u!114 &488490929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4197,7 +4203,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -4695,6 +4701,7 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+    Id: 
   - Name: Travel Endless
     Notes: Hand test N1. Loops forever, so there is no end to complete to.
     Steps:
@@ -4843,6 +4850,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
   - Name: Interrupt STOP
     Notes: Hand test N1. Punches the runner; Interrupt Others reads STOP.
     Steps:
@@ -4925,6 +4933,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
   - Name: Interrupt COMPLETE REPORT
     Notes: Hand test N1. Punches the runner; Interrupt Others reads COMPLETE, REPORT.
     Steps:
@@ -5007,6 +5016,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
   - Name: Interrupt COMPLETE SILENT
     Notes: Hand test N1. Punches the runner; Interrupt Others reads COMPLETE, SILENT.
     Steps:
@@ -5089,6 +5099,8 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
+  SharedOnComplete: []
 --- !u!114 &580300526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5405,7 +5417,7 @@ MonoBehaviour:
     LoopType: 0
     PlayAtCustomFPS: 0
     FPS: 12
-    Snapping: 0
+    Snapping: 1
     SnapPerStep: 0
     ApplyFromValuesImmediately: 0
     InterruptOthers: 1
@@ -5414,6 +5426,8 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
+  SharedOnComplete: []
 --- !u!114 &585870234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7023,6 +7037,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
   - Name: Up
     Notes: 
     Steps:
@@ -7171,6 +7186,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
   - Name: Loop
     Notes: 
     Steps:
@@ -7256,6 +7272,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
   - Name: Diagonal
     Notes: 
     Steps:
@@ -7338,6 +7355,8 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
+  SharedOnComplete: []
 --- !u!114 &878325240
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7586,7 +7605,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -7892,6 +7911,8 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
+  SharedOnComplete: []
 --- !u!114 &1065981283
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8047,7 +8068,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -8679,7 +8700,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4284930559
   m_fontColor: {r: 1, g: 0.85, b: 0.4, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -8990,7 +9011,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 2
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 60, y: 0, z: 0}
+      ToVector: {x: 69, y: -10, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -9056,7 +9077,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 2
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 0, y: 45, z: 0}
+      ToVector: {x: 21, y: 25, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -9122,7 +9143,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 2
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 60, y: 0, z: 0}
+      ToVector: {x: 6, y: 40, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -9189,7 +9210,7 @@ MonoBehaviour:
       FromMode: 0
       ToMode: 1
       FromVector: {x: 0, y: 0, z: 0}
-      ToVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 9.685501, y: 35.83638, z: 0}
       FromFloat: 0
       ToFloat: 1
       FromColor: {r: 1, g: 1, b: 1, a: 1}
@@ -9217,7 +9238,7 @@ MonoBehaviour:
     LoopType: 0
     PlayAtCustomFPS: 0
     FPS: 12
-    Snapping: 0
+    Snapping: 1
     SnapPerStep: 0
     ApplyFromValuesImmediately: 1
     InterruptOthers: 1
@@ -9226,6 +9247,8 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
+  SharedOnComplete: []
 --- !u!114 &1219351408
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9817,6 +9840,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
   - Name: Per Step
     Notes: 
     Steps:
@@ -9965,6 +9989,8 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
+  SharedOnComplete: []
 --- !u!114 &1287558592
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10423,7 +10449,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -11565,7 +11591,7 @@ MonoBehaviour:
         m_RotationOrder: 4
       UseFrom: 0
       FromMode: 0
-      ToMode: 2
+      ToMode: 1
       FromVector: {x: 0, y: 0, z: 0}
       ToVector: {x: 140, y: 0, z: 0}
       FromFloat: 0
@@ -11593,6 +11619,74 @@ MonoBehaviour:
       PropertyMember: 
       PropertyKind: 0
       NumberFormat: 0
+    - Type: 20
+      Start: 0
+      RectTarget: {fileID: 0}
+      CanvasGroupTarget: {fileID: 0}
+      GraphicTarget: {fileID: 0}
+      MaterialTarget: {fileID: 0}
+      ActiveTarget: {fileID: 0}
+      AudioSourceTarget: {fileID: 0}
+      PropertyTarget: {fileID: 1669690826}
+      TargetPath: Ball
+      Duration: 1.2
+      Delay: 0
+      EaseType: 4
+      UseCustomCurve: 0
+      Curve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      UseFrom: 0
+      FromMode: 0
+      ToMode: 1
+      FromVector: {x: 0, y: 0, z: 0}
+      ToVector: {x: 140, y: 0, z: 0}
+      FromFloat: 0
+      ToFloat: 1
+      FromColor: {r: 1, g: 1, b: 1, a: 1}
+      ToColor: {r: 1, g: 1, b: 1, a: 1}
+      FromText: 
+      ToText: 
+      ShaderProperty: _Progress
+      ActiveValue: 1
+      Clip: {fileID: 0}
+      Volume: 1
+      Pitch: 1
+      PitchVariation: 0
+      Vibrato: 10
+      Elasticity: 1
+      Randomness: 90
+      Snapping: 0
+      UseCustomPath: 1
+      PathShape: 0
+      Waypoints:
+      - {x: 35, y: 50, z: 0}
+      - {x: 105, y: 50, z: 0}
+      PropertyComponent: UnityEngine.CanvasRenderer
+      PropertyMember: materialCount
+      PropertyKind: 1
+      NumberFormat: 0
     Loops: 1
     LoopType: 0
     PlayAtCustomFPS: 0
@@ -11606,6 +11700,8 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
+  SharedOnComplete: []
 --- !u!114 &1597110844
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11898,7 +11994,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -12035,7 +12131,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -12407,6 +12503,8 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
+  SharedOnComplete: []
 --- !u!114 &1698896008
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12562,7 +12660,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -12699,7 +12797,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -13972,7 +14070,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -14533,6 +14631,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
   - Name: Coins
     Notes: Hand test N2. From 0 to 50 here; +7 coins sets both from code.
     Steps:
@@ -14615,6 +14714,7 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
   - Name: Message
     Notes: Hand test N2. Types the text here; New message sets it from code.
     Steps:
@@ -14697,6 +14797,8 @@ MonoBehaviour:
     OnComplete:
       m_PersistentCalls:
         m_Calls: []
+    Id: 
+  SharedOnComplete: []
 --- !u!114 &2140547083
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14815,7 +14917,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4284930559
   m_fontColor: {r: 1, g: 0.85, b: 0.4, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
